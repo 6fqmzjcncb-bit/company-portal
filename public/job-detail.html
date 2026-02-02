@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İş Listesi Detay - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🏢</span>
+                Şirket Portalı
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="/dashboard.html" class="nav-link">
+                        <span class="nav-icon">📊</span>
+                        Ana Sayfa
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/jobs.html" class="nav-link active">
+                        <span class="nav-icon">📋</span>
+                        İş Listeleri
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/sources.html" class="nav-link">
+                        <span class="nav-icon">📦</span>
+                        Kaynaklar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/products.html" class="nav-link">
+                        <span class="nav-icon">🔧</span>
+                        Ürünler
+                    </a>
+                </li>
+                <li class="nav-item" id="adminLink" style="display: none;">
+                    <a href="/admin.html" class="nav-link">
+                        <span class="nav-icon">⚙️</span>
+                        Yönetim
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-info">
+                <div class="user-name" id="userName">Yükleniyor...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">
+                    Çıkış Yap
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <a href="/jobs.html" class="text-muted text-sm">← Geri</a>
+                    <h1 class="page-title" id="jobTitle">Yükleniyor...</h1>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="openAddItemModal()">
+                        + Kalem Ekle
+                    </button>
+                </div>
+            </div>
+
+            <div id="alert-container"></div>
+
+            <!-- Kaynağa Göre Gruplanmış Kalemler -->
+            <div id="groupedItems">
+                <div class="loader"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Kalem Ekleme Modal -->
+    <div id="addItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Kalem Ekle</h2>
+                <button class="modal-close" onclick="closeAddItemModal()">×</button>
+            </div>
+
+            <form id="addItemForm">
+                <div class="form-group">
+                    <label class="form-label">Kalem Tipi</label>
+                    <div class="flex gap-2">
+                        <button type="button" class="btn btn-outline flex-1" id="stockBtn"
+                            onclick="selectItemType('stock')">
+                            Stoktan Seç
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-1" id="customBtn"
+                            onclick="selectItemType('custom')">
+                            Özel Yazı
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stoktan Seçim -->
+                <div id="stockSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="productSearch" class="form-label">Ürün Ara</label>
+                        <input type="text" id="productSearch" class="form-input" placeholder="Ürün adı veya barkod..."
+                            autocomplete="off">
+                        <div id="productResults" class="mt-1"></div>
+                    </div>
+                    <input type="hidden" id="selectedProductId">
+                </div>
+
+                <!-- Özel İsim -->
+                <div id="customSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="customName" class="form-label">Özel İsim</label>
+                        <input type="text" id="customName" class="form-input"
+                            placeholder="Örn: 1 Kutu Vida, Koli Bandı...">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sourceSelect" class="form-label">Kaynak</label>
+                    <select id="sourceSelect" class="form-select" required>
+                        <option value="">Kaynak seçin...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity" class="form-label">Miktar</label>
+                    <input type="number" id="quantity" class="form-input" value="1" min="1" required>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" class="btn btn-secondary flex-1" onclick="closeAddItemModal()">
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary flex-1">
+                        Ekle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/job-detail.js"></script>
+</body>
+
+</html>

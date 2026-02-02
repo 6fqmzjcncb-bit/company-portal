@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ürünler - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        let currentUser = null;
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) window.location.href = '/index.html';
+                currentUser = await response.json();
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'block';
+                    document.getElementById('addBtn').style.display = 'block';
+                }
+            } catch (error) { window.location.href = '/index.html'; }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        }
+
+        async function loadProducts() {
+            const response = await fetch('/api/products');
+            const products = await response.json();
+            const container = document.getElementById('productsContainer');
+
+            if (products.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Henüz ürün yok</td></tr>';
+                return;
+            }
+
+            container.innerHTML = products.map(product => `
+        <tr>
+          <td><strong>${product.name}</strong></td>
+          <td>${product.barcode || '-'}</td>
+          <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
+          <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>
+        </tr>
+      `).join('');
+        }
+
+        async function addProduct() {
+            const name = prompt('Ürün adı:');
+            if (!name) return;
+
+            const barcode = prompt('Barkod (opsiyonel):') || null;
+            const stock = parseInt(prompt('Başlangıç stok miktarı:', '0')) || 0;
+
+            const response = await fetch('/api/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, barcode, current_stock: stock })
+            });
+
+            if (response.ok) loadProducts();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadProducts();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                        Sayfa</a></li>
+                <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
+                        Listeleri</a></li>
+                <li class="nav-item"><a href="/sources.html" class="nav-link"><span
+                            class="nav-icon">📦</span>Kaynaklar</a></li>
+                <li class="nav-item"><a href="/products.html" class="nav-link active"><span
+                            class="nav-icon">🔧</span>Ürünler</a></li>
+                <li class="nav-item" id="adminLink" style="display:none;"><a href="/admin.html" class="nav-link"><span
+                            class="nav-icon">⚙️</span>Yönetim</a></li>
+            </ul>
+            <div class="user-info">
+                <div class="user-name" id="userName">...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Ürünler</h1>
+                <button id="addBtn" class="btn btn-primary" onclick="addProduct()" style="display:none;">+ Yeni
+                    Ürün</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ürün Adı</th>
+                            <th>Barkod</th>
+                            <th>Stok</th>
+                            <th>Eklenme Tarihi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsContainer">
+                        <tr>
+                            <td colspan="4" class="text-center">
+                                <div class="loader"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="alert alert-warning mt-3">
+                ℹ️ Stok miktarları sadece yöneticiler tarafından görülebilir.
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

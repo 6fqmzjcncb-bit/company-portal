@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaynaklar - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        let currentUser = null;
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) window.location.href = '/index.html';
+                currentUser = await response.json();
+                document.getElementById('userName').textContent = currentUser.full_name;
+                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminLink').style.display = 'block';
+                    document.getElementById('addBtn').style.display = 'block';
+                }
+            } catch (error) { window.location.href = '/index.html'; }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        }
+
+        async function loadSources() {
+            const response = await fetch('/api/sources');
+            const sources = await response.json();
+            const container = document.getElementById('sourcesContainer');
+
+            if (sources.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Henüz kaynak yok</p>';
+                return;
+            }
+
+            container.innerHTML = sources.map(source => `
+        <div class="card" style="border-left: 4px solid ${source.color_code};">
+          <div class="card-body">
+            <div class="flex justify-between items-center">
+              <div>
+                <strong>${source.name}</strong>
+                <div class="text-sm text-muted">${source.type === 'internal' ? 'İç Depo' : 'Dış Tedarikçi'}</div>
+              </div>
+              <div style="width: 40px; height: 40px; background-color: ${source.color_code}; border-radius: 8px;"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        async function addSource() {
+            const name = prompt('Kaynak adı:');
+            if (!name) return;
+
+            const color = prompt('Renk kodu (örn: #d4edda):', '#d4edda');
+            const type = confirm('İç depo mu? (İptal = Dış tedarikçi)') ? 'internal' : 'external';
+
+            const response = await fetch('/api/sources', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, color_code: color, type })
+            });
+
+            if (response.ok) loadSources();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadSources();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                        Sayfa</a></li>
+                <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
+                        Listeleri</a></li>
+                <li class="nav-item"><a href="/sources.html" class="nav-link active"><span
+                            class="nav-icon">📦</span>Kaynaklar</a></li>
+                <li class="nav-item"><a href="/products.html" class="nav-link"><span
+                            class="nav-icon">🔧</span>Ürünler</a></li>
+                <li class="nav-item" id="adminLink" style="display:none;"><a href="/admin.html" class="nav-link"><span
+                            class="nav-icon">⚙️</span>Yönetim</a></li>
+            </ul>
+            <div class="user-info">
+                <div class="user-name" id="userName">...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">Kaynaklar</h1>
+                <button id="addBtn" class="btn btn-primary" onclick="addSource()" style="display:none;">+ Yeni
+                    Kaynak</button>
+            </div>
+            <div class="grid grid-3" id="sourcesContainer">
+                <div class="loader"></div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

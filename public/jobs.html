@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İş Listeleri - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) window.location.href = '/index.html';
+                const user = await response.json();
+                document.getElementById('userName').textContent = user.full_name;
+                document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+                if (user.role === 'admin') document.getElementById('adminLink').style.display = 'block';
+            } catch (error) { window.location.href = '/index.html'; }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        }
+
+        async function loadJobs() {
+            const response = await fetch('/api/jobs');
+            const jobs = await response.json();
+            const container = document.getElementById('jobsContainer');
+
+            if (jobs.length === 0) {
+                container.innerHTML = '<p class="text-muted text-center">Henüz iş listesi yok</p>';
+                return;
+            }
+
+            const statusColors = { pending: 'warning', processing: 'primary', completed: 'success' };
+            const statusLabels = { pending: 'Bekliyor', processing: 'İşlemde', completed: 'Tamamlandı' };
+
+            container.innerHTML = jobs.map(job => `
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <strong>${job.title}</strong>
+              <div class="text-sm text-muted">${job.creator.full_name} - ${new Date(job.created_at).toLocaleDateString('tr-TR')}</div>
+            </div>
+            <span class="badge badge-${statusColors[job.status]}">${statusLabels[job.status]}</span>
+          </div>
+          <div class="card-footer">
+            <a href="/job-detail.html?id=${job.id}" class="btn btn-primary btn-sm">Detay Gör</a>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        async function createNewJob() {
+            const title = prompt('İş listesi başlığı:');
+            if (!title) return;
+
+            const response = await fetch('/api/jobs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title })
+            });
+
+            if (response.ok) {
+                const job = await response.json();
+                window.location.href = `/job-detail.html?id=${job.id}`;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadJobs();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                        Sayfa</a></li>
+                <li class="nav-item"><a href="/jobs.html" class="nav-link active"><span class="nav-icon">📋</span>İş
+                        Listeleri</a></li>
+                <li class="nav-item"><a href="/sources.html" class="nav-link"><span
+                            class="nav-icon">📦</span>Kaynaklar</a></li>
+                <li class="nav-item"><a href="/products.html" class="nav-link"><span
+                            class="nav-icon">🔧</span>Ürünler</a></li>
+                <li class="nav-item" id="adminLink" style="display:none;"><a href="/admin.html" class="nav-link"><span
+                            class="nav-icon">⚙️</span>Yönetim</a></li>
+            </ul>
+            <div class="user-info">
+                <div class="user-name" id="userName">...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">İş Listeleri</h1>
+                <button class="btn btn-primary" onclick="createNewJob()">+ Yeni Liste Oluştur</button>
+            </div>
+            <div id="jobsContainer">
+                <div class="loader"></div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

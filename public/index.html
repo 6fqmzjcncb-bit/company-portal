@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Giriş - Şirket Portalı</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="text-center mb-4">
+        <div class="logo-icon">🏢</div>
+        <h1 class="text-xl mb-1">Şirket Portalı</h1>
+        <p class="text-muted text-sm">Stok ve İş Listesi Yönetimi</p>
+      </div>
+
+      <div id="alert-container"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username" class="form-label">Kullanıcı Adı</label>
+          <input 
+            type="text" 
+            id="username" 
+            class="form-input" 
+            placeholder="admin" 
+            required
+            autocomplete="username"
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password" class="form-label">Şifre</label>
+          <input 
+            type="password" 
+            id="password" 
+            class="form-input" 
+            placeholder="••••••••" 
+            required
+            autocomplete="current-password"
+          >
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="remember" name="remember">
+            <label for="remember">Beni Hatırla</label>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg btn-block" id="loginBtn">
+          Giriş Yap
+        </button>
+      </form>
+
+      <div class="text-center mt-4 text-sm text-muted">
+        <p>Demo Kullanıcılar:</p>
+        <p><strong>admin</strong> / admin123</p>
+        <p><strong>staff</strong> / staff123</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/login.js"></script>
+</body>
+</html>

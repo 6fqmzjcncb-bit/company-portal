@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yönetim Paneli - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script>
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                if (!response.ok) window.location.href = '/index.html';
+                const user = await response.json();
+                if (user.role !== 'admin') window.location.href = '/dashboard.html';
+                document.getElementById('userName').textContent = user.full_name;
+                document.getElementById('userRole').textContent = '👑 Yönetici';
+            } catch (error) { window.location.href = '/index.html'; }
+        }
+
+        async function logout() {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            window.location.href = '/index.html';
+        }
+
+        async function loadStock() {
+            const response = await fetch('/api/admin/stock');
+            const products = await response.json();
+            const container = document.getElementById('stockContainer');
+
+            if (products.length === 0) {
+                container.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Ürün yok</td></tr>';
+                return;
+            }
+
+            container.innerHTML = products.map(product => `
+        <tr>
+          <td><strong>${product.name}</strong></td>
+          <td>${product.barcode || '-'}</td>
+          <td>
+            <span class="badge ${product.current_stock > 10 ? 'badge-success' : product.current_stock > 0 ? 'badge-warning' : 'badge-error'}">
+              ${product.current_stock} adet
+            </span>
+          </td>
+        </tr>
+      `).join('');
+        }
+
+        async function loadUsers() {
+            const response = await fetch('/api/admin/users');
+            const users = await response.json();
+            const container = document.getElementById('usersContainer');
+
+            container.innerHTML = users.map(user => `
+        <tr>
+          <td><strong>${user.full_name}</strong></td>
+          <td>${user.username}</td>
+          <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
+          <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
+        </tr>
+      `).join('');
+        }
+
+        async function addUser() {
+            const username = prompt('Kullanıcı adı:');
+            if (!username) return;
+
+            const password = prompt('Şifre:');
+            if (!password) return;
+
+            const full_name = prompt('Tam adı:');
+            if (!full_name) return;
+
+            const role = confirm('Yönetici mi? (İptal = Personel)') ? 'admin' : 'staff';
+
+            const response = await fetch('/api/admin/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, full_name, role })
+            });
+
+            if (response.ok) {
+                alert('Kullanıcı oluşturuldu');
+                loadUsers();
+            } else {
+                alert('Hata oluştu');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
+            loadStock();
+            loadUsers();
+        });
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                        Sayfa</a></li>
+                <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
+                        Listeleri</a></li>
+                <li class="nav-item"><a href="/sources.html" class="nav-link"><span
+                            class="nav-icon">📦</span>Kaynaklar</a></li>
+                <li class="nav-item"><a href="/products.html" class="nav-link"><span
+                            class="nav-icon">🔧</span>Ürünler</a></li>
+                <li class="nav-item"><a href="/admin.html" class="nav-link active"><span
+                            class="nav-icon">⚙️</span>Yönetim</a></li>
+            </ul>
+            <div class="user-info">
+                <div class="user-name" id="userName">...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+        <main class="main-content">
+            <h1 class="page-title mb-4">Yönetim Paneli</h1>
+
+            <div class="card mb-4">
+                <div class="card-header">📦 Stok Durumu</div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ürün</th>
+                                <th>Barkod</th>
+                                <th>Mevcut Stok</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockContainer">
+                            <tr>
+                                <td colspan="3" class="text-center">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <span>👥 Kullanıcılar</span>
+                    <button class="btn btn-primary btn-sm" onclick="addUser()">+ Yeni Kullanıcı</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ad Soyad</th>
+                                <th>Kullanıcı Adı</th>
+                                <th>Rol</th>
+                                <th>Kayıt Tarihi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersContainer">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

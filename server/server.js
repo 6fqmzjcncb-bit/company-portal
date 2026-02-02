@@ -1,0 +1,86 @@
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const path = require('path');
+const rateLimit = require('express-rate-limit');
+const { testConnection } = require('./config/database');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 dakika
+    max: 100 // IP başına 100 istek
+});
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(limiter);
+
+// Session yapılandırması
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'default-secret-change-this',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        maxAge: 24 * 60 * 60 * 1000, // 24 saat
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production'
+    }
+}));
+
+// Static dosyalar
+app.use(express.static(path.join(__dirname, '../public')));
+
+// API Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/sources', require('./routes/sources'));
+app.use('/api/products', require('./routes/products'));
+app.use('/api/jobs', require('./routes/jobs'));
+app.use('/api/admin', require('./routes/admin'));
+
+// Ana sayfa yönlendirmesi
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ error: 'Endpoint bulunamadı' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+    console.error('Global error:', err);
+    res.status(500).json({ error: 'Sunucu hatası' });
+});
+
+// Sunucuyu başlat
+const startServer = async () => {
+    try {
+        await testConnection();
+
+        app.listen(PORT, () => {
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║   ŞİRKET PORTALI - BAŞARILI BAŞLATILD  ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log('');
+            console.log(`🌐 Sunucu çalışıyor: http://localhost:${PORT}`);
+            console.log('📂 Veritabanı: database/portal.db');
+            console.log('');
+            console.log('Varsayılan Giriş Bilgileri:');
+            console.log('  Admin  -> Kullanıcı: admin  | Şifre: admin123');
+            console.log('  Personel -> Kullanıcı: staff  | Şifre: staff123');
+            console.log('');
+            console.log('Durdurmak için: Ctrl + C');
+            console.log('');
+        });
+    } catch (error) {
+        console.error('Sunucu başlatılamadı:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
