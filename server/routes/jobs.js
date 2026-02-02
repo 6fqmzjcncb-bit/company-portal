@@ -236,6 +236,99 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
     }
 });
 
+// Job item'ı düzenle (miktar ve kaynak)
+router.put('/items/:itemId', requireAuth, async (req, res) => {
+    try {
+        const { itemId } = req.params;
+        const { source_id, quantity } = req.body;
+
+        const item = await JobItem.findByPk(itemId);
+
+        if (!item) {
+            return res.status(404).json({ error: 'Kalem bulunamadı' });
+        }
+
+        // İşaretlenmişse düzenlenemez
+        if (item.is_checked) {
+            return res.status(400).json({ error: 'İşaretlenmiş kalemler düzenlenemez' });
+        }
+
+        await item.update({ source_id, quantity });
+
+        // Güncellenmiş item'ı ilişkileriyle getir
+        const updatedItem = await JobItem.findByPk(itemId, {
+            include: [
+                { model: Product, as: 'product' },
+                { model: Source, as: 'source' }
+            ]
+        });
+
+        res.json({ success: true, item: updatedItem });
+    } catch (error) {
+        console.error('Job item update error:', error);
+        res.status(500).json({ error: 'Kalem güncellenemedi' });
+    }
+});
+
+// Job item işaretini kaldır (uncheck)
+router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        const { itemId } = req.params;
+
+        const item = await JobItem.findByPk(itemId, {
+            include: [
+                { model: Product, as: 'product' },
+                { model: Source, as: 'source' }
+            ],
+            transaction
+        });
+
+        if (!item) {
+            await transaction.rollback();
+            return res.status(404).json({ error: 'Kalem bulunamadı' });
+        }
+
+        if (!item.is_checked) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'Bu kalem zaten işaretli değil' });
+        }
+
+        // İşareti kaldır
+        await item.update({
+            is_checked: false,
+            checked_by_user_id: null,
+            checked_at: null
+        }, { transaction });
+
+        // STOK GERİ EKLE: Eğer product_id doluysa VE source internal ise
+        if (item.product_id && item.source.type === 'internal') {
+            const product = await Product.findByPk(item.product_id, { transaction });
+
+            if (product) {
+                const newStock = product.current_stock + item.quantity;
+                await product.update({
+                    current_stock: newStock
+                }, { transaction });
+            }
+        }
+
+        await transaction.commit();
+
+        res.json({
+            success: true,
+            message: 'İşaret kaldırıldı',
+            item
+        });
+
+    } catch (error) {
+        await transaction.rollback();
+        console.error('Item uncheck error:', error);
+        res.status(500).json({ error: 'İşaret kaldırılamadı' });
+    }
+});
+
 // Job item sil
 router.delete('/items/:itemId', requireAuth, async (req, res) => {
     try {

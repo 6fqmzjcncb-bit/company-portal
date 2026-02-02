@@ -1,7 +1,6 @@
 // Global değişkenler
 let jobId = null;
 let currentUser = null;
-let itemType = 'stock'; // 'stock' veya 'custom'
 let sources = [];
 
 // URL'den job ID al
@@ -66,20 +65,35 @@ async function loadUserInfo() {
     }
 }
 
-// Kaynakları yükle
+// Kaynakları yükle (hem inline hem edit modal için)
 async function loadSources() {
     try {
         const response = await fetch('/api/sources');
         sources = await response.json();
 
-        const select = document.getElementById('sourceSelect');
-        select.innerHTML = '<option value="">Kaynak seçin...</option>';
-        sources.forEach(source => {
-            const option = document.createElement('option');
-            option.value = source.id;
-            option.textContent = source.name;
-            select.appendChild(option);
-        });
+        // Inline form source select
+        const inlineSelect = document.getElementById('inlineSourceSelect');
+        if (inlineSelect) {
+            inlineSelect.innerHTML = '<option value="">Kaynak seçin...</option>';
+            sources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source.id;
+                option.textContent = source.name;
+                inlineSelect.appendChild(option);
+            });
+        }
+
+        // Edit modal source select
+        const editSelect = document.getElementById('editSource');
+        if (editSelect) {
+            editSelect.innerHTML = '<option value="">Kaynak seçin...</option>';
+            sources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source.id;
+                option.textContent = source.name;
+                editSelect.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Sources load error:', error);
     }
@@ -94,20 +108,21 @@ async function loadJobDetail() {
             throw new Error('İş listesi bulunamadı');
         }
 
-        const jobData = await response.json();
+        const job = await response.json();
 
-        document.getElementById('jobTitle').textContent = jobData.title;
+        // Başlığı güncelle
+        document.getElementById('jobTitle').textContent = job.title;
 
-        // Gruplanmış kalemleri göster
-        renderGroupedItems(jobData.groupedItems);
+        // Gruplanan kalemleri render et
+        renderGroupedItems(job.groupedItems || []);
 
     } catch (error) {
         console.error('Job detail load error:', error);
-        showAlert('İş listesi yüklenemedi', 'error');
+        showAlert('İş listesi yüklenemedi');
     }
 }
 
-// Gruplanmış kalemleri render et
+// Kalemleri kaynağa göre grupla ve render et
 function renderGroupedItems(groupedItems) {
     const container = document.getElementById('groupedItems');
 
@@ -116,65 +131,257 @@ function renderGroupedItems(groupedItems) {
         return;
     }
 
-    container.innerHTML = groupedItems.map(group => {
-        const source = group.source;
-        const items = group.items;
+    container.innerHTML = '';
+
+    groupedItems.forEach(group => {
+        const groupCard = document.createElement('div');
+        groupCard.className = 'card mb-3';
+        groupCard.innerHTML = `
+            <div class="card-header">
+                <h3 style="margin: 0; font-size: 1.125rem;">📦 ${group.source.name}</h3>
+            </div>
+            <div class="card-body">
+                ${renderItems(group.items)}
+            </div>
+        `;
+        container.appendChild(groupCard);
+    });
+}
+
+// Item'ları render et
+function renderItems(items) {
+    return items.map(item => {
+        const productName = item.product ? item.product.name : item.custom_name;
+        const isChecked = item.is_checked;
 
         return `
-      <div class="card card-colored mb-3" style="border-left-color: ${source.color_code}; background-color: ${source.color_code}15;">
-        <div class="card-header" style="background-color: ${source.color_code};">
-          <strong>${source.name}</strong>
-          <span class="badge badge-secondary">${items.length} kalem</span>
-        </div>
-        <div class="card-body">
-          ${items.map(item => renderJobItem(item)).join('')}
-        </div>
-      </div>
-    `;
+            <div class="item-row ${isChecked ? 'item-checked' : ''}" data-item-id="${item.id}">
+                <div class="item-checkbox">
+                    ${isChecked ? '✓' : '☐'}
+                </div>
+                <div class="item-details">
+                    <div class="item-name">${productName}</div>
+                    <div class="item-quantity">${item.quantity} adet</div>
+                    ${isChecked ? `<div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>` : ''}
+                </div>
+                <div class="item-actions">
+                    ${!isChecked ? `
+                        <button class="btn btn-sm btn-outline" onclick="openEditItemModal(${item.id}, '${productName}', ${item.source.id}, ${item.quantity})">✏️ Düzenle</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
+                        <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☐ Alındı İşaretle</button>
+                    ` : `
+                        <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
+                    `}
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
-// Tek bir job item render et
-function renderJobItem(item) {
-    const itemName = item.product ? item.product.name : item.custom_name;
-    const isChecked = item.is_checked;
+// ===========================
+// INLINE AUTOCOMPLETE
+// ===========================
 
-    return `
-    <div class="job-item" id="item-${item.id}">
-      <div class="item-info">
-        <div class="item-name">
-          ${itemName}
-          ${item.product && item.product.barcode ? `<span class="text-muted text-sm">(${item.product.barcode})</span>` : ''}
-        </div>
-        <div class="item-meta">
-          Miktar: ${item.quantity}
-          ${item.product ? ' (Stoklu)' : ' (Serbest Yazı)'}
-        </div>
-      </div>
-      <div class="item-actions">
-        ${isChecked ? `
-          <div class="check-info">
-            <div class="check-status">
-              ✓ Hazır
-            </div>
-            <div class="check-meta">
-              ${item.checkedBy.full_name}<br>
-              ${new Date(item.checked_at).toLocaleString('tr-TR')}
-            </div>
-          </div>
-        ` : `
-          <button class="btn btn-success btn-sm" onclick="checkItem(${item.id})">
-            ☐ Alındı İşaretle
-          </button>
-        `}
-      </div>
-    </div>
-  `;
+// Inline autocomplete için ürün arama
+let inlineSearchTimeout = null;
+document.addEventListener('DOMContentLoaded', () => {
+    const inlineSearch = document.getElementById('inlineProductSearch');
+
+    if (inlineSearch) {
+        inlineSearch.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+
+            clearTimeout(inlineSearchTimeout);
+
+            if (query.length < 2) {
+                document.getElementById('inlineProductResults').innerHTML = '';
+                document.getElementById('inlineSelectedProductId').value = '';
+                document.getElementById('inlineSelectedProductName').value = '';
+                return;
+            }
+
+            inlineSearchTimeout = setTimeout(async () => {
+                try {
+                    const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+                    const products = await response.json();
+
+                    const resultsContainer = document.getElementById('inlineProductResults');
+
+                    if (products.length === 0) {
+                        resultsContainer.innerHTML = '<div class="no-results">Ürün bulunamadı</div>';
+                        return;
+                    }
+
+                    resultsContainer.innerHTML = `
+                        <div class="autocomplete-results">
+                            ${products.map(p => `
+                                <div class="autocomplete-item" onclick="selectInlineProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+                                    <strong>${p.name}</strong>
+                                    ${p.barcode ? `<span>${p.barcode}</span>` : ''}
+                                    ${currentUser && currentUser.role === 'admin' ? `<span>Stok: ${p.current_stock}</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error('Product search error:', error);
+                }
+            }, 300);
+        });
+    }
+});
+
+// Inline'dan ürün seç
+function selectInlineProduct(productId, productName) {
+    document.getElementById('inlineProductSearch').value = productName;
+    document.getElementById('inlineSelectedProductId').value = productId;
+    document.getElementById('inlineSelectedProductName').value = productName;
+    document.getElementById('inlineProductResults').innerHTML = '';
 }
 
-// ⭐ KRİTİK: Item'ı işaretle
+// Inline form submit
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('inlineAddForm');
+
+    if (form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const productId = document.getElementById('inlineSelectedProductId').value;
+            const productName = document.getElementById('inlineSelectedProductName').value;
+            const sourceId = document.getElementById('inlineSourceSelect').value;
+            const quantity = document.getElementById('inlineQuantity').value;
+
+            if (!productId && !productName) {
+                showAlert('Lütfen bir ürün seçin');
+                return;
+            }
+
+            if (!sourceId) {
+                showAlert('Lütfen kaynak seçin');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/jobs/${jobId}/items`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: productId || null,
+                        custom_name: productId ? null : productName,
+                        source_id: parseInt(sourceId),
+                        quantity: parseInt(quantity)
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Kalem eklenemedi');
+                }
+
+                showAlert('Kalem başarıyla eklendi!', 'success');
+
+                // Formu temizle
+                document.getElementById('inlineProductSearch').value = '';
+                document.getElementById('inlineSelectedProductId').value = '';
+                document.getElementById('inlineSelectedProductName').value = '';
+                document.getElementById('inlineQuantity').value = '1';
+                document.getElementById('inlineProductResults').innerHTML = '';
+
+                // Listeyi yenile
+                await loadJobDetail();
+
+            } catch (error) {
+                showAlert(error.message);
+            }
+        });
+    }
+});
+
+// ===========================
+// DÜZENLE MODAL
+// ===========================
+
+function openEditItemModal(itemId, productName, sourceId, quantity) {
+    document.getElementById('editItemId').value = itemId;
+    document.getElementById('editProductName').value = productName;
+    document.getElementById('editSource').value = sourceId;
+    document.getElementById('editQuantity').value = quantity;
+    document.getElementById('editItemModal').style.display = 'flex';
+}
+
+function closeEditItemModal() {
+    document.getElementById('editItemModal').style.display = 'none';
+}
+
+// Edit form submit
+document.addEventListener('DOMContentLoaded', () => {
+    const editForm = document.getElementById('editItemForm');
+
+    if (editForm) {
+        editForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const itemId = document.getElementById('editItemId').value;
+            const sourceId = document.getElementById('editSource').value;
+            const quantity = document.getElementById('editQuantity').value;
+
+            try {
+                const response = await fetch(`/api/jobs/items/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_id: parseInt(sourceId),
+                        quantity: parseInt(quantity)
+                    })
+                });
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error || 'Kalem güncellenemedi');
+                }
+
+                showAlert('Kalem güncellendi!', 'success');
+                closeEditItemModal();
+                await loadJobDetail();
+
+            } catch (error) {
+                showAlert(error.message);
+            }
+        });
+    }
+});
+
+// ===========================
+// DELETE / CHECK / UNCHECK
+// ===========================
+
+// Kalem sil
+async function deleteItem(itemId) {
+    if (!confirm('Bu kalemi silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Kalem silinemedi');
+        }
+
+        showAlert('Kalem silindi', 'success');
+        await loadJobDetail();
+
+    } catch (error) {
+        showAlert(error.message);
+    }
+}
+
+// Kalem işaretle
 async function checkItem(itemId) {
-    if (!confirm('Bu kalemi işaretlemek istediğinizden emin misiniz?')) {
+    if (!confirm('Bu kalemi hazır olarak işaretlemek istediğinizden emin misiniz?')) {
         return;
     }
 
@@ -183,158 +390,49 @@ async function checkItem(itemId) {
             method: 'POST'
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-            showAlert(data.message, 'success');
-            // Sayfayı yeniden yükle
-            loadJobDetail();
-        } else {
-            showAlert(data.error, 'error');
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'İşaretleme başarısız');
         }
+
+        showAlert('Kalem işaretlendi!', 'success');
+        await loadJobDetail();
+
     } catch (error) {
-        console.error('Check item error:', error);
-        showAlert('İşaretleme yapılamadı', 'error');
+        showAlert(error.message);
     }
 }
 
-// Modal aç/kapa
-function openAddItemModal() {
-    document.getElementById('addItemModal').classList.add('active');
-    selectItemType('stock'); // Varsayılan olarak stoktan seçim
-}
-
-function closeAddItemModal() {
-    document.getElementById('addItemModal').classList.remove('active');
-    document.getElementById('addItemForm').reset();
-    document.getElementById('selectedProductId').value = '';
-    document.getElementById('productResults').innerHTML = '';
-}
-
-// Item tipi seç (stok / özel)
-function selectItemType(type) {
-    itemType = type;
-
-    const stockBtn = document.getElementById('stockBtn');
-    const customBtn = document.getElementById('customBtn');
-    const stockSection = document.getElementById('stockSection');
-    const customSection = document.getElementById('customSection');
-
-    if (type === 'stock') {
-        stockBtn.classList.remove('btn-outline');
-        stockBtn.classList.add('btn-primary');
-        customBtn.classList.remove('btn-primary');
-        customBtn.classList.add('btn-outline');
-        stockSection.style.display = 'block';
-        customSection.style.display = 'none';
-    } else {
-        customBtn.classList.remove('btn-outline');
-        customBtn.classList.add('btn-primary');
-        stockBtn.classList.remove('btn-primary');
-        stockBtn.classList.add('btn-outline');
-        customSection.style.display = 'block';
-        stockSection.style.display = 'none';
-    }
-}
-
-// Ürün ara
-let searchTimeout;
-document.getElementById('productSearch')?.addEventListener('input', (e) => {
-    clearTimeout(searchTimeout);
-    const query = e.target.value.trim();
-
-    if (query.length < 2) {
-        document.getElementById('productResults').innerHTML = '';
+// Kalem işaretini kaldır
+async function uncheckItem(itemId) {
+    if (!confirm('Bu kalemin işaretini kaldırmak istediğinizden emin misiniz?')) {
         return;
     }
 
-    searchTimeout = setTimeout(async () => {
-        try {
-            const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
-            const products = await response.json();
-
-            const resultsDiv = document.getElementById('productResults');
-
-            if (products.length === 0) {
-                resultsDiv.innerHTML = '<p class="text-muted text-sm">Ürün bulunamadı</p>';
-                return;
-            }
-
-            resultsDiv.innerHTML = products.map(p => `
-        <div class="card mb-1" style="cursor: pointer; padding: 0.75rem;" onclick="selectProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-          <strong>${p.name}</strong>
-          ${p.barcode ? `<span class="text-sm text-muted">${p.barcode}</span>` : ''}
-        </div>
-      `).join('');
-
-        } catch (error) {
-            console.error('Product search error:', error);
-        }
-    }, 300);
-});
-
-// Ürün seç
-function selectProduct(productId, productName) {
-    document.getElementById('selectedProductId').value = productId;
-    document.getElementById('productSearch').value = productName;
-    document.getElementById('productResults').innerHTML = '';
-}
-
-// Kalem ekle form submit
-document.getElementById('addItemForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const sourceId = document.getElementById('sourceSelect').value;
-    const quantity = document.getElementById('quantity').value;
-
-    let payload = {
-        source_id: parseInt(sourceId),
-        quantity: parseInt(quantity)
-    };
-
-    if (itemType === 'stock') {
-        const productId = document.getElementById('selectedProductId').value;
-        if (!productId) {
-            showAlert('Lütfen bir ürün seçin', 'error');
-            return;
-        }
-        payload.product_id = parseInt(productId);
-    } else {
-        const customName = document.getElementById('customName').value.trim();
-        if (!customName) {
-            showAlert('Lütfen özel isim girin', 'error');
-            return;
-        }
-        payload.custom_name = customName;
-    }
-
     try {
-        const response = await fetch(`/api/jobs/${jobId}/items`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
+        const response = await fetch(`/api/jobs/items/${itemId}/uncheck`, {
+            method: 'POST'
         });
 
-        const data = await response.json();
-
-        if (response.ok) {
-            showAlert('Kalem başarıyla eklendi', 'success');
-            closeAddItemModal();
-            loadJobDetail();
-        } else {
-            showAlert(data.error, 'error');
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'İşaret kaldırılamadı');
         }
-    } catch (error) {
-        console.error('Add item error:', error);
-        showAlert('Kalem eklenemedi', 'error');
-    }
-});
 
-// Sayfa yüklendiğinde
-window.addEventListener('DOMContentLoaded', () => {
-    loadUserInfo();
-    loadSources();
-    loadJobDetail();
+        showAlert('İşaret kaldırıldı', 'success');
+        await loadJobDetail();
+
+    } catch (error) {
+        showAlert(error.message);
+    }
+}
+
+// ===========================
+// INIT
+// ===========================
+
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadUserInfo();
+    await loadSources();
+    await loadJobDetail();
 });
