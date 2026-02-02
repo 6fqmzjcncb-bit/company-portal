@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personel Listesi - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🏢</div>
+                <h1 class="sidebar-title">Şirket Portalı</h1>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Ana Sayfa</span>
+                </a>
+                <a href="/jobs.html" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">İş Listeleri</span>
+                </a>
+                <a href="/sources.html" class="nav-item">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Kaynaklar</span>
+                </a>
+                <a href="/products.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    <span class="nav-text">Ürünler</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/employees.html" class="nav-item active">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Personel</span>
+                </a>
+                <a href="/attendance.html" class="nav-item">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Çalışma Kaydı</span>
+                </a>
+                <a href="/salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Maaş Yönetimi</span>
+                </a>
+                <a href="/stock-movements.html" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Stok Hareketi</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/admin.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Yönetim</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Yüklen iyor...</div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">👥 Personel Yönetimi</h1>
+                <button class="btn btn-primary" onclick="showAddModal()">+ Yeni Personel</button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Personel Listesi</h2>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Personel ara..." onkeyup="filterEmployees()">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Ad Soyad</th>
+                                    <th>Telefon</th>
+                                    <th>Rol</th>
+                                    <th>Günlük Ücret</th>
+                                    <th>Aylık Maaş</th>
+                                    <th>İşe Başlama</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employeeList">
+                                <tr>
+                                    <td colspan="8" class="text-center">Yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Yeni Personel Ekle</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="employeeId">
+
+                    <div class="form-group">
+                        <label for="fullName">Ad Soyad *</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Telefon</label>
+                        <input type="text" id="phone" placeholder="05xx xxx xx xx">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Rol *</label>
+                        <select id="role" required>
+                            <option value="worker">İşçi</option>
+                            <option value="supervisor">Ustabaşı</option>
+                            <option value="manager">Yönetici</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dailyWage">Günlük Ücret (₺)</label>
+                        <input type="number" id="dailyWage" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monthlySalary">Aylık Maaş (₺)</label>
+                        <input type="number" id="monthlySalary" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hireDate">İşe Başlama Tarihi</label>
+                        <input type="date" id="hireDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notlar</label>
+                        <textarea id="notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/employees.js"></script>
+</body>
+
+</html>

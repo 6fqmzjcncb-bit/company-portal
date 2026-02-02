@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maaş Yönetimi - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🏢</div>
+                <h1 class="sidebar-title">Şirket Portalı</h1>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Ana Sayfa</span>
+                </a>
+                <a href="/jobs.html" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">İş Listeleri</span>
+                </a>
+                <a href="/sources.html" class="nav-item">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Kaynaklar</span>
+                </a>
+                <a href="/products.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    <span class="nav-text">Ürünler</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/employees.html" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Personel</span>
+                </a>
+                <a href="/attendance.html" class="nav-item">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Çalışma Kaydı</span>
+                </a>
+                <a href="/salary.html" class="nav-item active">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Maaş Yönetimi</span>
+                </a>
+                <a href="/stock-movements.html" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Stok Hareketi</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/admin.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Yönetim</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Yükleniyor...</div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">💰 Maaş Yönetimi</h1>
+            </div>
+
+            <!-- Period Selection -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Dönem Seç ve Hesapla</h2>
+                </div>
+                <div class="card-body">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+                        <div class="form-group">
+                            <label>Başlangıç Tarihi</label>
+                            <input type="date" id="periodStart" class="input-small">
+                        </div>
+                        <div class="form-group">
+                            <label>Bitiş Tarihi</label>
+                            <input type="date" id="periodEnd" class="input-small">
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="calculateSalaries()">🔢 Hesapla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Salary Calculations -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 id="calculation Title">Maaş Hesapları</h2>
+                    <button class="btn btn-success" onclick="saveAllPayments()">💾 Toplu Ödeme Kaydet</button>
+                </div>
+                <div class="card-body">
+                    <div id="salaryCards" class="salary-grid">
+                        <p class="text-center" style="grid-column: 1/-1;">Lütfen dönem seçip hesapla butonuna tıklayın
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Ödeme Geçmişi</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Personel</th>
+                                    <th>Dönem</th>
+                                    <th>Gün</th>
+                                    <th>Saat</th>
+                                    <th>Tutar</th>
+                                    <th>Ödeme Tarihi</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="paymentHistory">
+                                <tr>
+                                    <td colspan="7" class="text-center">Yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/salary.js"></script>
+</body>
+
+</html>

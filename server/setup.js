@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { sequelize } = require('./config/database');
-const { User, Source, Product, JobList, JobItem } = require('./models');
+const { User, Source, Product, JobList, JobItem, Employee, Attendance, StockMovement } = require('./models');
 
 async function setup() {
     try {
@@ -158,7 +158,62 @@ async function setup() {
             }
         ]);
 
-        console.log('✓ Örnek iş listesi ve kalemler oluşturuldu\n');
+        console.log('✓ Örnek iş listesi ve kalemler oluşturuldu');
+
+        // Fase 2: Örnek personel
+        const employees = await Employee.bulkCreate([
+            {
+                full_name: 'Mehmet Yılmaz',
+                phone: '0532 123 4567',
+                role: 'worker',
+                daily_wage: 850.00,
+                hire_date: '2025-01-15',
+                is_active: true
+            },
+            {
+                full_name: 'Ahmet Demir',
+                phone: '0533 234 5678',
+                role: 'worker',
+                daily_wage: 800.00,
+                hire_date: '2025-02-01',
+                is_active: true
+            },
+            {
+                full_name: 'Ali Kaya',
+                phone: '0534 345 6789',
+                role: 'supervisor',
+                daily_wage: 1200.00,
+                hire_date: '2024-12-01',
+                is_active: true
+            }
+        ]);
+
+        console.log('✓ Örnek personel oluşturuldu');
+
+        // Örnek çalışma kayıtları (son 5 gün)
+        const today = new Date();
+        const attendanceRecords = [];
+
+        for (let i = 4; i >= 0; i--) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+
+            employees.forEach((employee, index) => {
+                attendanceRecords.push({
+                    employee_id: employee.id,
+                    date: dateStr,
+                    worked: i !== 0 || index !== 1, // Ahmet bugün çalışmadı
+                    hours_worked: i !== 0 || index !== 1 ? 8 + (Math.random() * 2) : 0,
+                    location: i % 2 === 0 ? 'Beylikdüzü Şantiye' : 'Esenyurt Proje',
+                    created_by: adminUser.id
+                });
+            });
+        }
+
+        await Attendance.bulkCreate(attendanceRecords);
+
+        console.log('✓ Örnek çalışma kayıtları oluşturuldu\n');
 
         console.log('╔════════════════════════════════════════╗');
         console.log('║      KURULUM BAŞARIYLA TAMAMLANDI      ║');

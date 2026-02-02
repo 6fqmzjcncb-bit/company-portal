@@ -43,6 +43,11 @@ app.use('/api/sources', require('./routes/sources'));
 app.use('/api/products', require('./routes/products'));
 app.use('/api/jobs', require('./routes/jobs'));
 app.use('/api/admin', require('./routes/admin'));
+// Phase 2 Routes
+app.use('/api/employees', require('./routes/employees'));
+app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/stock-movements', require('./routes/stock-movements'));
+app.use('/api/salary', require('./routes/salary'));
 
 // Ana sayfa yönlendirmesi
 app.get('/', (req, res) => {

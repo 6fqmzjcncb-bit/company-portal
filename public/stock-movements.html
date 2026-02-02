@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stok Hareketi - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🏢</div>
+                <h1 class="sidebar-title">Şirket Portalı</h1>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Ana Sayfa</span>
+                </a>
+                <a href="/jobs.html" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">İş Listeleri</span>
+                </a>
+                <a href="/sources.html" class="nav-item">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Kaynaklar</span>
+                </a>
+                <a href="/products.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    <span class="nav-text">Ürünler</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/employees.html" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Personel</span>
+                </a>
+                <a href="/attendance.html" class="nav-item">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Çalışma Kaydı</span>
+                </a>
+                <a href="/salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Maaş Yönetimi</span>
+                </a>
+                <a href="/stock-movements.html" class="nav-item active">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Stok Hareketi</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/admin.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Yönetim</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Yükleniyor...</div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+
+        <!--Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">📊 Stok Hareket Raporu</h1>
+                <div>
+                    <button class="btn btn-success" onclick="showInModal()">📥 Stok Giriş</button>
+                    <button class="btn btn-danger" onclick="showOutModal()">📤 Stok Çıkış</button>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Filtrele</h2>
+                </div>
+                <div class="card-body">
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+                        <div class="form-group">
+                            <label>Ürün</label>
+                            <select id="filterProduct" class="input-small">
+                                <option value="">Tümü</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Hareket Tipi</label>
+                            <select id="filterType" class="input-small">
+                                <option value="">Tümü</option>
+                                <option value="IN">Giriş</option>
+                                <option value="OUT">Çıkış</option>
+                                <option value="ADJUSTMENT">Düzenleme</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Başlangıç</label>
+                            <input type="date" id="filterStartDate" class="input-small">
+                        </div>
+                        <div class="form-group">
+                            <label>Bitiş</label>
+                            <input type="date" id="filterEndDate" class="input-small">
+                        </div>
+                        <div>
+                            <button class="btn btn-primary" onclick="loadMovements()">🔍 Filtrele</button>
+                            <button class="btn btn-secondary" onclick="clearFilters()">❌ Temizle</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Movements List -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>Stok Hareketleri</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Tip</th>
+                                    <th>Ürün</th>
+                                    <th>Miktar</th>
+                                    <th>Kim</th>
+                                    <th>Nereden/Nereye</th>
+                                    <th>Sebep/Not</th>
+                                </tr>
+                            </thead>
+                            <tbody id="movementList">
+                                <tr>
+                                    <td colspan="7" class="text-center">Yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Stock IN Modal -->
+    <div id="stockInModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📥 Stok Giriş Kaydı</h2>
+                <button class="modal-close" onclick="closeModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="stockInForm">
+                    <div class="form-group">
+                        <label>Ürün *</label>
+                        <select id="inProduct" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Miktar *</label>
+                        <input type="number" id="inQuantity" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kim Getirdi? *</label>
+                        <input type="text" id="inBroughtBy" required placeholder="Personel adı">
+                    </div>
+                    <div class="form-group">
+                        <label>Nereden Geldi?</label>
+                        <input type="text" id="inSource" placeholder="Tedarikçi, şantiye vs.">
+                    </div>
+                    <div class="form-group">
+                        <label>Notlar</label>
+                        <textarea id="inNotes" rows="2"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                        <button type="submit" class="btn btn-success">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock OUT Modal -->
+    <div id="stockOutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 Stok Çıkış Kaydı</h2>
+                <button class="modal-close" onclick="closeModals()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="stockOutForm">
+                    <div class="form-group">
+                        <label>Ürün *</label>
+                        <select id="outProduct" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Miktar *</label>
+                        <input type="number" id="outQuantity" step="0.01" min="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kim Aldı? *</label>
+                        <input type="text" id="outTakenBy" required placeholder="Personel adı">
+                    </div>
+                    <div class="form-group">
+                        <label>Nereye Gitti? *</label>
+                        <input type="text" id="outDestination" required placeholder="Şantiye, proje vs.">
+                    </div>
+                    <div class="form-group">
+                        <label>Sebep</label>
+                        <input type="text" id="outReason" placeholder="Kullanım amacı">
+                    </div>
+                    <div class="form-group">
+                        <label>Notlar</label>
+                        <textarea id="outNotes" rows="2"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                        <button type="submit" class="btn btn-danger">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/stock-movements.js"></script>
+</body>
+
+</html>

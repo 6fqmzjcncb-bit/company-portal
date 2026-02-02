@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çalışma Kaydı - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🏢</div>
+                <h1 class="sidebar-title">Şirket Portalı</h1>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Ana Sayfa</span>
+                </a>
+                <a href="/jobs.html" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-text">İş Listeleri</span>
+                </a>
+                <a href="/sources.html" class="nav-item">
+                    <span class="nav-icon">📦</span>
+                    <span class="nav-text">Kaynaklar</span>
+                </a>
+                <a href="/products.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    <span class="nav-text">Ürünler</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/employees.html" class="nav-item">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Personel</span>
+                </a>
+                <a href="/attendance.html" class="nav-item active">
+                    <span class="nav-icon">📅</span>
+                    <span class="nav-text">Çalışma Kaydı</span>
+                </a>
+                <a href="/salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Maaş Yönetimi</span>
+                </a>
+                <a href="/stock-movements.html" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Stok Hareketi</span>
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a href="/admin.html" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Yönetim</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Yükleniyor...</div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <h1 class="page-title">📅 Çalışma Kaydı</h1>
+                <div style="display: flex; gap: 10px;">
+                    <input type="date" id="selectedDate" class="date-input">
+                    <button class="btn btn-primary" onclick="loadAttendance()">Tarihi Göster</button>
+                    <button class="btn btn-success" onclick="saveAllAttendance()">💾 Hepsini Kaydet</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 id="dateTitle">Bugünün Çalışma Kaydı</h2>
+                    <div>
+                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(true)">✅ Hepsini
+                            İşaretle</button>
+                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(false)">❌ Tümünü
+                            Kaldır</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px;">#</th>
+                                    <th>Personel</th>
+                                    <th style="width: 100px;">Çalıştı mı?</th>
+                                    <th style="width: 150px;">Saat</th>
+                                    <th style="width: 250px;">Konum/Görev</th>
+                                    <th>Notlar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceList">
+                                <tr>
+                                    <td colspan="6" class="text-center">Yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/attendance.js"></script>
+</body>
+
+</html>
