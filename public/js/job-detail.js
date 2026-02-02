@@ -256,16 +256,19 @@ document.getElementById('productSearch')?.addEventListener('input', (e) => {
             const resultsDiv = document.getElementById('productResults');
 
             if (products.length === 0) {
-                resultsDiv.innerHTML = '<p class="text-muted text-sm">Ürün bulunamadı</p>';
+                resultsDiv.innerHTML = '<div class="no-results">Ürün bulunamadı</div>';
                 return;
             }
 
-            resultsDiv.innerHTML = products.map(p => `
-        <div class="card mb-1" style="cursor: pointer; padding: 0.75rem;" onclick="selectProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-          <strong>${p.name}</strong>
-          ${p.barcode ? `<span class="text-sm text-muted">${p.barcode}</span>` : ''}
-        </div>
-      `).join('');
+            resultsDiv.innerHTML = '<div class="autocomplete-results">' +
+                products.map(p => `
+                    <div class="autocomplete-item" onclick="selectProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+                        <strong>${p.name}</strong>
+                        ${p.barcode ? `<span>Barkod: ${p.barcode}</span>` : ''}
+                        ${p.current_stock !== undefined ? `<span>Stok: ${p.current_stock}</span>` : ''}
+                    </div>
+                `).join('') +
+                '</div>';
 
         } catch (error) {
             console.error('Product search error:', error);
@@ -331,6 +334,316 @@ document.getElementById('addItemForm').addEventListener('submit', async (e) => {
         showAlert('Kalem eklenemedi', 'error');
     }
 });
+
+// ========================================
+// TOPLU EKLEME FONKSİYONLARI
+// ========================================
+
+let allProducts = [];
+let selectedBulkProducts = new Map(); // product_id -> quantity
+
+async function openBulkAddModal() {
+    document.getElementById('bulkAddModal').classList.add('active');
+
+    // Kaynakları doldur
+    const select = document.getElementById('bulkSourceSelect');
+    select.innerHTML = '<option value="">Kaynak seçin...</option>';
+    sources.forEach(source => {
+        const option = document.createElement('option');
+        option.value = source.id;
+        option.textContent = source.name;
+        select.appendChild(option);
+    });
+
+    // Ürünleri yükle
+    await loadAllProducts();
+}
+
+async function loadAllProducts() {
+    try {
+        const response = await fetch('/api/products');
+        allProducts = await response.json();
+        renderBulkProductList(allProducts);
+    } catch (error) {
+        console.error('Products load error:', error);
+        document.getElementById('bulkProductList').innerHTML =
+            '<p class="text-center text-danger">Ürünler yüklenemedi</p>';
+    }
+}
+
+function renderBulkProductList(products) {
+    const container = document.getElementById('bulkProductList');
+
+    if (products.length === 0) {
+        container.innerHTML = '<p class="text-center text-muted">Ürün bulunamadı</p>';
+        return;
+    }
+
+    container.innerHTML = products.map(p => {
+        const isSelected = selectedBulkProducts.has(p.id);
+        const quantity = isSelected ? selectedBulkProducts.get(p.id) : 1;
+
+        return `
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.75rem; border-bottom: 1px solid var(--gray-200);">
+                <input type="checkbox" 
+                    id="bulk_${p.id}" 
+                    ${isSelected ? 'checked' : ''}
+                    onchange="toggleBulkProduct(${p.id})"
+                    style="width: 20px; height: 20px; cursor: pointer;">
+                <label for="bulk_${p.id}" style="flex: 1; cursor: pointer; margin: 0;">
+                    <strong>${p.name}</strong>
+                    ${p.barcode ? `<span class="text-muted text-sm"> (${p.barcode})</span>` : ''}
+                    ${p.current_stock !== undefined ? `<span class="text-sm"> - Stok: ${p.current_stock}</span>` : ''}
+                </label>
+                <input type="number" 
+                    id="qty_${p.id}"
+                    value="${quantity}" 
+                    min="1" 
+                    ${!isSelected ? 'disabled' : ''}
+                    onchange="updateBulkQuantity(${p.id}, this.value)"
+                    style="width: 80px; padding: 0.5rem; border: 1px solid var(--gray-300); border-radius: 4px;">
+            </div>
+        `;
+    }).join('');
+
+    updateBulkAddCount();
+}
+
+function toggleBulkProduct(productId) {
+    const checkbox = document.getElementById(`bulk_${productId}`);
+    const qtyInput = document.getElementById(`qty_${productId}`);
+
+    if (checkbox.checked) {
+        selectedBulkProducts.set(productId, parseInt(qtyInput.value) || 1);
+        qtyInput.disabled = false;
+    } else {
+        selectedBulkProducts.delete(productId);
+        qtyInput.disabled = true;
+    }
+
+    updateBulkAddCount();
+}
+
+function updateBulkQuantity(productId, quantity) {
+    if (selectedBulkProducts.has(productId)) {
+        selectedBulkProducts.set(productId, parseInt(quantity) || 1);
+    }
+}
+
+function updateBulkAddCount() {
+    const count = selectedBulkProducts.size;
+    document.getElementById('bulkAddCount').textContent = `${count} ürün`;
+}
+
+// Toplu ekleme arama
+document.getElementById('bulkSearch')?.addEventListener('input', (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const filtered = allProducts.filter(p =>
+        p.name.toLowerCase().includes(query) ||
+        (p.barcode && p.barcode.toLowerCase().includes(query))
+    );
+    renderBulkProductList(filtered);
+});
+
+async function submitBulkAdd() {
+    const sourceId = document.getElementById('bulkSourceSelect').value;
+
+    if (!sourceId) {
+        showAlert('Lütfen kaynak seçin', 'error');
+        return;
+    }
+
+    if (selectedBulkProducts.size === 0) {
+        showAlert('Lütfen en az bir ürün seçin', 'error');
+        return;
+    }
+
+    const items = Array.from(selectedBulkProducts.entries()).map(([productId, quantity]) => ({
+        product_id: productId,
+        source_id: parseInt(sourceId),
+        quantity: quantity
+    }));
+
+    try {
+        // Toplu insert API endpoint'i
+        for (const item of items) {
+            await fetch(`/api/jobs/${jobId}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(item)
+            });
+        }
+
+        showAlert(`${items.length} ürün başarıyla eklendi!`, 'success');
+        closeBulkAddModal();
+        loadJobDetail();
+    } catch (error) {
+        console.error('Bulk add error:', error);
+        showAlert('Toplu ekleme başarısız oldu', 'error');
+    }
+}
+
+function closeBulkAddModal() {
+    document.getElementById('bulkAddModal').classList.remove('active');
+    selectedBulkProducts.clear();
+    updateBulkAddCount();
+}
+
+// ========================================
+// BARKOD TARAMA FONKSİYONLARI
+// ========================================
+
+let isScanning = false;
+let scannedProductData = null;
+
+async function openBarcodeScannerModal() {
+    // Kamera desteği kontrolü
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showAlert('Kamera desteği bulunamadı', 'error');
+        return;
+    }
+
+    document.getElementById('barcodeScannerModal').classList.add('active');
+    document.getElementById('scanResult').style.display = 'none';
+    document.getElementById('scanStatus').textContent = 'Kamera başlatılıyor...';
+
+    // Kaynakları doldur
+    const select = document.getElementById('scanSourceSelect');
+    select.innerHTML = '';
+    sources.forEach(source => {
+        const option = document.createElement('option');
+        option.value = source.id;
+        option.textContent = source.name;
+        select.appendChild(option);
+    });
+
+    // Barkod tarayıcıyı başlat
+    startBarcodeScanner();
+}
+
+function startBarcodeScanner() {
+    isScanning = true;
+
+    Quagga.init({
+        inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector('#interactive'),
+            constraints: {
+                width: 640,
+                height: 480,
+                facingMode: "environment" // Arka kamera
+            },
+        },
+        decoder: {
+            readers: [
+                "code_128_reader",
+                "ean_reader",
+                "ean_8_reader",
+                "code_39_reader",
+                "code_39_vin_reader",
+                "codabar_reader",
+                "upc_reader",
+                "upc_e_reader"
+            ]
+        },
+    }, function (err) {
+        if (err) {
+            console.error('Quagga init error:', err);
+            document.getElementById('scanStatus').textContent = 'Kamera başlatılamadı: ' + err.message;
+            return;
+        }
+        Quagga.start();
+        document.getElementById('scanStatus').textContent = 'Kamerayı ürün barkoduna doğrultun...';
+    });
+
+    Quagga.onDetected(onBarcodeDetected);
+}
+
+async function onBarcodeDetected(data) {
+    if (!isScanning) return;
+
+    const barcode = data.codeResult.code;
+    console.log('Barkod bulundu:', barcode);
+
+    // Taramayı durdur
+    Quagga.stop();
+    isScanning = false;
+
+    // Ürünü ara
+    try {
+        const response = await fetch(`/api/products/search?q=${encodeURIComponent(barcode)}`);
+        const products = await response.json();
+
+        if (products.length === 0) {
+            document.getElementById('scanStatus').textContent = `❌ Barkod bulunamadı: ${barcode}`;
+            setTimeout(() => startBarcodeScanner(), 2000);
+            return;
+        }
+
+        // İlk eşleşen ürünü al
+        scannedProductData = products[0];
+
+        document.getElementById('scannedProduct').innerHTML = `
+            <strong>${scannedProductData.name}</strong><br>
+            <span class="text-sm">Barkod: ${scannedProductData.barcode}</span>
+        `;
+        document.getElementById('scanResult').style.display = 'block';
+        document.getElementById('scanStatus').textContent = '✅ Barkod başarıyla okundu!';
+
+    } catch (error) {
+        console.error('Product lookup error:', error);
+        document.getElementById('scanStatus').textContent = 'Ürün araması başarısız oldu';
+        setTimeout(() => startBarcodeScanner(), 2000);
+    }
+}
+
+async function addScannedProduct() {
+    const sourceId = document.getElementById('scanSourceSelect').value;
+    const quantity = document.getElementById('scanQuantity').value;
+
+    if (!sourceId) {
+        showAlert('Lütfen kaynak seçin', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/${jobId}/items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                product_id: scannedProductData.id,
+                source_id: parseInt(sourceId),
+                quantity: parseInt(quantity)
+            })
+        });
+
+        if (response.ok) {
+            showAlert(`${scannedProductData.name} eklendi!`, 'success');
+            loadJobDetail();
+
+            // Taramaya devam et
+            scannedProductData = null;
+            document.getElementById('scanResult').style.display = 'none';
+            document.getElementById('scanQuantity').value = 1;
+            startBarcodeScanner();
+        } else {
+            showAlert('Ekleme başarısız oldu', 'error');
+        }
+    } catch (error) {
+        console.error('Add scanned product error:', error);
+        showAlert('Ekleme başarısız oldu', 'error');
+    }
+}
+
+function closeBarcodeScanner() {
+    if (isScanning && typeof Quagga !== 'undefined') {
+        Quagga.stop();
+    }
+    isScanning = false;
+    scannedProductData = null;
+    document.getElementById('barcodeScannerModal').classList.remove('active');
+}
 
 // Sayfa yüklendiğinde
 window.addEventListener('DOMContentLoaded', () => {

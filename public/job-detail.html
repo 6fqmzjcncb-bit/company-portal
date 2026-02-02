@@ -67,6 +67,12 @@
                     <h1 class="page-title" id="jobTitle">Yükleniyor...</h1>
                 </div>
                 <div class="page-actions">
+                    <button class="btn btn-success" onclick="openBulkAddModal()">
+                        📋 Toplu Ekle
+                    </button>
+                    <button class="btn btn-secondary" onclick="openBarcodeScannerModal()" id="barcodeScanBtn">
+                        📷 Barkod Tara
+                    </button>
                     <button class="btn btn-primary" onclick="openAddItemModal()">
                         + Kalem Ekle
                     </button>
@@ -149,6 +155,81 @@
         </div>
     </div>
 
+    <!-- Toplu Ekleme Modal -->
+    <div id="bulkAddModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2 class="modal-title">📋 Toplu Ürün Ekle</h2>
+                <button class="modal-close" onclick="closeBulkAddModal()">&times;</button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="form-label">Kaynak</label>
+                <select id="bulkSourceSelect" class="form-select" required>
+                    <option value="">Kaynak seçin...</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <input type="text" id="bulkSearch" class="form-input" placeholder="🔍 Ürün ara...">
+            </div>
+
+            <div id="bulkProductList"
+                style="max-height: 400px; overflow-y: auto; border: 2px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem;">
+                <p class="text-center text-muted">Yükleniyor...</p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeBulkAddModal()">İptal</button>
+                <button type="button" class="btn btn-success" onclick="submitBulkAdd()">
+                    <span id="bulkAddCount">0 ürün</span> ekle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barkod Tarama Modal -->
+    <div id="barcodeScannerModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📷 Barkod Tarama</h2>
+                <button class="modal-close" onclick="closeBarcodeScanner()">&times;</button>
+            </div>
+
+            <div id="barcodeScannerContainer">
+                <div id="interactive" class="viewport"
+                    style="position: relative; width: 100%; height: 400px; background: #000; border-radius: var(--radius-md); overflow: hidden;">
+                    <video style="width: 100%; height: 100%; object-fit: cover;"></video>
+                    <canvas class="drawingBuffer" style="position: absolute; top: 0; left: 0;"></canvas>
+                </div>
+
+                <div id="scanResult" style="margin-top: 1rem; display: none;">
+                    <div class="alert alert-success">
+                        <strong>✅ Barkod bulundu!</strong>
+                        <p id="scannedProduct"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Kaynak</label>
+                        <select id="scanSourceSelect" class="form-select"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Miktar</label>
+                        <input type="number" id="scanQuantity" class="form-input" value="1" min="1">
+                    </div>
+                    <button class="btn btn-primary btn-block" onclick="addScannedProduct()">Ekle ve Devam Et</button>
+                </div>
+
+                <p id="scanStatus" class="text-center text-muted" style="margin-top: 1rem;">Kamerayı ürün barkoduna
+                    doğrultun...</p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeBarcodeScanner()">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.8.4/dist/quagga.min.js"></script>
     <script src="/js/job-detail.js"></script>
 </body>
 
