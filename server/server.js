@@ -8,6 +8,9 @@ const { testConnection } = require('./config/database');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy (Railway'de çalışırken gerekli)
+app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dakika
