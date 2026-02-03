@@ -281,7 +281,7 @@ function renderItems(items) {
                 <div class="item-details">
                     <div class="item-name"><strong>${productName}</strong></div>
                     ${!isChecked ? `
-                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px; flex-wrap: wrap;">
                             <input 
                                 type="number" 
                                 class="input-small" 
@@ -289,18 +289,25 @@ function renderItems(items) {
                                 value="${item.quantity}" 
                                 min="1"
                                 onblur="autoSaveQuantity(${item.id}, this.value)"
-                                placeholder="Miktar">
-                            <span>adet</span>
+                                placeholder="Gerekli">
+                            <span>gerekli</span>
                             <span style="color: #888;">•</span>
                             <input 
                                 type="text" 
                                 class="input-small" 
-                                style="width: 250px;"
+                                style="width: 200px;"
                                 value="${sourceName}"
                                 list="sourceList"
                                 onblur="autoSaveSource(${item.id}, this.value)"
-                                placeholder="Kaynak (ör: Koçtaş, Merkez Depo)">
+                                placeholder="Kaynak">
                         </div>
+                        ${item.quantity_missing && item.quantity_missing > 0 ? `
+                            <div style="background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-top: 8px; font-size: 0.85rem; color: #92400e;">
+                                ⚠️ <strong>${item.quantity_found || 0}/${item.quantity}</strong> bulundu, 
+                                <strong>${item.quantity_missing} eksik</strong>
+                                ${item.missing_source ? ` → ${item.missing_source}'tan alınacak` : ''}
+                            </div>
+                        ` : ''}
                     ` : `
                         <div class="item-quantity">${item.quantity} adet • 📦 ${sourceName}</div>
                         <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
