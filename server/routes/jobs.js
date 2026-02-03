@@ -64,24 +64,7 @@ router.get('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'İş listesi bulunamadı' });
         }
 
-        // Kalemleri kaynağa göre grupla
-        const itemsBySource = {};
-
-        jobList.items.forEach(item => {
-            const sourceId = item.source.id;
-            if (!itemsBySource[sourceId]) {
-                itemsBySource[sourceId] = {
-                    source: item.source,
-                    items: []
-                };
-            }
-            itemsBySource[sourceId].items.push(item);
-        });
-
-        res.json({
-            ...jobList.toJSON(),
-            groupedItems: Object.values(itemsBySource)
-        });
+        res.json(jobList);
     } catch (error) {
         console.error('Job list detail error:', error);
         res.status(500).json({ error: 'İş listesi detayı getirilemedi' });

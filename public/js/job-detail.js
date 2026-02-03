@@ -113,8 +113,8 @@ async function loadJobDetail() {
         // Başlığı güncelle
         document.getElementById('jobTitle').textContent = job.title;
 
-        // Gruplanan kalemleri render et
-        renderGroupedItems(job.groupedItems || []);
+        // Kalemleri render et (artık gruplama yok)
+        renderItems(job.items || []);
 
     } catch (error) {
         console.error('Job detail load error:', error);
@@ -122,36 +122,18 @@ async function loadJobDetail() {
     }
 }
 
-// Kalemleri kaynağa göre grupla ve render et
-function renderGroupedItems(groupedItems) {
+// Kalemleri render et (tek düz list, kaynak her item'da gösterilir)
+function renderItems(items) {
     const container = document.getElementById('groupedItems');
 
-    if (!groupedItems || groupedItems.length === 0) {
+    if (!items || items.length === 0) {
         container.innerHTML = '<p class="text-muted text-center">Henüz kalem eklenmemiş</p>';
         return;
     }
 
-    container.innerHTML = '';
-
-    groupedItems.forEach(group => {
-        const groupCard = document.createElement('div');
-        groupCard.className = 'card mb-3';
-        groupCard.innerHTML = `
-            <div class="card-header">
-                <h3 style="margin: 0; font-size: 1.125rem;">📦 ${group.source.name}</h3>
-            </div>
-            <div class="card-body">
-                ${renderItems(group.items)}
-            </div>
-        `;
-        container.appendChild(groupCard);
-    });
-}
-
-// Item'ları render et
-function renderItems(items) {
-    return items.map(item => {
+    container.innerHTML = items.map(item => {
         const productName = item.product ? item.product.name : item.custom_name;
+        const sourceName = item.source ? item.source.name : 'Kaynak belirtilmemiş';
         const isChecked = item.is_checked;
 
         return `
@@ -162,6 +144,7 @@ function renderItems(items) {
                 <div class="item-details">
                     <div class="item-name">${productName}</div>
                     <div class="item-quantity">${item.quantity} adet</div>
+                    <div class="item-source">📦 ${sourceName}</div>
                     ${isChecked ? `<div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>` : ''}
                 </div>
                 <div class="item-actions">
@@ -193,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             clearTimeout(inlineSearchTimeout);
 
-            if (query.length < 2) {
+            if (query.length < 1) {
                 document.getElementById('inlineProductResults').innerHTML = '';
                 document.getElementById('inlineSelectedProductId').value = '';
                 document.getElementById('inlineSelectedProductName').value = '';
@@ -358,10 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Kalem sil
 async function deleteItem(itemId) {
-    if (!confirm('Bu kalemi silmek istediğinizden emin misiniz?')) {
-        return;
-    }
-
     try {
         const response = await fetch(`/api/jobs/items/${itemId}`, {
             method: 'DELETE'
@@ -381,10 +360,6 @@ async function deleteItem(itemId) {
 
 // Kalem işaretle
 async function checkItem(itemId) {
-    if (!confirm('Bu kalemi hazır olarak işaretlemek istediğinizden emin misiniz?')) {
-        return;
-    }
-
     try {
         const response = await fetch(`/api/jobs/items/${itemId}/check`, {
             method: 'POST'
@@ -405,10 +380,6 @@ async function checkItem(itemId) {
 
 // Kalem işaretini kaldır
 async function uncheckItem(itemId) {
-    if (!confirm('Bu kalemin işaretini kaldırmak istediğinizden emin misiniz?')) {
-        return;
-    }
-
     try {
         const response = await fetch(`/api/jobs/items/${itemId}/uncheck`, {
             method: 'POST'
