@@ -223,7 +223,7 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
 router.put('/items/:itemId', requireAuth, async (req, res) => {
     try {
         const { itemId } = req.params;
-        const { source_id, quantity } = req.body;
+        let { source_id, source_name, quantity } = req.body;
 
         const item = await JobItem.findByPk(itemId);
 
@@ -236,7 +236,31 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'İşaretlenmiş kalemler düzenlenemez' });
         }
 
-        await item.update({ source_id, quantity });
+        // Eğer source_name varsa, otomatik kaynak oluştur/bul
+        if (source_name) {
+            source_name = source_name.trim();
+
+            // Var mı kontrol et
+            let source = await Source.findOne({ where: { name: source_name } });
+
+            // Yoksa oluştur
+            if (!source) {
+                source = await Source.create({
+                    name: source_name,
+                    type: 'external', // Free text kaynaklar external
+                    is_active: true
+                });
+            }
+
+            source_id = source.id;
+        }
+
+        // Update
+        const updateData = {};
+        if (quantity) updateData.quantity = quantity;
+        if (source_id) updateData.source_id = source_id;
+
+        await item.update(updateData);
 
         // Güncellenmiş item'ı ilişkileriyle getir
         const updatedItem = await JobItem.findByPk(itemId, {

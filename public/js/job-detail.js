@@ -133,7 +133,7 @@ function renderItems(items) {
 
     container.innerHTML = items.map(item => {
         const productName = item.product ? item.product.name : item.custom_name;
-        const sourceName = item.source ? item.source.name : 'Kaynak belirtilmemiş';
+        const sourceName = item.source ? item.source.name : '';
         const isChecked = item.is_checked;
 
         return `
@@ -142,16 +142,36 @@ function renderItems(items) {
                     ${isChecked ? '✓' : '☐'}
                 </div>
                 <div class="item-details">
-                    <div class="item-name">${productName}</div>
-                    <div class="item-quantity">${item.quantity} adet</div>
-                    <div class="item-source">📦 ${sourceName}</div>
-                    ${isChecked ? `<div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>` : ''}
+                    <div class="item-name"><strong>${productName}</strong></div>
+                    ${!isChecked ? `
+                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                            <input 
+                                type="number" 
+                                class="input-small" 
+                                style="width: 80px;"
+                                value="${item.quantity}" 
+                                min="1"
+                                onblur="autoSaveQuantity(${item.id}, this.value)"
+                                placeholder="Miktar">
+                            <span>adet</span>
+                            <span style="color: #888;">•</span>
+                            <input 
+                                type="text" 
+                                class="input-small" 
+                                style="width: 200px;"
+                                value="${sourceName}"
+                                onblur="autoSaveSource(${item.id}, this.value)"
+                                placeholder="Kaynak (ör: Koçtaş, Merkez Depo)">
+                        </div>
+                    ` : `
+                        <div class="item-quantity">${item.quantity} adet • 📦 ${sourceName}</div>
+                        <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
+                    `}
                 </div>
                 <div class="item-actions">
                     ${!isChecked ? `
-                        <button class="btn btn-sm btn-outline" onclick="openEditItemModal(${item.id}, '${productName}', ${item.source.id}, ${item.quantity})">✏️ Düzenle</button>
                         <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
-                        <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☐ Alındı İşaretle</button>
+                        <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
                     ` : `
                         <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
                     `}
@@ -159,6 +179,62 @@ function renderItems(items) {
             </div>
         `;
     }).join('');
+}
+
+// Auto-save quantity (onBlur)
+async function autoSaveQuantity(itemId, newQuantity) {
+    const quantity = parseInt(newQuantity);
+    if (!quantity || quantity < 1) {
+        showAlert('Geçerli bir miktar girin');
+        await loadJobDetail(); // Reload to reset
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity })
+        });
+
+        if (!response.ok) {
+            throw new Error('Güncelleme başarısız');
+        }
+
+        // Silent success - no alert, just reload
+        await loadJobDetail();
+    } catch (error) {
+        showAlert(error.message);
+        await loadJobDetail();
+    }
+}
+
+// Auto-save source (onBlur)
+async function autoSaveSource(itemId, newSourceName) {
+    const sourceName = newSourceName.trim();
+    if (!sourceName) {
+        showAlert('Kaynak adı boş olamaz');
+        await loadJobDetail();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source_name: sourceName })
+        });
+
+        if (!response.ok) {
+            throw new Error('Güncelleme başarısız');
+        }
+
+        // Silent success
+        await loadJobDetail();
+    } catch (error) {
+        showAlert(error.message);
+        await loadJobDetail();
+    }
 }
 
 // ===========================
