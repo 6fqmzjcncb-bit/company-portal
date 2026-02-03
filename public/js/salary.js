@@ -1,16 +1,31 @@
 // Auth check
-if (!sessionStorage.getItem('isAuthenticated')) {
-    window.location.href = '/index.html';
+let currentUser = null;
+
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/auth/me');
+        if (!response.ok) {
+            window.location.href = '/index.html';
+            return null;
+        }
+        return await response.json();
+    } catch (error) {
+        window.location.href = '/index.html';
+        return null;
+    }
 }
 
-// User info display
-document.addEventListener('DOMContentLoaded', () => {
-    const userName = sessionStorage.getItem('userName');
-    const userRole = sessionStorage.getItem('userRole');
+// User info display and initialization
+document.addEventListener('DOMContentLoaded', async () => {
+    currentUser = await checkAuth();
+    if (!currentUser) return;
 
-    if (userName) {
-        document.getElementById('userName').textContent = userName;
-        document.getElementById('userRole').textContent = userRole === 'admin' ? 'Yönetici' : 'Personel';
+    document.getElementById('userName').textContent = currentUser.full_name;
+    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+
+    if (currentUser.role === 'admin') {
+        const adminLink = document.getElementById('adminLink');
+        if (adminLink) adminLink.style.display = 'block';
     }
 
     // Set default period (this month)
