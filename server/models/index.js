@@ -7,6 +7,8 @@ const Employee = require('./Employee');
 const Attendance = require('./Attendance');
 const StockMovement = require('./StockMovement');
 const SalaryPayment = require('./SalaryPayment');
+const JobView = require('./JobView');
+const JobItemDeletion = require('./JobItemDeletion');
 
 // İlişkileri tanımla
 // JobList ilişkileri
@@ -40,6 +42,23 @@ JobItem.belongsTo(Source, {
 JobItem.belongsTo(User, {
     foreignKey: 'checked_by_user_id',
     as: 'checkedBy'
+});
+
+// JobView ilişkileri
+JobView.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'viewer'
+});
+
+JobView.belongsTo(JobList, {
+    foreignKey: 'job_list_id',
+    as: 'jobList'
+});
+
+// JobItemDeletion ilişkileri
+JobItemDeletion.belongsTo(User, {
+    foreignKey: 'deleted_by_user_id',
+    as: 'deletedBy'
 });
 
 // Product ilişkileri
@@ -108,5 +127,7 @@ module.exports = {
     Employee,
     Attendance,
     StockMovement,
-    SalaryPayment
+    SalaryPayment,
+    JobView,
+    JobItemDeletion
 };
