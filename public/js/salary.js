@@ -36,12 +36,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('periodStart').value = firstDay.toISOString().split('T')[0];
     document.getElementById('periodEnd').value = lastDay.toISOString().split('T')[0];
 
-    loadPaymentHistory();
+    await loadPaymentHistory();
 });
 
-function logout() {
-    sessionStorage.clear();
-    window.location.href = '/index.html';
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/index.html';
+    } catch (error) {
+        window.location.href = '/index.html';
+    }
 }
 
 let calculations = [];

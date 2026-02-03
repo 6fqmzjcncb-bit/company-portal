@@ -104,15 +104,24 @@ function renderAttendance(date) {
                         style="width: 20px; height: 20px; cursor: pointer;">
                 </td>
                 <td>
-                    <input 
-                        type="number" 
-                        id="hours_${emp.id}" 
-                        value="${record.hours_worked || 8}"
-                        min="0" 
-                        max="24" 
-                        step="0.5"
-                        class="input-small"
-                        ${!record.worked ? 'disabled' : ''}>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <input 
+                            type="number" 
+                            id="hours_${emp.id}" 
+                            value="${record.hours_worked || 8}"
+                            min="0" 
+                            max="24" 
+                            step="0.5"
+                            class="input-small"
+                            style="width: 70px;"
+                            ${!record.worked ? 'disabled' : ''}>
+                        <div style="display: flex; gap: 3px;">
+                            <button class="btn-icon" onclick="addHours(${emp.id}, 1)" title="+1 Saat" ${!record.worked ? 'disabled' : ''}>+1</button>
+                            <button class="btn-icon" onclick="addHours(${emp.id}, 2)" title="+2 Saat" ${!record.worked ? 'disabled' : ''}>+2</button>
+                            <button class="btn-icon" onclick="addHours(${emp.id}, 3)" title="+3 Saat" ${!record.worked ? 'disabled' : ''}>+3</button>
+                            <button class="btn-icon" onclick="setFullDay(${emp.id})" title="Tam Gün (8 saat)" ${!record.worked ? 'disabled' : ''}>⏰</button>
+                        </div>
+                    </div>
                 </td>
                 <td>
                     <input 
@@ -148,6 +157,23 @@ function toggleWorked(empId) {
     } else {
         document.getElementById(`hours_${empId}`).value = 8;
     }
+
+    // Also toggle button states
+    const buttons = document.querySelectorAll(`button[onclick*="${empId}"]`);
+    buttons.forEach(btn => btn.disabled = !worked);
+}
+
+// Add hours to existing value
+function addHours(empId, hours) {
+    const input = document.getElementById(`hours_${empId}`);
+    const currentValue = parseFloat(input.value) || 0;
+    const newValue = Math.min(currentValue + hours, 24); // Max 24 hours
+    input.value = newValue;
+}
+
+// Set to full day (8 hours)
+function setFullDay(empId) {
+    document.getElementById(`hours_${empId}`).value = 8;
 }
 
 // Mark all as worked/not worked
