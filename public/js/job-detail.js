@@ -94,6 +94,17 @@ async function loadSources() {
                 editSelect.appendChild(option);
             });
         }
+
+        // Autocomplete datalist (kaynak input için)
+        const sourceList = document.getElementById('sourceList');
+        if (sourceList) {
+            sourceList.innerHTML = '';
+            sources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source.name;
+                sourceList.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Sources load error:', error);
     }
@@ -158,8 +169,9 @@ function renderItems(items) {
                             <input 
                                 type="text" 
                                 class="input-small" 
-                                style="width: 200px;"
+                                style="width: 250px;"
                                 value="${sourceName}"
+                                list="sourceList"
                                 onblur="autoSaveSource(${item.id}, this.value)"
                                 placeholder="Kaynak (ör: Koçtaş, Merkez Depo)">
                         </div>

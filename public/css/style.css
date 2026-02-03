@@ -1180,3 +1180,106 @@ textarea.input-small {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+/* ===========================
+   JOB DETAIL PAGE - ITEM ROWS
+   =========================== */
+
+.item-row {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  gap: 15px;
+  align-items: start;
+  padding: 15px;
+  margin-bottom: 12px;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+}
+
+.item-row:hover {
+  border-color: var(--primary-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.item-row.item-checked {
+  background: var(--success-bg);
+  border-color: var(--secondary-color);
+}
+
+/* CHECKBOX */
+.item-checkbox {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  background: var(--gray-100);
+  border: 2px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  user-select: none;
+}
+
+.item-checked .item-checkbox {
+  background: var(--secondary-color);
+  border-color: var(--secondary-color);
+  color: white;
+}
+
+/* ITEM DETAILS */
+.item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: 1.05rem;
+  color: var(--gray-900);
+  margin-bottom: 8px;
+}
+
+.item-quantity,
+.item-source,
+.item-meta {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin-top: 4px;
+}
+
+.item-meta {
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* INLINE EDITING INPUTS */
+.item-details input[type="number"],
+.item-details input[type="text"] {
+  padding: 6px 10px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.item-details input[type="number"]:focus,
+.item-details input[type="text"]:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* ITEM ACTIONS */
+.item-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.item-actions .btn-sm {
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
