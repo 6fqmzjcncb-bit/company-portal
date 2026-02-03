@@ -42,6 +42,23 @@ const JobItem = sequelize.define('JobItem', {
         allowNull: false,
         defaultValue: 1
     },
+    quantity_found: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Bulunan/temin edilen miktar (kısmi tamamlama için)'
+    },
+    quantity_missing: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Eksik miktar'
+    },
+    missing_source: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Eksik malzeme nereden alınacak (free text)'
+    },
     is_checked: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,

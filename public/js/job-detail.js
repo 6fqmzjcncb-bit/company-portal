@@ -124,13 +124,139 @@ async function loadJobDetail() {
         // Başlığı güncelle
         document.getElementById('jobTitle').textContent = job.title;
 
-        // Kalemleri render et (artık gruplama yok)
+        // COMPLETION % + VIEWERS göster
+        renderCompletionStats(job.completion, job.viewers);
+
+        // Kalemleri render et
         renderItems(job.items || []);
+
+        // TAMAMLANMAYAN MALZEMELER
+        renderIncompleteItems(job.items || []);
+
+        // SİLİNEN ÜRÜNLER
+        renderDeletions(job.deletions || []);
+
+        // View tracking kaydet (silent)
+        trackView();
 
     } catch (error) {
         console.error('Job detail load error:', error);
         showAlert('İş listesi yüklenemedi');
     }
+}
+
+// View tracking (kim baktı log'u)
+async function trackView() {
+    try {
+        await fetch(`/api/jobs/${jobId}/view`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+    } catch (error) {
+        // Silent fail - tracking is not critical
+    }
+}
+
+// Completion stats render
+function renderCompletionStats(completion, viewers) {
+    const container = document.getElementById('completionStats');
+    if (!container) return;
+
+    const percentage = completion?.percentage || 0;
+    const total = completion?.total || 0;
+    const completed = completion?.completed || 0;
+
+    let viewersHtml = '';
+    if (viewers && viewers.length > 0) {
+        const uniqueViewers = [...new Map(viewers.map(v => [v.user?.id, v])).values()];
+        viewersHtml = uniqueViewers.slice(0, 3).map(v =>
+            `${v.user?.full_name || 'Bilinmiyor'}`
+        ).join(', ');
+        if (uniqueViewers.length > 3) {
+            viewersHtml += ` +${uniqueViewers.length - 3} diğer`;
+        }
+    }
+
+    container.innerHTML = `
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <strong>Tamamlanma:</strong> ${completed}/${total} (%${percentage})
+                    <div style="background: #e5e7eb; height: 8px; width: 200px; border-radius: 4px; margin-top: 5px; overflow: hidden;">
+                        <div style="background: #059669; height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                ${viewers && viewers.length > 0 ? `
+                    <div style="font-size: 0.9rem; color: #6b7280;">
+                        <strong>Görüntüleyenler:</strong> ${viewersHtml}
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// Tamamlanmayan malzemeler
+function renderIncompleteItems(items) {
+    const container = document.getElementById('incompleteItems');
+    if (!container) return;
+
+    const incomplete = items.filter(item => !item.is_checked && item.quantity_missing > 0);
+
+    if (incomplete.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
+            <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: #92400e;">⚠️ Tamamlanmayan Malzemeler</h3>
+            ${incomplete.map(item => {
+        const productName = item.product ? item.product.name : item.custom_name;
+        return `
+                    <div style="padding: 8px 0; border-bottom: 1px solid #fde68a;">
+                        <strong>${productName}</strong><br>
+                        <span style="font-size: 0.9rem; color: #92400e;">
+                            Toplam: ${item.quantity} | Bulundu: ${item.quantity_found || 0} | Eksik: ${item.quantity_missing}
+                            ${item.missing_source ? ` → ${item.missing_source}'tan alınacak` : ''}
+                        </span>
+                    </div>
+                `;
+    }).join('')}
+        </div>
+    `;
+}
+
+// Silinen ürünler
+function renderDeletions(deletions) {
+    const container = document.getElementById('deletedItems');
+    if (!container) return;
+
+    if (deletions.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <details style="margin-top: 20px; padding: 10px; background: #fee2e2; border-radius: 8px; cursor: pointer;">
+            <summary style="font-weight: 600; color: #991b1b; font-size: 0.9rem;">
+                🗑️ Silinen Ürünler (${deletions.length})
+            </summary>
+            <div style="margin-top: 10px;">
+                ${deletions.map(d => `
+                    <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem;">
+                        <strong>${d.product_name}</strong> - ${d.quantity} adet
+                        ${d.source_name ? `(${d.source_name})` : ''}<br>
+                        <span style="color: #6b7280;">
+                            ${d.deleted_by?.full_name || 'Bilinmiyor'} tarafından silindi 
+                            (${new Date(d.deleted_at).toLocaleString('tr-TR')})
+                        </span>
+                        ${d.reason ? `<br><em>Sebep: ${d.reason}</em>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </details>
+    `;
 }
 
 // Kalemleri render et (tek düz list, kaynak her item'da gösterilir)

@@ -64,7 +64,56 @@ router.get('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'İş listesi bulunamadı' });
         }
 
-        res.json(jobList);
+        // Completion % hesapla
+        const totalItems = jobList.items.length;
+        const completedItems = jobList.items.filter(item => item.is_checked).length;
+        const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+        // Viewers (kim baktı) getir
+        const JobView = require('../models/JobView');
+        const viewers = await JobView.findAll({
+            where: { job_list_id: id },
+            include: [{
+                model: User,
+                as: 'viewer',
+                attributes: ['id', 'full_name']
+            }],
+            order: [['viewed_at', 'DESC']],
+            limit: 10 // Son 10 görüntüleme
+        });
+
+        // Deletions (silinen ürünler) getir
+        const JobItemDeletion = require('../models/JobItemDeletion');
+        const deletions = await JobItemDeletion.findAll({
+            where: { job_list_id: id },
+            include: [{
+                model: User,
+                as: 'deletedBy',
+                attributes: ['id', 'full_name']
+            }],
+            order: [['deleted_at', 'DESC']]
+        });
+
+        res.json({
+            ...jobList.toJSON(),
+            completion: {
+                total: totalItems,
+                completed: completedItems,
+                percentage: completionPercentage
+            },
+            viewers: viewers.map(v => ({
+                user: v.viewer,
+                viewed_at: v.viewed_at
+            })),
+            deletions: deletions.map(d => ({
+                product_name: d.product_name,
+                quantity: d.quantity,
+                source_name: d.source_name,
+                deleted_by: d.deletedBy,
+                deleted_at: d.deleted_at,
+                reason: d.reason
+            }))
+        });
     } catch (error) {
         console.error('Job list detail error:', error);
         res.status(500).json({ error: 'İş listesi detayı getirilemedi' });
@@ -336,17 +385,40 @@ router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
     }
 });
 
-// Job item sil
+// Job item sil (soft delete + log)
 router.delete('/items/:itemId', requireAuth, async (req, res) => {
     try {
         const { itemId } = req.params;
-        const item = await JobItem.findByPk(itemId);
+        const { reason } = req.body; // Opsiyonel silme sebebi
+        const userId = req.session.userId;
+
+        const item = await JobItem.findByPk(itemId, {
+            include: [
+                { model: Product, as: 'product' },
+                { model: Source, as: 'source' }
+            ]
+        });
 
         if (!item) {
             return res.status(404).json({ error: 'Kalem bulunamadı' });
         }
 
+        // Silme log'u oluştur (models içine import et)
+        const JobItemDeletion = require('../models/JobItemDeletion');
+
+        await JobItemDeletion.create({
+            job_list_id: item.job_list_id,
+            product_name: item.product ? item.product.name : item.custom_name,
+            quantity: item.quantity,
+            source_name: item.source ? item.source.name : null,
+            deleted_by_user_id: userId,
+            deleted_at: new Date(),
+            reason: reason || null
+        });
+
+        // Hard delete (log zaten kaydedildi)
         await item.destroy();
+
         res.json({ success: true });
     } catch (error) {
         console.error('Job item delete error:', error);
@@ -374,3 +446,38 @@ router.delete('/:id', requireAuth, async (req, res) => {
 });
 
 module.exports = router;
+
+// View tracking: İş listesini görüntüle (log kaydı)
+router.post('/:id/view', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.session.userId;
+
+        const JobView = require('../models/JobView');
+        
+        // Zaten görüntülemiş mi kontrol et (son 1 saatte)
+        const recentView = await JobView.findOne({
+            where: {
+                job_list_id: id,
+                user_id: userId
+            },
+            order: [['viewed_at', 'DESC']]
+        });
+
+        const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+        
+        // Son 1 saat içinde görüntülememişse yeni kayıt oluştur
+        if (!recentView || recentView.viewed_at < oneHourAgo) {
+            await JobView.create({
+                job_list_id: id,
+                user_id: userId,
+                viewed_at: new Date()
+            });
+        }
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('View tracking error:', error);
+        res.status(500).json({ error: 'Görüntüleme kaydedilemedi' });
+    }
+});
