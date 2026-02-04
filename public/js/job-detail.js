@@ -373,7 +373,13 @@ function renderItems(items) {
                             <div class="item-checkbox">✓</div>
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name"><strong>${productName}</strong></div>
-                                <div class="item-quantity">${item.quantity} adet • 📦 ${sourceName}</div>
+                                <div class="item-quantity">
+                                    ${item.quantity_found || item.quantity} adet alındı
+                                    ${item.quantity_found && item.quantity_found < item.quantity
+                    ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik)</span>`
+                    : ''
+                } • 📦 ${sourceName}
+                                </div>
                                 <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
                             </div>
                             <div class="item-actions">
