@@ -269,7 +269,8 @@ function renderItems(items) {
     }
 
     const incomplete = items.filter(i => !i.is_checked);
-    const completed = items.filter(i => i.is_checked);
+    const partial = items.filter(i => i.is_checked && i.quantity_found && i.quantity_found < i.quantity);
+    const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found === i.quantity));
 
     let html = '';
 
@@ -378,6 +379,49 @@ function renderItems(items) {
                             <div class="item-actions">
                                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
                                 <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
+                            </div>
+                        </div>
+                    `;
+        }).join('')}
+            </div>
+        `;
+    }
+
+    // EKSİKLER (Kısmi Tamamlananlar)
+    if (partial.length > 0) {
+        html += `
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${partial.length})</h3>
+                ${partial.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.source ? item.source.name : '';
+            const missing = item.quantity - (item.quantity_found || 0);
+
+            return `
+                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">⚠️</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                <div style="margin-top: 6px; font-size: 0.9rem;">
+                                    <span style="color: #059669; font-weight: 600;">✓ ${item.quantity_found || 0} adet alındı</span>
+                                    <span style="margin: 0 8px; color: #888;">•</span>
+                                    <span style="color: #dc2626; font-weight: 600;">✗ ${missing} adet eksik</span>
+                                    <span style="margin: 0 8px; color: #888;">•</span>
+                                    <span>📦 ${sourceName}</span>
+                                </div>
+                                ${item.missing_reason === 'buy_from_source' && item.missing_source ? `
+                                    <div style="margin-top: 6px; font-size: 0.85rem; color: #6b7280;">
+                                        → ${item.missing_source}'tan alınacak
+                                    </div>
+                                ` : item.missing_reason === 'buy_later' ? `
+                                    <div style="margin-top: 6px; font-size: 0.85rem; color: #6b7280;">
+                                        ⏰ Daha sonra alınacak
+                                    </div>
+                                ` : ''}
+                                <div class="item-meta" style="margin-top: 6px;">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
                             </div>
                         </div>
                     `;
