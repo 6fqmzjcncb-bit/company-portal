@@ -324,20 +324,47 @@ function renderItems(items) {
                                     </div>
                                 </div>
                                 ${item.quantity_found && item.quantity_found < item.quantity ? `
-                                    <div style="background: #fee2e2; padding: 8px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #dc2626;">
-                                        <div style="font-size: 0.9rem; color: #991b1b; font-weight: 600;">
+                                    <div style="background: #fee2e2; padding: 10px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #dc2626;">
+                                        <div style="font-size: 0.9rem; color: #991b1b; font-weight: 600; margin-bottom: 8px;">
                                             ⚠️ <strong>${item.quantity - item.quantity_found} adet eksik!</strong>
                                         </div>
-                                        <div style="margin-top: 6px;">
-                                            <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Nereden Alınacak?</label>
-                                            <input 
-                                                type="text" 
-                                                class="input-small" 
-                                                style="width: 100%; max-width: 300px;"
-                                                value="${item.missing_source || ''}"
-                                                list="sourceList"
-                                                onblur="autoSaveMissingSource(${item.id}, this.value)"
-                                                placeholder="ör: Koçtaş, Bauhaus">
+                                        
+                                        <!-- Seçenek 1: Başka yerden alınacak -->
+                                        <div style="margin-bottom: 8px;">
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input 
+                                                    type="radio" 
+                                                    name="missing_reason_${item.id}" 
+                                                    value="buy_from_source"
+                                                    ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
+                                                    onchange="updateMissingReason(${item.id}, 'buy_from_source')"
+                                                    style="margin-right: 6px;">
+                                                <span style="font-size: 0.85rem; color: #374151;">📦 Başka yerden alınacak</span>
+                                            </label>
+                                            ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
+                                                <input 
+                                                    type="text" 
+                                                    class="input-small" 
+                                                    style="width: 100%; max-width: 300px; margin-top: 6px; margin-left: 22px;"
+                                                    value="${item.missing_source || ''}"
+                                                    list="sourceList"
+                                                    onblur="autoSaveMissingSource(${item.id}, this.value)"
+                                                    placeholder="Nereden? (ör: Koçtaş)">
+                                            ` : ''}
+                                        </div>
+                                        
+                                        <!-- Seçenek 2: Daha sonra alınacak -->
+                                        <div>
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input 
+                                                    type="radio" 
+                                                    name="missing_reason_${item.id}" 
+                                                    value="buy_later"
+                                                    ${item.missing_reason === 'buy_later' ? 'checked' : ''}
+                                                    onchange="updateMissingReason(${item.id}, 'buy_later')"
+                                                    style="margin-right: 6px;">
+                                                <span style="font-size: 0.85rem; color: #374151;">⏰ Daha sonra alınacak (şimdi gerekli değil)</span>
+                                            </label>
                                         </div>
                                     </div>
                                 ` : item.quantity_found && item.quantity_found === item.quantity ? `

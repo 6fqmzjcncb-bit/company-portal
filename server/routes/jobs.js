@@ -347,6 +347,7 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
         if (req.body.quantity_found !== undefined) updateData.quantity_found = req.body.quantity_found;
         if (req.body.quantity_missing !== undefined) updateData.quantity_missing = req.body.quantity_missing;
         if (req.body.missing_source !== undefined) updateData.missing_source = req.body.missing_source;
+        if (req.body.missing_reason !== undefined) updateData.missing_reason = req.body.missing_reason;
 
         await item.update(updateData);
 

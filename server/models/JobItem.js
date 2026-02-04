@@ -59,6 +59,12 @@ const JobItem = sequelize.define('JobItem', {
         allowNull: true,
         comment: 'Eksik malzeme nereden alınacak (free text)'
     },
+    missing_reason: {
+        type: DataTypes.ENUM('buy_from_source', 'buy_later'),
+        allowNull: true,
+        defaultValue: null,
+        comment: 'Eksik malzeme sebebi: buy_from_source = başka yerden alınacak, buy_later = daha sonra alınacak'
+    },
     is_checked: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
