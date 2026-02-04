@@ -202,7 +202,7 @@ router.post('/:id/items', requireAuth, async (req, res) => {
             job_list_id: id,
             product_id: product_id || null,
             custom_name: custom_name || null,
-            source_id,
+            source_id: finalSourceId,
             quantity: quantity || 1,
             is_checked: false
         });

@@ -589,10 +589,17 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
-                     onclick="selectInlineProduct('${p.id}', '${p.name}')">
-                    <div class="font-bold">${p.name}</div>
-                    ${p.barcode ? `<div class="text-xs text-gray-500">${p.barcode}</div>` : ''}
-                    ${p.current_stock !== undefined ? `<div class="text-xs text-blue-600">Stok: ${p.current_stock}</div>` : ''}
+                     style="display: flex; justify-content: space-between; align-items: center;"
+                     onmousedown="selectInlineProduct('${p.id}', '${p.name}')">
+                    <div>
+                        <div class="font-bold text-gray-800">${p.name}</div>
+                        ${p.barcode ? `<div class="text-xs text-gray-500">${p.barcode}</div>` : ''}
+                    </div>
+                    ${p.current_stock !== undefined ? `
+                        <div class="text-sm font-semibold ${p.current_stock > 0 ? 'text-green-600' : 'text-red-500'}">
+                            Stok: ${p.current_stock}
+                        </div>
+                    ` : ''}
                 </div>
             `).join('');
 
