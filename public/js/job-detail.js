@@ -210,20 +210,41 @@ function renderIncompleteItems(items) {
     }
 
     container.innerHTML = `
-        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
-            <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: #92400e;">⚠️ Tamamlanmayan Malzemeler</h3>
-            ${incomplete.map(item => {
+        <div style="background: #fef9e7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                ⚠️ Eksikler (${incomplete.length})
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                ${incomplete.map(item => {
         const productName = item.product ? item.product.name : item.custom_name;
+        const sourceName = item.missing_source ? item.missing_source : 'Belirtilmedi';
         return `
-                    <div style="padding: 8px 0; border-bottom: 1px solid #fde68a;">
-                        <strong>${productName}</strong><br>
-                        <span style="font-size: 0.9rem; color: #92400e;">
-                            Toplam: ${item.quantity} | Bulundu: ${item.quantity_found || 0} | Eksik: ${item.quantity_missing}
-                            ${item.missing_source ? ` → ${item.missing_source}'tan alınacak` : ''}
-                        </span>
-                    </div>
-                `;
+                        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #fcd34d; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                            
+                            <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
+                                <div style="font-size: 1.4rem; line-height: 1;">⚠️</div>
+                                
+                                <div>
+                                    <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px;">
+                                        ${productName} 
+                                        <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">
+                                            ✓ ${item.quantity_found || 0} alındı • ✕ ${item.quantity_missing} eksik
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.9rem; color: #4b5563; display: flex; align-items: center; gap: 6px;">
+                                        📦 Alınacak Yer: <strong>${sourceName}</strong>
+                                        <button onclick="openEditItemModal(${item.id}, '${productName.replace(/'/g, "\\'")}', ${item.source_id || 'null'}, ${item.quantity})" style="border:none; background:none; cursor:pointer; font-size:0.9rem;" title="Düzenle">✏️</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onclick="resolveMissingItem(${item.id})" class="btn" style="background: #059669; color: white; padding: 6px 16px; border-radius: 6px; font-weight: 600; font-size: 0.9rem; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                ✅ Alındı
+                            </button>
+                        </div>
+                    `;
     }).join('')}
+            </div>
         </div>
     `;
 }
@@ -1196,5 +1217,20 @@ async function checkItem(itemId) {
     } catch (error) {
         console.error(error);
         showAlert(error.message);
+    }
+}
+
+// Resolve missing item (Set found = quantity)
+async function resolveMissingItem(itemId) {
+    const itemCard = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
+    if (!itemCard) return;
+
+    const qtyInput = itemCard.querySelectorAll('.qty-input-field')[0];
+    const receivedInput = itemCard.querySelectorAll('.qty-input-field')[1];
+
+    if (qtyInput && receivedInput) {
+        receivedInput.value = qtyInput.value;
+        await autoSaveQuantityFound(itemId, qtyInput.value);
+        await checkItem(itemId); // Finalize
     }
 }
