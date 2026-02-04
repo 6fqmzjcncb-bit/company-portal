@@ -49,6 +49,22 @@ let employees = [];
 let attendanceRecords = {};
 
 // Load attendance for selected date
+// Load employees once
+async function loadEmployees() {
+    try {
+        const response = await fetch('/api/employees');
+        if (!response.ok) throw new Error('Personel listesi alınamadı');
+
+        let allEmployees = await response.json();
+        // Filter active employees
+        employees = allEmployees.filter(e => e.is_active);
+    } catch (error) {
+        console.error('Personel yükleme hatası:', error);
+        alert('Personel listesi yüklenemedi');
+    }
+}
+
+// Load attendance for selected date
 async function loadAttendance() {
     const date = document.getElementById('selectedDate').value;
     if (!date) {
@@ -57,10 +73,10 @@ async function loadAttendance() {
     }
 
     try {
-        // Load employees
-        const empResponse = await fetch('/api/employees');
-        employees = await empResponse.json();
-        employees = employees.filter(e => e.is_active);
+        // If employees are not loaded yet (edge case)
+        if (employees.length === 0) {
+            await loadEmployees();
+        }
 
         // Load attendance records for this date
         const attResponse = await fetch(`/api/attendance?date=${date}`);
