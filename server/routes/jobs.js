@@ -248,24 +248,41 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
         }
 
         // Zaten işaretli mi kontrol et
+        let isAlreadyChecked = false;
+
         if (item.is_checked) {
-            await transaction.rollback();
-            return res.status(400).json({ error: 'Bu kalem zaten işaretlenmiş' });
+            // Eğer tamamen tamamlanmışsa işlem yapma
+            if (!item.quantity_found || item.quantity_found >= item.quantity) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Bu kalem zaten tamamen işaretlenmiş' });
+            }
+            // Kısmi tamamlanmışsa (eksik varsa) devam et -> Tamamla
+            isAlreadyChecked = true;
         }
 
-        // İşaretle - quantity_found varsa KORU, yoksa tümünü al
-        await item.update({
+        // Güncelleme verilerini hazırla
+        const updateData = {
             is_checked: true,
             checked_by_user_id: userId,
             checked_at: new Date(),
-            quantity_found: item.quantity_found || item.quantity, // Mevcut değeri koru!
-            quantity_missing: item.quantity_found
-                ? Math.max(0, item.quantity - item.quantity_found)  // Mevcut eksik
-                : 0  // Tümü alındıysa 0
-        }, { transaction });
+            // Eğer zaten checked ise (kısmi -> tam), o zaman hepsini aldık
+            // Değilse, mevcut girilen (found) değeri kullan veya hepsini aldık say
+            quantity_found: isAlreadyChecked ? item.quantity : (item.quantity_found || item.quantity),
+            quantity_missing: 0, // Varsayılan 0
+            missing_source: null,
+            missing_reason: null
+        };
 
-        // STOK DÜŞÜMÜ: Eğer product_id doluysa VE source internal ise
-        if (item.product_id && item.source.type === 'internal') {
+        // Eğer ilk check ve kısmi ise, eksik miktarını hesapla
+        if (!isAlreadyChecked && updateData.quantity_found < item.quantity) {
+            updateData.quantity_missing = item.quantity - updateData.quantity_found;
+        }
+
+        await item.update(updateData, { transaction });
+
+        // STOK DÜŞÜMÜ: Sadece İLK KEZ işaretleniyorsa stoktan düş
+        // (Not: Kısmi stok düşümü yapmıyoruz, check edildiği an tüm stok düşülüyor varsayımı korundu)
+        if (!isAlreadyChecked && item.product_id && item.source.type === 'internal') {
             const product = await Product.findByPk(item.product_id, { transaction });
 
             if (product) {
