@@ -469,15 +469,19 @@ function renderItems(items) {
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name"><strong>${productName}</strong></div>
                                 <div class="item-quantity">
-                                    ${item.quantity_found || item.quantity} adet alındı
+                                    <span style="color: #4b5563;">Gerekli: <strong>${item.quantity}</strong></span> 
+                                    <span style="color: #9ca3af; margin: 0 6px;">|</span> 
+                                    <span>Alınan: <strong>${item.quantity_found || item.quantity}</strong></span>
+                                    
                                     ${item.quantity_found && item.quantity_found < item.quantity
-                    ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik • İstenen: ${item.quantity})</span>`
+                    ? ` <span style="color: #dc2626; font-weight: 600; margin-left: 4px;">(${item.quantity - item.quantity_found} eksik)</span>`
                     : ''
                 }
                                     ${item.quantity_found && item.quantity_found > item.quantity
-                    ? ` <span style="color: #059669; font-weight: 600;">(${item.quantity_found - item.quantity} fazla • İstenen: ${item.quantity})</span>`
+                    ? ` <span style="color: #059669; font-weight: 600; margin-left: 4px;">(${item.quantity_found - item.quantity} fazla)</span>`
                     : ''
-                } • 📦 ${sourceName}
+                }
+                                     • 📦 ${sourceName}
                                 </div>
                                 <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
                             </div>
