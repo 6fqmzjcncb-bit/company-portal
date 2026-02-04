@@ -309,83 +309,84 @@ function renderIncompleteItem(item) {
     const sourceName = item.source ? item.source.name : '';
 
     return `
-        <div class="item-row" data-item-id="${item.id}" style="padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: flex-start; gap: 15px;">
-            <!-- 1. CHECKBOX (Custom Styled) -->
-            <div class="item-checkbox-custom" onclick="checkItem(${item.id})" title="Tamamla">
-                <span style="font-size: 1.2rem; line-height: 1;">✓</span>
-            </div>
-            
-            <!-- 2. DETAILS -->
-            <div class="item-details" style="flex: 1;">
-                <div class="item-name" style="font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 8px;">${productName}</div>
+        <div class="job-item-card" data-item-id="${item.id}">
+            <!-- HEADER: Checkbox + Name + Actions -->
+            <div class="card-header-row">
+                <div class="item-checkbox-custom" onclick="checkItem(${item.id})" title="Tamamla">
+                    <span style="font-size: 1.2rem; line-height: 1;">✓</span>
+                </div>
                 
-                <div class="item-visual-row" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
-                    <!-- Gerekli -->
-                    <div class="qty-input-group">
-                        <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Gerekli</label>
-                        <input type="number" class="qty-input-field"
-                            value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
-                    </div>
+                <div class="card-product-name">${productName}</div>
 
-                     <!-- Alınan -->
-                    <div class="qty-input-group">
-                        <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Alınan</label>
-                        <input type="number" class="qty-input-field"
-                            value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
-                    </div>
-
-                    <!-- Kaynaklar + Not -->
-                    <div style="flex: 1; min-width: 200px;">
-                            <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Kaynaklar ve Notlar</label>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                                ${renderTagsInput(item.id, sourceName)}
-                                <input type="text" class="note-input"
-                                    value="${item.note || ''}" 
-                                    placeholder="Not ekle..." 
-                                    onblur="autoSaveNote(${item.id}, this.value)">
-                            </div>
-                    </div>
-                </div>
-
-                    <!-- Eksik Durumu -->
-                    ${item.quantity_found && item.quantity_found < item.quantity ? `
-                        <div style="margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
-                            <div style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
-                                ⚠️ ${item.quantity - item.quantity_found} adet eksik!
-                            </div>
-                            
-                            <!-- Eksik Seçenekleri -->
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151;">
-                                    <input type="radio" name="missing_reason_${item.id}" value="buy_from_source" 
-                                        ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
-                                        onchange="updateMissingReason(${item.id}, 'buy_from_source')">
-                                    📦 Başka yerden alınacak
-                                </label>
-                                
-                                ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
-                                    <div style="margin-left: 24px; margin-top: 5px; width: 100%; max-width: 400px;">
-                                        ${renderTagsInput('missing-' + item.id, item.missing_source || '')}
-                                    </div>
-                                ` : ''}
-
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; margin-top: 5px;">
-                                    <input type="radio" name="missing_reason_${item.id}" value="buy_later" 
-                                        ${item.missing_reason === 'buy_later' ? 'checked' : ''}
-                                        onchange="updateMissingReason(${item.id}, 'buy_later')">
-                                    ⏰ Daha sonra alınacak
-                                </label>
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <!-- 3. ACTIONS (Vertical Stack) -->
-                <div class="item-actions" style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-start;">
+                <div style="display: flex; gap: 8px;">
                     <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">🗑️</button>
                     <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">✅</button>
                 </div>
             </div>
+
+            <!-- BODY: Inputs Grid -->
+            <div class="card-body-grid">
+                <!-- Col 1: Required -->
+                <div>
+                     <span class="input-group-label">Gerekli</span>
+                     <input type="number" class="qty-input-field"
+                            value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
+                </div>
+
+                <!-- Col 2: Received -->
+                <div>
+                     <span class="input-group-label">Alınan</span>
+                     <input type="number" class="qty-input-field"
+                            value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
+                </div>
+
+                <!-- Col 3: Source -->
+                <div class="source-col">
+                    <span class="input-group-label">Tedarik Kaynağı</span>
+                    ${renderTagsInput(item.id, sourceName)}
+                </div>
+
+                <!-- Col 4: Note -->
+                <div class="note-col">
+                    <span class="input-group-label">Personel Notu</span>
+                    <input type="text" class="note-input"
+                           value="${item.note || ''}" 
+                           placeholder="Bir not yazın..." 
+                           onblur="autoSaveNote(${item.id}, this.value)">
+                </div>
+            </div>
+
+            <!-- EXCEPTION: Missing Quantity Warning -->
+            ${item.quantity_found && item.quantity_found < item.quantity ? `
+                <div style="margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                    <div style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
+                        ⚠️ ${item.quantity - item.quantity_found} adet eksik!
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151;">
+                            <input type="radio" name="missing_reason_${item.id}" value="buy_from_source" 
+                                ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
+                                onchange="updateMissingReason(${item.id}, 'buy_from_source')">
+                            📦 Başka yerden alınacak
+                        </label>
+                        
+                        ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
+                            <div style="margin-left: 24px; margin-top: 5px; width: 100%; max-width: 400px;">
+                                ${renderTagsInput('missing-' + item.id, item.missing_source || '')}
+                            </div>
+                        ` : ''}
+
+                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; margin-top: 5px;">
+                            <input type="radio" name="missing_reason_${item.id}" value="buy_later" 
+                                ${item.missing_reason === 'buy_later' ? 'checked' : ''}
+                                onchange="updateMissingReason(${item.id}, 'buy_later')">
+                            ⏰ Daha sonra alınacak
+                        </label>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
     `;
 }
 
