@@ -368,10 +368,11 @@ function renderItems(items) {
                                             </label>
                                         </div>
                                     </div>
-                                ` : item.quantity_found && item.quantity_found === item.quantity ? `
+                                ` : item.quantity_found && item.quantity_found >= item.quantity ? `
                                     <div style="background: #d1fae5; padding: 8px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #059669;">
                                         <span style="font-size: 0.9rem; color: #065f46; font-weight: 600;">
                                             ✅ Tüm ürünler alındı!
+                                            ${item.quantity_found > item.quantity ? `<span style="display:block; margin-top:4px; font-size:0.85rem; color:#047857;">ℹ️ (${item.quantity_found - item.quantity} adet fazla alındı)</span>` : ''}
                                         </span>
                                     </div>
                                 ` : ''}
@@ -471,6 +472,10 @@ function renderItems(items) {
                                     ${item.quantity_found || item.quantity} adet alındı
                                     ${item.quantity_found && item.quantity_found < item.quantity
                     ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik)</span>`
+                    : ''
+                }
+                                    ${item.quantity_found && item.quantity_found > item.quantity
+                    ? ` <span style="color: #059669; font-weight: 600;">(${item.quantity_found - item.quantity} fazla)</span>`
                     : ''
                 } • 📦 ${sourceName}
                                 </div>
