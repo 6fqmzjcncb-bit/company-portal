@@ -80,9 +80,6 @@ function renderEmployees(data) {
                 </span>
             </td>
             <td>
-                <button class="btn-icon" onclick="viewEmployee(${emp.id})" title="Detay">
-                    👁️
-                </button>
                 <button class="btn-icon" onclick="editEmployee(${emp.id})" title="Düzenle">
                     ✏️
                 </button>
@@ -135,27 +132,6 @@ function editEmployee(id) {
 
     // Enable inputs
     setModalInputsDisabled(false);
-
-    document.getElementById('employeeModal').style.display = 'flex';
-}
-
-// View employee detail (Populate modal in readonly mode)
-function viewEmployee(id) {
-    const employee = employees.find(e => e.id === id);
-    if (!employee) return;
-
-    editingId = null; // No editing
-    document.getElementById('modalTitle').textContent = 'Personel Detayı';
-    document.getElementById('fullName').value = employee.full_name;
-    document.getElementById('phone').value = employee.phone || '-';
-    document.getElementById('role').value = employee.role;
-    document.getElementById('dailyWage').value = employee.daily_wage || '';
-    document.getElementById('monthlySalary').value = employee.monthly_salary || '';
-    document.getElementById('hireDate').value = employee.hire_date ? employee.hire_date.split('T')[0] : '';
-    document.getElementById('notes').value = employee.notes || '-';
-
-    // Disable inputs for viewing
-    setModalInputsDisabled(true);
 
     document.getElementById('employeeModal').style.display = 'flex';
 }
