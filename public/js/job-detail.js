@@ -72,6 +72,7 @@ async function loadSources() {
         sources = await response.json();
 
         // Inline form source select
+        // Inline form source select
         const inlineSelect = document.getElementById('inlineSourceSelect');
         if (inlineSelect) {
             inlineSelect.innerHTML = '<option value="">Kaynak seçin...</option>';
@@ -412,18 +413,18 @@ function renderItems(items) {
                                     <span style="margin-right: 5px;">📦 Alınacak Yer:</span>
                                     
                                     <!-- Read Mode -->
-                                    <span id="source-display-${item.id}" style="font-weight: 600; color: #111827;">${sourceName || 'Belirtilmedi'}</span>
+                                    <span id="source-display-missing-${item.id}" style="font-weight: 600; color: #111827;">${sourceName || 'Belirtilmedi'}</span>
                                     <button 
-                                        id="edit-btn-${item.id}"
-                                        onclick="toggleSourceEdit(${item.id})" 
+                                        id="edit-btn-missing-${item.id}"
+                                        onclick="toggleSourceEdit('missing-${item.id}')" 
                                         style="background: none; border: none; cursor: pointer; font-size: 0.9rem; margin-left: 8px; opacity: 0.6; padding: 0;" 
                                         title="Yeri Değiştir">
                                         ✏️
                                     </button>
 
                                     <!-- Edit Mode (Hidden) -->
-                                    <div id="source-edit-${item.id}" style="display: none; align-items: center; margin-left: 5px; flex: 1; max-width: 400px;">
-                                        ${renderTagsInput(item.id, sourceName)}
+                                    <div id="source-edit-missing-${item.id}" style="display: none; align-items: center; margin-left: 5px; flex: 1; max-width: 400px;">
+                                        ${renderTagsInput('missing-' + item.id, sourceName)}
                                     </div>
                                 </div>
                             </div>
@@ -1063,6 +1064,13 @@ async function removeSourceTag(itemId, indexToRemove) {
             if (originalInput) originalInput.value = finalSourceString;
             const container = document.getElementById('quick-add-source-container');
             if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
+            return;
+        }
+
+        // Missing Source Mode (Incomplete items)
+        if (String(itemId).startsWith('missing-')) {
+            const realItemId = String(itemId).replace('missing-', '');
+            await autoSaveMissingSource(realItemId, finalSourceString);
             return;
         }
 
