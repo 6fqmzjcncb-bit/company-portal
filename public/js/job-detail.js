@@ -996,6 +996,45 @@ async function addSourceTag(itemId, newTag) {
     if (String(itemId).startsWith('missing-')) {
         const realItemId = String(itemId).replace('missing-', '');
         await autoSaveMissingSource(realItemId, finalSourceString);
+
+        // UI Update (Manual)
+        if (originalInput) originalInput.value = finalSourceString;
+        // Find parent container to replace content
+        // renderTagsInput creates a string, we need to find the container that holds this.
+        // The container is likely the parent of input's parent.
+        // Easier: Just replace the content of the wrapper div if we can find it.
+        // renderTagsInput returns a string starting with <div class="tag-container"...
+        // We can't easily query the outer container unless we wrapped it.
+        // But wait, renderTagsInput is called inside a div.
+
+        // Let's re-render the specific tag input container.
+        // Note: The caller of renderTagsInput usually wraps it.
+        // In renderIncompleteItem: <div style="margin-left: 24px;"> ${renderTagsInput(...)} </div>
+        // It doesn't have an ID.
+        // HACK: Re-load the whole job detail to be safe and consistent with other edits?
+        // User said "It is getting deleted". This implies it might be re-rendering and reverting?
+        // No, autoSaveMissingSource DOES NOT loadJobDetail (line 505 commented out).
+        // So the UI does not change.
+
+        // BETTER: Enable loadJobDetail() in autoSaveMissingSource OR implement local UI update.
+        // Local UI update is smoother.
+        // We know the input ID is `tag-input-${itemId}`. Its parent is `.tag-container`.
+        // We can replace `.tag-container`'s outerHTML with the new result of renderTagsInput.
+
+        const currentInput = document.getElementById(`tag-input-${itemId}`);
+        if (currentInput) {
+            const container = currentInput.closest('.tag-container');
+            if (container) {
+                const newHtml = renderTagsInput(itemId, finalSourceString);
+                container.outerHTML = newHtml;
+
+                // Restore focus
+                setTimeout(() => {
+                    const newInput = document.getElementById(`tag-input-${itemId}`);
+                    if (newInput) newInput.focus();
+                }, 50);
+            }
+        }
         return;
     }
 
@@ -1024,6 +1063,21 @@ async function removeSourceTag(itemId, indexToRemove) {
         if (String(itemId).startsWith('missing-')) {
             const realItemId = String(itemId).replace('missing-', '');
             await autoSaveMissingSource(realItemId, finalSourceString);
+
+            // UI Update (Manual)
+            if (originalInput) originalInput.value = finalSourceString;
+            const currentInput = document.getElementById(`tag-input-${itemId}`);
+            if (currentInput) {
+                const container = currentInput.closest('.tag-container');
+                if (container) {
+                    const newHtml = renderTagsInput(itemId, finalSourceString);
+                    container.outerHTML = newHtml;
+                    setTimeout(() => {
+                        const newInput = document.getElementById(`tag-input-${itemId}`);
+                        if (newInput) newInput.focus();
+                    }, 50);
+                }
+            }
             return;
         }
 
