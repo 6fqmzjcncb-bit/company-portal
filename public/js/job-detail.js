@@ -391,24 +391,35 @@ function renderItems(items) {
         `;
     }
 
-    // EKSİKLER (Sadece eksik kısım - tamamlanmayan gibi)
-    if (partial.length > 0) {
+    // EKSİKLER (Sadece eksik kısım + "daha sonra alınacak" olanlar)
+    const buyLaterItems = incomplete.filter(i => i.missing_reason === 'buy_later');
+    const eksiklerItems = [...partial, ...buyLaterItems];
+
+    if (eksiklerItems.length > 0) {
         html += `
-            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${partial.length})</h3>
-                ${partial.map(item => {
+                < div style = "background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;" >
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${eksiklerItems.length})</h3>
+                ${eksiklerItems.map(item => {
             const productName = item.product ? item.product.name : item.custom_name;
-            const sourceName = item.source ? item.source.name : '';
+            const sourceName = item.missing_source || (item.source ? item.source.name : '');
             const missing = item.quantity - (item.quantity_found || 0);
+            const taken = item.quantity_found || 0;
 
             return `
                         <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
                             <div class="item-checkbox">⚠️</div>
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name"><strong>${productName}</strong></div>
-                                <div class="item-inputs" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                ${taken > 0 ? `
+                                    <div style="margin-top: 6px; padding: 8px; background: #fee2e2; border-radius: 4px; border: 1px solid #fca5a5;">
+                                        <span style="color: #059669; font-weight: 600;">✓ ${taken} adet alındı</span>
+                                        <span style="margin: 0 6px; color: #888;">•</span>
+                                        <span style="color: #dc2626; font-weight: 600;">✗ ${missing} adet eksik!</span>
+                                    </div>
+                                ` : ''}
+                                <div class="item-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
                                     <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Gerekli</label>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Gerekli Miktar</label>
                                         <input 
                                             type="number" 
                                             class="input-small" 
@@ -417,24 +428,15 @@ function renderItems(items) {
                                             readonly>
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Alınan Adet</label>
-                                        <input 
-                                            type="number" 
-                                            class="input-small" 
-                                            value="0"
-                                            placeholder="Kaç adet aldınız?"
-                                            min="0"
-                                            max="${missing}">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Kaynak</label>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Nereden Alınacak?</label>
                                         <input 
                                             type="text" 
                                             class="input-small" 
                                             style="width: 100%;"
                                             value="${sourceName}"
                                             list="sourceList"
-                                            placeholder="Kaynak">
+                                            onblur="autoSaveMissingSource(${item.id}, this.value)"
+                                            placeholder="Kaynak (ör: Koçtaş)">
                                     </div>
                                 </div>
                             </div>
@@ -443,17 +445,18 @@ function renderItems(items) {
                             </div>
                         </div>
                     `;
-        }).join('')}
-            </div>
-        `;
+        }).join('')
+            }
+            </div >
+                `;
     }
 
     // TAMAMLANAN İŞLER (completed + partial'ın alınan kısmı)
     const allCompleted = [...completed, ...partial];
     if (allCompleted.length > 0) {
         html += `
-            <div style="background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
+                < div style = "background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;" >
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
                 ${allCompleted.map(item => {
             const productName = item.product ? item.product.name : item.custom_name;
             const sourceName = item.source ? item.source.name : '';
@@ -477,9 +480,10 @@ function renderItems(items) {
                             </div>
                         </div>
                     `;
-        }).join('')}
-            </div>
-        `;
+        }).join('')
+            }
+            </div >
+                `;
     }
 
     container.innerHTML = html;
@@ -495,7 +499,7 @@ async function autoSaveQuantity(itemId, newQuantity) {
     }
 
     try {
-        const response = await fetch(`/api/jobs/items/${itemId}`, {
+        const response = await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity })
@@ -523,7 +527,7 @@ async function autoSaveSource(itemId, newSourceName) {
     }
 
     try {
-        const response = await fetch(`/api/jobs/items/${itemId}`, {
+        const response = await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ source_name: sourceName })
@@ -543,7 +547,7 @@ async function autoSaveSource(itemId, newSourceName) {
 // Auto-save quantity found (onBlur)
 async function autoSaveQuantityFound(itemId, newValue) {
     try {
-        await fetch(`/api/jobs/items/${itemId}`, {
+        await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity_found: parseInt(newValue) || 0 })
@@ -557,7 +561,7 @@ async function autoSaveQuantityFound(itemId, newValue) {
 // Auto-save quantity missing (onBlur)
 async function autoSaveQuantityMissing(itemId, newValue) {
     try {
-        await fetch(`/api/jobs/items/${itemId}`, {
+        await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity_missing: parseInt(newValue) || 0 })
@@ -571,7 +575,7 @@ async function autoSaveQuantityMissing(itemId, newValue) {
 // Auto-save missing source (nereden alınacak)
 async function autoSaveMissingSource(itemId, newValue) {
     try {
-        await fetch(`/api/jobs/items/${itemId}`, {
+        await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ missing_source: newValue })
@@ -585,7 +589,7 @@ async function autoSaveMissingSource(itemId, newValue) {
 // Update missing reason (buy_from_source or buy_later)
 async function updateMissingReason(itemId, reason) {
     try {
-        await fetch(`/api/jobs/items/${itemId}`, {
+        await fetch(`/ api / jobs / items / ${itemId} `, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ missing_reason: reason })
@@ -621,7 +625,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             inlineSearchTimeout = setTimeout(async () => {
                 try {
-                    const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+                    const response = await fetch(`/ api / products / search ? q = ${encodeURIComponent(query)} `);
                     const products = await response.json();
 
                     const resultsContainer = document.getElementById('inlineProductResults');
@@ -632,16 +636,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
 
                     resultsContainer.innerHTML = `
-                        <div class="autocomplete-results">
-                            ${products.map(p => `
+                < div class="autocomplete-results" >
+                    ${products.map(p => `
                                 <div class="autocomplete-item" onclick="selectInlineProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
                                     <strong>${p.name}</strong>
                                     ${p.barcode ? `<span>${p.barcode}</span>` : ''}
                                     ${currentUser && currentUser.role === 'admin' ? `<span>Stok: ${p.current_stock}</span>` : ''}
                                 </div>
-                            `).join('')}
-                        </div>
-                    `;
+                            `).join('')
+                        }
+                        </div >
+                `;
                 } catch (error) {
                     console.error('Product search error:', error);
                 }
@@ -682,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch(`/api/jobs/${jobId}/items`, {
+                const response = await fetch(`/ api / jobs / ${jobId}/items`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
