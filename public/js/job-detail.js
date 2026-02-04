@@ -618,14 +618,14 @@ function initInlineSearch() {
                      data-id="${p.id}"
                      data-name="${p.name.replace(/"/g, '&quot;')}">
                     
-                    <div style="pointer-events: none; flex: 1;">
-                        <div class="font-bold text-gray-900 text-sm">${p.barcode || 'KOD YOK'}</div>
-                        <div class="text-sm text-gray-600">${p.name}</div>
+                    <div style="pointer-events: none; flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden;">
+                        <span class="text-xs text-gray-500 whitespace-nowrap">${p.barcode || ''}</span>
+                        <span class="font-bold text-gray-900 text-sm truncate" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
                     </div>
 
                     ${p.current_stock !== undefined ? `
-                        <div style="pointer-events: none; margin-left:12px;">
-                             <span class="text-xs font-bold ${p.current_stock > 0 ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'} px-2 py-1 rounded">
+                        <div style="pointer-events: none; margin-left:12px; white-space: nowrap;">
+                             <span class="text-sm font-bold ${p.current_stock > 0 ? 'text-blue-700' : 'text-red-600'}">
                                  Stok: ${p.current_stock}
                              </span>
                         </div>
