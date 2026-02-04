@@ -366,6 +366,63 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
     }
 });
 
+// Kısmi tamamlanan item'ı 2'ye böl (alınan + eksik)
+router.post('/items/:itemId/split', requireAuth, async (req, res) => {
+    const transaction = await sequelize.transaction();
+
+    try {
+        const { itemId } = req.params;
+        const userId = req.session.userId;
+
+        const item = await JobItem.findByPk(itemId, { transaction });
+
+        if (!item) {
+            await transaction.rollback();
+            return res.status(404).json({ error: 'Kalem bulunamadı' });
+        }
+
+        // Kısmi tamamlanmış olmalı
+        if (!item.is_checked || !item.quantity_found || item.quantity_found >= item.quantity) {
+            await transaction.rollback();
+            return res.status(400).json({ error: 'Sadece kısmi tamamlanmış itemlar bölünebilir' });
+        }
+
+        const missing = item.quantity - item.quantity_found;
+
+        // 1. Mevcut item'ı TAM ALINDI yap
+        await item.update({
+            quantity: item.quantity_found,
+            quantity_found: item.quantity_found,
+            quantity_missing: 0,
+            missing_source: null,
+            missing_reason: null
+        }, { transaction });
+
+        // 2. Eksik kısım için YENİ item oluştur
+        await JobItem.create({
+            job_list_id: item.job_list_id,
+            product_id: item.product_id,
+            custom_name: item.custom_name,
+            source_id: item.source_id,
+            quantity: missing,
+            is_checked: false,
+            quantity_found: null,
+            quantity_missing: null,
+            missing_source: null,
+            missing_reason: null
+        }, { transaction });
+
+        await transaction.commit();
+
+        res.json({ success: true, message: 'Item başarıyla ayrıldı' });
+
+    } catch (error) {
+        await transaction.rollback();
+        console.error('Item split error:', error);
+        res.status(500).json({ error: 'Item ayrılamadı' });
+    }
+});
+
 // Job item işaretini kaldır (uncheck)
 router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
     const transaction = await sequelize.transaction();

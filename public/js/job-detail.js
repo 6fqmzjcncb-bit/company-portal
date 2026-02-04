@@ -453,6 +453,7 @@ function renderItems(items) {
                                 <div class="item-meta" style="margin-top: 6px;">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
                             </div>
                             <div class="item-actions">
+                                <button class="btn btn-sm btn-primary" onclick="splitItem(${item.id})" title="Alınanı ayır ve tamamla">✂️ Ayır</button>
                                 <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
                             </div>
                         </div>
@@ -856,3 +857,25 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadSources();
     await loadJobDetail();
 });
+
+// Split partial completion item into 2: completed (taken) + incomplete (missing)
+async function splitItem(itemId) {
+    if (!confirm('Alınan kısmı tamamlananlara, eksik kısmı yeni satıra eklemek istediğinizden emin misiniz?')) return;
+    
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}/split`, {
+            method: 'POST'
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            alert(error.error || 'İşlem başarısız');
+            return;
+        }
+        
+        await loadJobDetail();
+    } catch (error) {
+        console.error('Split error:', error);
+        alert('Bir hata oluştu');
+    }
+}
