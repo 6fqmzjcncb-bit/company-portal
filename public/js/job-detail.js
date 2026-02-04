@@ -321,7 +321,7 @@ function renderItems(items) {
                                             value="${sourceName}"
                                             list="sourceList"
                                             onblur="autoSaveSource(${item.id}, this.value)"
-                                            placeholder="Kaynak">
+                                            placeholder="Kaynak (örn: Koçtaş, Bauhaus)">
                                     </div>
                                 </div>
                                 ${item.quantity_found && item.quantity_found < item.quantity ? `
@@ -379,7 +379,6 @@ function renderItems(items) {
                             </div>
                             <div class="item-actions">
                                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
-                                ${item.quantity > 1 ? `<button class="btn btn-sm" onclick="splitIncompleteItem(${item.id}, ${item.quantity})" style="background: #e5e7eb; color: #374151; margin-right: 4px;">➗ Böl</button>` : ''}
                                 <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
                             </div>
                         </div>
