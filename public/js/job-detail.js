@@ -590,7 +590,8 @@ function initInlineSearch() {
             resultsDiv.innerHTML = products.map(p => `
                 <div class="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
                      style="display: flex; justify-content: space-between; align-items: center;"
-                     onmousedown="selectInlineProduct('${p.id}', '${p.name}')">
+                     onmousedown="selectInlineProduct('${p.id}', '${p.name}')"
+                     ontouchstart="selectInlineProduct('${p.id}', '${p.name}')">
                     <div>
                         <div class="font-bold text-gray-800">${p.name}</div>
                         ${p.barcode ? `<div class="text-xs text-gray-500">${p.barcode}</div>` : ''}

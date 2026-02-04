@@ -31,7 +31,7 @@ const JobItem = sequelize.define('JobItem', {
     },
     source_id: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true, // Allow null for Quick Add when no source selected
         references: {
             model: 'sources',
             key: 'id'

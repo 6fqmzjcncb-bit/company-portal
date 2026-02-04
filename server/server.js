@@ -70,6 +70,11 @@ const startServer = async () => {
     try {
         await testConnection();
 
+        // Auto-sync schema changes (non-destructive)
+        const { sequelize } = require('./config/database');
+        await sequelize.sync({ alter: true });
+        console.log('✓ Veritabanı şeması güncellendi (alter: true)');
+
         app.listen(PORT, () => {
             console.log('╔════════════════════════════════════════╗');
             console.log('║   ŞİRKET PORTALI - BAŞARILI BAŞLATILD  ║');
