@@ -946,6 +946,7 @@ function renderTagsInput(itemId, currentSource) {
                 placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
                 list="sourceList"
                 onkeydown="handleTagKeydown(event, ${itemId})"
+                oninput="handleTagInput(event, ${itemId})"
                 onblur="handleTagBlur(${itemId})"
             >
         </div>
@@ -954,19 +955,48 @@ function renderTagsInput(itemId, currentSource) {
     `;
 }
 
+async function handleTagInput(event, itemId) {
+    const input = event.target;
+    const value = input.value.trim();
+    if (!value) return;
+
+    // Datalist kontrolü - Eğer tam eşleşme varsa otomatik ekle
+    const list = document.getElementById('sourceList');
+    if (list && list.options) {
+        let match = false;
+        for (let i = 0; i < list.options.length; i++) {
+            if (list.options[i].value === value) {
+                match = true;
+                break;
+            }
+        }
+        if (match) {
+            // UI hissiyatı için çok kısa bir gecikme
+            setTimeout(() => {
+                addSourceTag(itemId, value);
+                input.value = '';
+                input.focus();
+            }, 100);
+        }
+    }
+}
+
 async function handleTagKeydown(event, itemId) {
     if (event.key === 'Enter' || event.key === ',') {
         event.preventDefault();
+        event.stopPropagation(); // Bubbling engelle
         const input = event.target;
         const value = input.value.trim();
 
         if (value) {
             await addSourceTag(itemId, value);
             input.value = '';
+            input.focus();
         }
     }
+    // Backspace handling
     if (event.key === 'Backspace' && event.target.value === '') {
-        // Opsiyonel: son tagi silme özelliği eklenebilir
+        // Silme işlemi istenirse buraya eklenebilir
     }
 }
 
