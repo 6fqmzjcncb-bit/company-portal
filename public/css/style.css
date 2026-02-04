@@ -1502,9 +1502,9 @@ textarea.input-small {
 .tag-container {
   width: 100%;
 
-  /* Allow dynamic height growth */
+  /* Allow dynamic height growth, match standard input size */
   height: auto !important;
-  min-height: 42px !important;
+  min-height: 38px !important;
 
   box-sizing: border-box;
   display: flex;
