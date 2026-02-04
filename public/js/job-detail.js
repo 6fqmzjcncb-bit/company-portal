@@ -158,16 +158,6 @@ async function trackView() {
 }
 
 // Completion stats render
-// Helper: Group By
-function groupBy(array, keyFn) {
-    return array.reduce((result, item) => {
-        const key = keyFn(item);
-        (result[key] = result[key] || []).push(item);
-        return result;
-    }, {});
-}
-
-// Completion stats render (Updated UI)
 function renderCompletionStats(completion, viewers) {
     const container = document.getElementById('completionStats');
     if (!container) return;
@@ -175,7 +165,6 @@ function renderCompletionStats(completion, viewers) {
     const percentage = completion?.percentage || 0;
     const total = completion?.total || 0;
     const completed = completion?.completed || 0;
-    const isDone = percentage === 100;
 
     let viewersHtml = '';
     if (viewers && viewers.length > 0) {
@@ -189,237 +178,312 @@ function renderCompletionStats(completion, viewers) {
     }
 
     container.innerHTML = `
-        <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
-                    ${isDone ? '🎉 Harika İş!' : '📊 İlerleme Durumu'}
-                    <span style="font-size: 0.9rem; font-weight: normal; color: #6b7280; background: #f3f4f6; padding: 2px 8px; border-radius: 99px;">
-                        ${completed} / ${total} Kalem
-                    </span>
-                </h3>
-                <div style="font-weight: 800; font-size: 1.5rem; color: ${isDone ? '#059669' : '#4f46e5'};">
-                    %${percentage}
+        <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <strong>Tamamlanma:</strong> ${completed}/${total} (%${percentage})
+                    <div style="background: #e5e7eb; height: 8px; width: 200px; border-radius: 4px; margin-top: 5px; overflow: hidden;">
+                        <div style="background: #059669; height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+                    </div>
                 </div>
+                ${viewers && viewers.length > 0 ? `
+                    <div style="font-size: 0.9rem; color: #6b7280;">
+                        <strong>Görüntüleyenler:</strong> ${viewersHtml}
+                    </div>
+                ` : ''}
             </div>
-            
-            <div style="background: #e5e7eb; height: 12px; width: 100%; border-radius: 99px; overflow: hidden; margin-bottom: 10px;">
-                <div style="background: ${isDone ? '#059669' : 'linear-gradient(90deg, #4f46e5, #818cf8)'}; height: 100%; width: ${percentage}%; transition: width 0.5s ease-out; border-radius: 99px;"></div>
-            </div>
-
-            ${viewers && viewers.length > 0 ? `
-                <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 5px;">
-                    👁️ <strong>Görüntüleyenler:</strong> ${viewersHtml}
-                </div>
-            ` : ''}
         </div>
     `;
 }
 
-// Tamamlanmayan malzemeler (ARTIK KULLANILMIYOR - renderItems içinde birleştirildi)
+// Tamamlanmayan malzemeler
 function renderIncompleteItems(items) {
     const container = document.getElementById('incompleteItems');
-    if (container) container.innerHTML = '';
-}
+    if (!container) return;
 
-// Kalemleri render et (YENİ TASARIM: YAPILACAKLAR vs TAMAMLANANLAR)
-function renderItems(items) {
-    const container = document.getElementById('groupedItems');
-    if (!container) return; // Guard
+    const incomplete = items.filter(item => !item.is_checked && item.quantity_missing > 0);
 
-    if (!items || items.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding: 40px; color: #9ca3af;">Henüz hiç kalem eklenmemiş.</div>';
+    if (incomplete.length === 0) {
+        container.innerHTML = '';
         return;
     }
 
-    // 1. Grupları Ayır
+    container.innerHTML = `
+        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #f59e0b;">
+            <h3 style="margin: 0 0 10px 0; font-size: 1rem; color: #92400e;">⚠️ Tamamlanmayan Malzemeler</h3>
+            ${incomplete.map(item => {
+        const productName = item.product ? item.product.name : item.custom_name;
+        return `
+                    <div style="padding: 8px 0; border-bottom: 1px solid #fde68a;">
+                        <strong>${productName}</strong><br>
+                        <span style="font-size: 0.9rem; color: #92400e;">
+                            Toplam: ${item.quantity} | Bulundu: ${item.quantity_found || 0} | Eksik: ${item.quantity_missing}
+                            ${item.missing_source ? ` → ${item.missing_source}'tan alınacak` : ''}
+                        </span>
+                    </div>
+                `;
+    }).join('')}
+        </div>
+    `;
+}
+
+// Silinen ürünler
+function renderDeletions(deletions) {
+    const container = document.getElementById('deletedItems');
+    if (!container) return;
+
+    if (deletions.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+
+    container.innerHTML = `
+        <details style="margin-top: 20px; padding: 10px; background: #fee2e2; border-radius: 8px; cursor: pointer;">
+            <summary style="font-weight: 600; color: #991b1b; font-size: 0.9rem;">
+                🗑️ Silinen Ürünler (${deletions.length})
+            </summary>
+            <div style="margin-top: 10px;">
+                ${deletions.map(d => `
+                    <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem;">
+                        <strong>${d.product_name}</strong> - ${d.quantity} adet
+                        ${d.source_name ? `(${d.source_name})` : ''}<br>
+                        <span style="color: #6b7280;">
+                            ${d.deleted_by?.full_name || 'Bilinmiyor'} tarafından silindi 
+                            (${new Date(d.deleted_at).toLocaleString('tr-TR')})
+                        </span>
+                        ${d.reason ? `<br><em>Sebep: ${d.reason}</em>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </details>
+    `;
+}
+
+// Kalemleri render et (TAMAMLANMAYAN + TAMAMLANAN AYRI)
+function renderItems(items) {
+    const container = document.getElementById('groupedItems');
+
+    if (!items || items.length === 0) {
+        container.innerHTML = '<p class="text-muted text-center">Henüz kalem eklenmemiş</p>';
+        return;
+    }
+
     const incomplete = items.filter(i => !i.is_checked);
     const partial = items.filter(i => i.is_checked && i.quantity_found && i.quantity_found < i.quantity);
     const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found === i.quantity));
 
-    // 2. YAPILACAKLAR LİSTESİ (Todos)
-    let todos = [];
+    // ÖNEMLI: Partial item'lar BOTH eksikler VE tamamlanan'da görünecek
+    // - TAMAMLANAN: quantity_found göster
+    // - EKSİKLER: quantity_missing göster (incomplete gibi)
 
-    // a. Hiç başlanmamışlar
-    incomplete.forEach(item => {
-        todos.push({
-            type: 'incomplete', // Tamamen yapılmamış
-            data: item,
-            displayQty: item.quantity,
-            sourceGroup: item.missing_source || (item.source ? item.source.name : 'Belirsiz Kaynak')
-        });
-    });
-
-    // b. Yarım kalmışların EKSİK kısmı
-    partial.forEach(item => {
-        todos.push({
-            type: 'partial_missing', // Kısmı eksik
-            data: item,
-            displayQty: item.quantity - item.quantity_found,
-            sourceGroup: item.missing_source || (item.source ? item.source.name : 'Belirsiz Kaynak')
-        });
-    });
-
-    // 3. TAMAMLANANLAR LİSTESİ (Dones)
-    let dones = [];
-
-    // a. Tamamlanmışlar
-    completed.forEach(item => {
-        dones.push({
-            type: 'completed',
-            data: item,
-            displayQty: item.quantity_found || item.quantity,
-            sourceGroup: item.source ? item.source.name : 'Belirsiz Kaynak'
-        });
-    });
-
-    // b. Yarım kalmışların ALINAN kısmı (Sadece alınan kısmını göster)
-    partial.forEach(item => {
-        if (item.quantity_found > 0) {
-            dones.push({
-                type: 'partial_taken',
-                data: item,
-                displayQty: item.quantity_found,
-                sourceGroup: item.source ? item.source.name : 'Belirsiz Kaynak'
-            });
-        }
-    });
-
-    // 4. Gruplama
-    const todosBySource = groupBy(todos, t => t.sourceGroup);
-    const donesBySource = groupBy(dones, d => d.sourceGroup);
-
-    // 5. HTML Oluşturma
     let html = '';
 
-    // --- YAPILACAKLAR BÖLÜMÜ ---
-    if (Object.keys(todosBySource).length > 0) {
-        html += `<div style="margin-bottom: 40px;">`;
-        html += `<h2 style="font-size: 1.2rem; color: #1f2937; margin-bottom: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">📌 Yapılacaklar</h2>`;
+    // TAMAMLANMAYAN İŞLER
+    if (incomplete.length > 0) {
+        html += `
+            <div style="background: #fef9e7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⏳ Tamamlanmayan İşler (${incomplete.length})</h3>
+                ${incomplete.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.source ? item.source.name : '';
 
-        Object.keys(todosBySource).sort().forEach(sourceName => {
-            const groupItems = todosBySource[sourceName];
-            // Source Card
-            html += `
-                <div style="background: white; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #e5e7eb;">
-                    <!-- Header with distinct color -->
-                    <div style="background: #f9fafb; padding: 12px 15px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin: 0; font-size: 1rem; color: #374151; font-weight: 700;">📦 ${sourceName}</h3>
-                        <span style="font-size: 0.8rem; background: #e5e7eb; color: #6b7280; padding: 2px 8px; border-radius: 99px;">${groupItems.length} Kalem</span>
-                    </div>
-                    <div style="padding: 0;">
-            `;
-
-            // Items in this source
-            groupItems.forEach(todo => {
-                const item = todo.data;
-                const isPartial = todo.type === 'partial_missing';
-                const productName = item.product ? item.product.name : item.custom_name;
-
-                html += `
-                    <div style="padding: 15px; border-bottom: 1px solid #f3f4f6; position: relative;">
-                         ${isPartial ? `<div style="position: absolute; top: 0; left: 0; bottom: 0; width: 4px; background: #f59e0b;"></div>` : ''}
-                         
-                         <div style="display: flex; gap: 12px; align-items: flex-start;">
-                            <!-- Checkbox / Action -->
-                            <div style="margin-top: 4px;">
-                                ${isPartial ?
-                        `<span style="font-size: 1.2rem;" title="Kısmi eksik">⚠️</span>` :
-                        `<div class="item-checkbox" onclick="toggleItemCheck(${item.id})" style="border: 2px solid #d1d5db; width: 20px; height: 20px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;"></div>`
-                    }
-                            </div>
-
-                            <div style="flex: 1;">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            return `
+                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">☐</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px;">
                                     <div>
-                                        <div style="font-weight: 600; font-size: 1.05rem; color: #111827;">${productName}</div>
-                                        ${isPartial ? `<div style="color: #d97706; font-size: 0.85rem; font-weight: 600; margin-top: 2px;">⚠️ ${todo.displayQty} adet eksik kaldı!</div>` : ''}
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli Miktar</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${item.quantity}" 
+                                            min="1"
+                                            onblur="autoSaveQuantity(${item.id}, this.value)"
+                                            placeholder="Gerekli">
                                     </div>
-                                    <div class="item-actions">
-                                        <button class="btn btn-sm btn-secondary" onclick="editItem(${item.id})" title="Düzenle">✏️</button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil">🗑️</button>
-                                        ${isPartial ? `<button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Tamamla</button>` : ''}
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan Adet</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${item.quantity_found || ''}" 
+                                            min="0"
+                                            max="${item.quantity}"
+                                            onblur="autoSaveQuantityFound(${item.id}, this.value)"
+                                            placeholder="Kaç adet aldınız?">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynak</label>
+                                        <input 
+                                            type="text" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${sourceName}"
+                                            list="sourceList"
+                                            onblur="autoSaveSource(${item.id}, this.value)"
+                                            placeholder="Kaynak">
                                     </div>
                                 </div>
-
-                                <!-- Inputs Grid -->
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 12px;">
-                                    <!-- Miktar Input -->
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Gerekli Miktar</label>
-                                        <input type="number" class="input-small" value="${todo.displayQty}" ${isPartial ? 'readonly' : `onblur="autoSaveQuantity(${item.id}, this.value)"`} style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
-                                    </div>
-
-                                    <!-- Alınan Input (Sadece Incomplete için) -->
-                                    ${!isPartial ? `
-                                        <div>
-                                            <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Alınan Adet</label>
-                                            <input type="number" class="input-small" value="${item.quantity_found || ''}" placeholder="Kaç tane?" onblur="autoSaveQuantityFound(${item.id}, this.value)" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                                ${item.quantity_found && item.quantity_found < item.quantity ? `
+                                    <div style="background: #fee2e2; padding: 10px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #dc2626;">
+                                        <div style="font-size: 0.9rem; color: #991b1b; font-weight: 600; margin-bottom: 8px;">
+                                            ⚠️ <strong>${item.quantity - item.quantity_found} adet eksik!</strong>
                                         </div>
-                                    ` : ''}
-
-                                    <!-- Kaynak Input -->
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Kaynak Değiştir</label>
-                                        <input type="text" class="input-small" value="${item.missing_source || (item.source ? item.source.name : '')}" list="sourceList" 
-                                            onblur="${isPartial ? `autoSaveMissingSource(${item.id}, this.value)` : `autoSaveSource(${item.id}, this.value)`}" 
-                                            placeholder="Kaynak" style="width: 100%; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+                                        
+                                        <!-- Seçenek 1: Başka yerden alınacak -->
+                                        <div style="margin-bottom: 8px;">
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input 
+                                                    type="radio" 
+                                                    name="missing_reason_${item.id}" 
+                                                    value="buy_from_source"
+                                                    ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
+                                                    onchange="updateMissingReason(${item.id}, 'buy_from_source')"
+                                                    style="margin-right: 6px;">
+                                                <span style="font-size: 0.85rem; color: #374151;">📦 Başka yerden alınacak</span>
+                                            </label>
+                                            ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
+                                                <input 
+                                                    type="text" 
+                                                    class="input-small" 
+                                                    style="width: 100%; max-width: 300px; margin-top: 6px; margin-left: 22px;"
+                                                    value="${item.missing_source || ''}"
+                                                    list="sourceList"
+                                                    onblur="autoSaveMissingSource(${item.id}, this.value)"
+                                                    placeholder="Nereden? (ör: Koçtaş)">
+                                            ` : ''}
+                                        </div>
+                                        
+                                        <!-- Seçenek 2: Daha sonra alınacak -->
+                                        <div>
+                                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                                <input 
+                                                    type="radio" 
+                                                    name="missing_reason_${item.id}" 
+                                                    value="buy_later"
+                                                    ${item.missing_reason === 'buy_later' ? 'checked' : ''}
+                                                    onchange="updateMissingReason(${item.id}, 'buy_later')"
+                                                    style="margin-right: 6px;">
+                                                <span style="font-size: 0.85rem; color: #374151;">⏰ Daha sonra alınacak (şimdi gerekli değil)</span>
+                                            </label>
+                                        </div>
                                     </div>
-                                </div>
+                                ` : item.quantity_found && item.quantity_found === item.quantity ? `
+                                    <div style="background: #d1fae5; padding: 8px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #059669;">
+                                        <span style="font-size: 0.9rem; color: #065f46; font-weight: 600;">
+                                            ✅ Tüm ürünler alındı!
+                                        </span>
+                                    </div>
+                                ` : ''}
                             </div>
-                         </div>
-                    </div>
-                `;
-            });
-
-            html += `</div></div>`; // End card
-        });
-
-        html += `</div>`; // End Yapılacaklar
-    } else {
-        html += `<div style="text-align: center; padding: 40px; color: #6b7280; background: #f9fafb; border-radius: 12px; margin-bottom: 30px; border: 1px dashed #d1d5db;">🎉 Harika! Yapılacak iş kalmadı.</div>`;
-    }
-
-    // --- TAMAMLANANLAR BÖLÜMÜ ---
-    if (Object.keys(donesBySource).length > 0) {
-        html += `<div style="opacity: 0.6; filter: grayscale(1); transition: all 0.4s ease;" onmouseenter="this.style.opacity='1'; this.style.filter='grayscale(0)'" onmouseleave="this.style.opacity='0.6'; this.style.filter='grayscale(1)'">`;
-        html += `<h2 style="font-size: 1.2rem; color: #059669; margin-bottom: 15px; border-bottom: 2px solid #a7f3d0; padding-bottom: 10px;">✅ Tamamlananlar</h2>`;
-
-        Object.keys(donesBySource).sort().forEach(sourceName => {
-            const groupItems = donesBySource[sourceName];
-
-            html += `
-                <div style="background: #f0fdf4; border-radius: 12px; margin-bottom: 20px; border: 1px solid #bbf7d0; overflow: hidden;">
-                    <div style="background: #dcfce7; padding: 10px 15px; border-bottom: 1px solid #bbf7d0; display: flex; justify-content: space-between;">
-                         <h3 style="margin: 0; font-size: 0.95rem; color: #166534;">${sourceName}</h3>
-                         <span style="font-size: 0.8rem; color: #166534;">${groupItems.length} Kalem</span>
-                    </div>
-                    <div>
-            `;
-
-            groupItems.forEach(done => {
-                const item = done.data;
-                const isPartialTaken = done.type === 'partial_taken';
-                const productName = item.product ? item.product.name : item.custom_name;
-
-                html += `
-                    <div style="padding: 12px 15px; border-bottom: 1px solid #dcfce7; display: flex; align-items: center; gap: 10px;">
-                        <div style="font-size: 1.2rem; color: #059669;">✓</div>
-                        <div style="flex: 1;">
-                            <div style="font-weight: 500; color: #1f2937; text-decoration: line-through;">${productName}</div>
-                            <div style="font-size: 0.85rem; color: #059669;">
-                                ${done.displayQty} adet alındı
-                                ${isPartialTaken ? `<span style="color: #dc2626; font-weight: 600;">(Parça Alım)</span>` : ''}
-                                <span style="color: #6b7280; font-size: 0.8rem;">• ${item.checked_at ? new Date(item.checked_at).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
+                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
                             </div>
                         </div>
-                        <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" title="Geri Al">↩️</button>
-                    </div>
-                `;
-            });
+                    `;
+        }).join('')}
+            </div>
+        `;
+    }
 
-            html += `</div></div>`;
-        });
-        html += `</div>`;
+    // EKSİKLER (Sadece eksik kısım + "daha sonra alınacak" olanlar)
+    const buyLaterItems = incomplete.filter(i => i.missing_reason === 'buy_later');
+    const eksiklerItems = [...partial, ...buyLaterItems];
+
+    if (eksiklerItems.length > 0) {
+        html += `
+                < div style = "background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;" >
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${eksiklerItems.length})</h3>
+                ${eksiklerItems.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.missing_source || (item.source ? item.source.name : '');
+            const missing = item.quantity - (item.quantity_found || 0);
+            const taken = item.quantity_found || 0;
+
+            return `
+                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">⚠️</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                ${taken > 0 ? `
+                                    <div style="margin-top: 6px; padding: 8px; background: #fee2e2; border-radius: 4px; border: 1px solid #fca5a5;">
+                                        <span style="color: #059669; font-weight: 600;">✓ ${taken} adet alındı</span>
+                                        <span style="margin: 0 6px; color: #888;">•</span>
+                                        <span style="color: #dc2626; font-weight: 600;">✗ ${missing} adet eksik!</span>
+                                    </div>
+                                ` : ''}
+                                <div class="item-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Gerekli Miktar</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            value="${missing}"
+                                            min="1"
+                                            readonly>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Nereden Alınacak?</label>
+                                        <input 
+                                            type="text" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${sourceName}"
+                                            list="sourceList"
+                                            onblur="autoSaveMissingSource(${item.id}, this.value)"
+                                            placeholder="Kaynak (ör: Koçtaş)">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
+                            </div>
+                        </div>
+                    `;
+        }).join('')
+            }
+            </div >
+                `;
+    }
+
+    // TAMAMLANAN İŞLER (completed + partial'ın alınan kısmı)
+    const allCompleted = [...completed, ...partial];
+    if (allCompleted.length > 0) {
+        html += `
+                < div style = "background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;" >
+                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
+                ${allCompleted.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.source ? item.source.name : '';
+
+            return `
+                        <div class="item-row item-checked" data-item-id="${item.id}" style="margin-bottom: 8px; padding: 10px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">✓</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                <div class="item-quantity">
+                                    ${item.quantity_found || item.quantity} adet alındı
+                                    ${item.quantity_found && item.quantity_found < item.quantity
+                    ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik)</span>`
+                    : ''
+                } • 📦 ${sourceName}
+                                </div>
+                                <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
+                            </div>
+                        </div>
+                    `;
+        }).join('')
+            }
+            </div >
+                `;
     }
 
     container.innerHTML = html;
