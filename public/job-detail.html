@@ -166,11 +166,12 @@
             <div id="completionStats"></div>
 
             <!-- Inline Ürün Ekleme Formu -->
-            <div class="card mb-3">
-                <div class="card-header">
+            <!-- Inline Ürün Ekleme Formu -->
+            <div class="card mb-3" style="border: none; box-shadow: none;">
+                <div class="card-header" style="border-bottom: none; background: transparent; padding-bottom: 0;">
                     <h2>Hızlı Ürün Ekle</h2>
                 </div>
-                <div class="card-body">
+                <div class="card-body" style="padding-top: 10px;">
                     <form id="inlineAddForm"
                         style="display: grid; grid-template-columns: 2fr 1fr 100px 120px; gap: 1rem; align-items: start;">
                         <!-- Ürün Arama -->
@@ -201,16 +202,22 @@
                 </div>
             </div>
 
-            <!-- Kaynağa Göre Gruplanmış Kalemler -->
-            <div id="groupedItems">
+            <!-- 1. Tamamlanmayan İşler (Üstte) -->
+            <div id="incompleteJobsList">
                 <div class="loader"></div>
             </div>
 
-            <!-- Tamamlanmayan Malzemeler -->
+            <!-- 2. Tamamlanmayan Malzemeler (Eksikler - Ortada) -->
             <div id="incompleteItems"></div>
 
-            <!-- Silinen Ürünler -->
+            <!-- 3. Tamamlanan İşler (Altta) -->
+            <div id="completedJobsList"></div>
+
+            <!-- 4. Silinen Ürünler -->
             <div id="deletedItems"></div>
+
+            <!-- Eski kap (Silindi) -->
+            <!-- <div id="groupedItems"></div> -->
         </main>
     </div>
 

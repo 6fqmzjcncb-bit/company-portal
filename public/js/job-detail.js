@@ -281,24 +281,26 @@ function renderDeletions(deletions) {
     `;
 }
 
-// Kalemleri render et (TAMAMLANMAYAN + TAMAMLANAN AYRI)
+// Kalemleri render et (TAMAMLANMAYAN + TAMAMLANAN AYRI YERLERE)
 function renderItems(items) {
-    const container = document.getElementById('groupedItems');
-    if (!container) return;
+    const incompleteContainer = document.getElementById('incompleteJobsList');
+    const completedContainer = document.getElementById('completedJobsList');
+
+    // Clear both
+    if (incompleteContainer) incompleteContainer.innerHTML = '';
+    if (completedContainer) completedContainer.innerHTML = '';
 
     if (!items || items.length === 0) {
-        container.innerHTML = '<div class="text-center p-4 text-gray-500">Henüz ürün eklenmemiş.</div>';
+        if (incompleteContainer) incompleteContainer.innerHTML = '<div class="text-center p-4 text-gray-500">Henüz ürün eklenmemiş.</div>';
         return;
     }
 
     const incomplete = items.filter(i => !i.is_checked);
     const completed = items.filter(i => i.is_checked);
 
-    let html = '';
-
-    // TAMAMLANMAYAN İŞLER
-    if (incomplete.length > 0) {
-        html += `
+    // 1. TAMAMLANMAYAN İŞLER (Yukarı)
+    if (incomplete.length > 0 && incompleteContainer) {
+        incompleteContainer.innerHTML = `
             <div style="background: #fef9e7; padding: 15px; border-left: 4px solid #f59e0b; margin-bottom: 2rem; border-radius: 8px;">
                 <h3 style="color: #92400e; margin-bottom: 1rem; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
                     <span style="background: #f59e0b; color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.8rem;">${incomplete.length}</span>
@@ -311,10 +313,10 @@ function renderItems(items) {
         `;
     }
 
-    // TAMAMLANAN İŞLER
-    if (completed.length > 0) {
-        html += `
-            <div style="background: #d1fae5; padding: 15px; border-left: 4px solid #059669; border-radius: 8px;">
+    // 2. TAMAMLANAN İŞLER (Aşağı - Eksiklerden Sonra)
+    if (completed.length > 0 && completedContainer) {
+        completedContainer.innerHTML = `
+            <div style="background: #d1fae5; padding: 15px; border-left: 4px solid #059669; border-radius: 8px; margin-top: 2rem;">
                 <h3 style="color: #065f46; margin-bottom: 1rem; font-size: 1.1rem;">✅ Tamamlanan İşler (${completed.length})</h3>
                 <div style="display: flex; flex-direction: column; gap: 0.5rem;">
                     ${completed.map(item => renderCompletedItem(item)).join('')}
@@ -322,8 +324,6 @@ function renderItems(items) {
             </div>
         `;
     }
-
-    container.innerHTML = html;
 }
 
 function renderIncompleteItem(item) {
