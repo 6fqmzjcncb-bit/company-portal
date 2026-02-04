@@ -300,26 +300,16 @@ function renderItems(items) {
                                             placeholder="Gerekli">
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Bulunan</label>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan Adet</label>
                                         <input 
                                             type="number" 
                                             class="input-small" 
                                             style="width: 100%;"
                                             value="${item.quantity_found || ''}" 
                                             min="0"
+                                            max="${item.quantity}"
                                             onblur="autoSaveQuantityFound(${item.id}, this.value)"
-                                            placeholder="0">
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Eksik</label>
-                                        <input 
-                                            type="number" 
-                                            class="input-small" 
-                                            style="width: 100%;"
-                                            value="${item.quantity_missing || ''}" 
-                                            min="0"
-                                            onblur="autoSaveQuantityMissing(${item.id}, this.value)"
-                                            placeholder="0">
+                                            placeholder="Kaç adet aldınız?">
                                     </div>
                                     <div>
                                         <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynak</label>
@@ -332,19 +322,30 @@ function renderItems(items) {
                                             onblur="autoSaveSource(${item.id}, this.value)"
                                             placeholder="Kaynak">
                                     </div>
-                                    ${item.quantity_missing > 0 ? `
-                                        <div>
-                                            <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Nereden Alınacak</label>
+                                </div>
+                                ${item.quantity_found && item.quantity_found < item.quantity ? `
+                                    <div style="background: #fee2e2; padding: 8px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #dc2626;">
+                                        <div style="font-size: 0.9rem; color: #991b1b; font-weight: 600;">
+                                            ⚠️ <strong>${item.quantity - item.quantity_found} adet eksik!</strong>
+                                        </div>
+                                        <div style="margin-top: 6px;">
+                                            <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Nereden Alınacak?</label>
                                             <input 
                                                 type="text" 
                                                 class="input-small" 
-                                                style="width: 100%;"
+                                                style="width: 100%; max-width: 300px;"
                                                 value="${item.missing_source || ''}"
                                                 onblur="autoSaveMissingSource(${item.id}, this.value)"
-                                                placeholder="ör: Koçtaş">
+                                                placeholder="ör: Koçtaş, Bauhaus">
                                         </div>
-                                    ` : ''}
-                                </div>
+                                    </div>
+                                ` : item.quantity_found && item.quantity_found === item.quantity ? `
+                                    <div style="background: #d1fae5; padding: 8px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #059669;">
+                                        <span style="font-size: 0.9rem; color: #065f46; font-weight: 600;">
+                                            ✅ Tüm ürünler alındı!
+                                        </span>
+                                    </div>
+                                ` : ''}
                             </div>
                             <div class="item-actions">
                                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
