@@ -387,7 +387,7 @@ function renderItems(items) {
         `;
     }
 
-    // EKSİKLER (Sadece eksik kısım + "daha sonra alınacak" olanlar)
+    // EKSİKLER (Sadece eksik kısım + "daha sonra alınacak" olanlar) - YENİ TASARIM (KOMPAKT)
     const buyLaterItems = incomplete.filter(i => i.missing_reason === 'buy_later');
     const eksiklerItems = [...partial, ...buyLaterItems];
 
@@ -401,43 +401,49 @@ function renderItems(items) {
             const missing = item.quantity - (item.quantity_found || 0);
             const taken = item.quantity_found || 0;
 
+            // Compact Row Design
             return `
-                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
-                            <div class="item-checkbox">⚠️</div>
-                            <div class="item-details" style="flex: 1;">
-                                <div class="item-name"><strong>${productName}</strong></div>
-                                ${taken > 0 ? `
-                                    <div style="margin-top: 6px; padding: 8px; background: #fee2e2; border-radius: 4px; border: 1px solid #fca5a5;">
-                                        <span style="color: #059669; font-weight: 600;">✓ ${taken} adet alındı</span>
-                                        <span style="margin: 0 6px; color: #888;">•</span>
-                                        <span style="color: #dc2626; font-weight: 600;">✗ ${missing} adet eksik!</span>
-                                    </div>
-                                ` : ''}
-                                <div class="item-inputs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Gerekli Miktar</label>
-                                        <input 
-                                            type="number" 
-                                            class="input-small" 
-                                            value="${missing}"
-                                            min="1"
-                                            readonly>
-                                    </div>
-                                    <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Nereden Alınacak?</label>
+                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 8px; padding: 10px 15px; background: white; border-radius: 6px; display: flex; align-items: center; gap: 12px;">
+                            <div style="font-size: 1.4rem; color: #f59e0b;">⚠️</div>
+                            
+                            <div style="flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                    <strong style="font-size: 1rem; color: #1f2937;">${productName}</strong>
+                                    <span style="font-size: 0.85rem; padding: 2px 8px; border-radius: 4px; background: #fee2e2; color: #991b1b; border: 1px solid #fecaca;">
+                                        ${taken > 0 ? `✓ ${taken} alındı • ` : ''} ✗ ${missing} eksik
+                                    </span>
+                                </div>
+                                
+                                <div style="font-size: 0.9rem; color: #4b5563; margin-top: 4px; display: flex; align-items: center;">
+                                    <span style="margin-right: 5px;">📦 Alınacak Yer:</span>
+                                    
+                                    <!-- Read Mode -->
+                                    <span id="source-display-${item.id}" style="font-weight: 600; color: #111827;">${sourceName || 'Belirtilmedi'}</span>
+                                    <button 
+                                        id="edit-btn-${item.id}"
+                                        onclick="toggleSourceEdit(${item.id})" 
+                                        style="background: none; border: none; cursor: pointer; font-size: 0.9rem; margin-left: 8px; opacity: 0.6; padding: 0;" 
+                                        title="Yeri Değiştir">
+                                        ✏️
+                                    </button>
+
+                                    <!-- Edit Mode (Hidden) -->
+                                    <div id="source-edit-${item.id}" style="display: none; align-items: center; margin-left: 5px;">
                                         <input 
                                             type="text" 
+                                            id="source-input-${item.id}"
                                             class="input-small" 
-                                            style="width: 100%;"
+                                            style="padding: 2px 6px; width: 140px; font-size: 0.85rem;"
                                             value="${sourceName}"
                                             list="sourceList"
                                             onblur="autoSaveMissingSource(${item.id}, this.value)"
-                                            placeholder="Kaynak (ör: Koçtaş)">
+                                            placeholder="Kaynak...">
                                     </div>
                                 </div>
                             </div>
-                            <div class="item-actions">
-                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
+
+                            <div>
+                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" style="padding: 6px 12px;">✅ Alındı</button>
                             </div>
                         </div>
                     `;
@@ -446,7 +452,7 @@ function renderItems(items) {
         `;
     }
 
-    // TAMAMLANAN İŞLER (completed + partial'ın alınan kısmı)
+    // TAMAMLANAN İŞLER
     const allCompleted = [...completed, ...partial];
     if (allCompleted.length > 0) {
         html += `
@@ -481,6 +487,24 @@ function renderItems(items) {
     }
 
     container.innerHTML = html;
+}
+
+// Toggle Source Edit Function
+function toggleSourceEdit(itemId) {
+    const displayEl = document.getElementById(`source-display-${itemId}`);
+    const editBtn = document.getElementById(`edit-btn-${itemId}`);
+    const editContainer = document.getElementById(`source-edit-${itemId}`);
+    const inputEl = document.getElementById(`source-input-${itemId}`);
+
+    if (displayEl && editContainer) {
+        displayEl.style.display = 'none';
+        if (editBtn) editBtn.style.display = 'none';
+        editContainer.style.display = 'inline-flex';
+        if (inputEl) {
+            inputEl.focus();
+            inputEl.select();
+        }
+    }
 }
 
 // Auto-save quantity (onBlur)
