@@ -1293,13 +1293,46 @@ textarea.input-small {
   flex-wrap: wrap;
   align-items: center;
   gap: 5px;
-  gap: 5px;
   padding: 4px 8px;
   border: 1px solid var(--gray-300);
   border-radius: var(--radius-md);
   background: white;
   min-height: 36px;
   transition: var(--transition);
+}
+
+/* SEARCH RESULTS DROPDOWN */
+#inlineProductResults {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 50;
+  box-shadow: var(--shadow-xl);
+}
+
+#inlineProductResults>div {
+  padding: 10px;
+  border-bottom: 1px solid var(--gray-100);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+#inlineProductResults>div:hover {
+  background: var(--gray-50);
+}
+
+.item-visual-row {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  margin-top: 5px;
 }
 
 .item-grid-compact {

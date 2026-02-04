@@ -309,34 +309,35 @@ function renderIncompleteItem(item) {
     const sourceName = item.source ? item.source.name : '';
 
     return `
-        <div class="item-row" data-item-id="${item.id}" style="padding: 10px; background: white; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-                <div class="item-checkbox" onclick="checkItem(${item.id})" style="cursor: pointer; font-size: 1.2rem; color: #d1d5db; width: 24px; height: 24px; border-radius: 4px;">☐</div>
+        <div class="item-row" data-item-id="${item.id}" style="padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: flex-start; gap: 12px;">
+            <!-- 1. CHECKBOX -->
+            <div class="item-checkbox" onclick="checkItem(${item.id})" style="cursor: pointer; font-size: 1.2rem; color: #d1d5db; width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0;">☐</div>
+            
+            <!-- 2. DETAILS -->
+            <div class="item-details" style="flex: 1;">
+                <div class="item-name" style="font-size: 1rem; font-weight: 600; color: #1f2937;">${productName}</div>
                 
-                <div class="item-details" style="flex: 1;">
-                    <div class="item-name" style="font-size: 0.95rem; font-weight: 600; color: #1f2937; margin-bottom: 4px;">${productName}</div>
-                    
-                    <div class="item-grid-compact">
-                        <!-- Miktarlar -->
-                        <div style="display: flex; gap: 8px;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli</label>
-                                <input type="number" class="form-input" style="padding: 3px 6px; font-size: 0.85rem; height: 34px;" 
-                                    value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
-                            </div>
-                            <div style="flex: 1;">
-                                <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan</label>
-                                <input type="number" class="form-input" style="padding: 3px 6px; font-size: 0.85rem; height: 34px;" 
-                                    value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
-                            </div>
-                        </div>
-
-                        <!-- Kaynaklar -->
-                        <div>
-                             <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar</label>
-                             ${renderTagsInput(item.id, sourceName)}
-                        </div>
+                <div class="item-visual-row">
+                    <!-- Gerekli -->
+                    <div style="width: 80px;">
+                        <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli</label>
+                        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                            value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
                     </div>
+
+                     <!-- Alınan -->
+                    <div style="width: 80px;">
+                        <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan</label>
+                        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                            value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
+                    </div>
+
+                    <!-- Kaynaklar -->
+                    <div style="flex: 1; min-width: 150px;">
+                            <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar</label>
+                            ${renderTagsInput(item.id, sourceName)}
+                    </div>
+                </div>
 
                     <!-- Eksik Durumu -->
                     ${item.quantity_found && item.quantity_found < item.quantity ? `
@@ -376,7 +377,6 @@ function renderIncompleteItem(item) {
                     <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla">✅</button>
                 </div>
             </div>
-        </div>
     `;
 }
 
