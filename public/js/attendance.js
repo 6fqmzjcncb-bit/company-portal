@@ -106,10 +106,18 @@ function renderAttendance(date) {
     }
 
     // Collect all unique locations from today's records for autocomplete
-    const uniqueLocations = [...new Set(Object.values(attendanceRecords)
-        .map(r => r.location)
-        .filter(l => l && l.trim() !== '')
-    )];
+    const uniqueLocations = [];
+    Object.values(attendanceRecords).forEach(r => {
+        if (r.location && r.location.trim() !== '') {
+            r.location.split(',').forEach(loc => {
+                const trimmed = loc.trim();
+                // Avoid duplicates
+                if (trimmed && !uniqueLocations.includes(trimmed)) {
+                    uniqueLocations.push(trimmed);
+                }
+            });
+        }
+    });
 
     const datalistHtml = `
         <datalist id="locationSuggestions">
@@ -130,27 +138,28 @@ function renderAttendance(date) {
         const record = attendanceRecords[emp.id] || {};
         // hours_worked now represents OVERTIME. Default to 0 if not present.
         const overtime = record.hours_worked || 0;
+        const locationTags = record.location || '';
 
         return `
             <tr>
                 <td>${index + 1}</td>
                 <td><strong>${emp.full_name}</strong></td>
                 <td class="text-center">
-                    <input
-                        type="checkbox"
-                        id="worked_${emp.id}"
+                    <input 
+                        type="checkbox" 
+                        id="worked_${emp.id}" 
                         ${record.worked ? 'checked' : ''}
                         onchange="toggleWorked(${emp.id})"
                         style="width: 20px; height: 20px; cursor: pointer;">
                 </td>
                 <td>
                     <div style="display: flex; gap: 5px; align-items: center;">
-                        <input
-                            type="number"
-                            id="hours_${emp.id}"
+                        <input 
+                            type="number" 
+                            id="hours_${emp.id}" 
                             value="${overtime}"
-                            min="0"
-                            max="24"
+                            min="0" 
+                            max="24" 
                             step="0.5"
                             class="input-small"
                             style="width: 60px; text-align: center;"
@@ -165,28 +174,17 @@ function renderAttendance(date) {
                     </div>
                 </td>
                 <td>
-                    <div style="display: flex; gap: 5px; align-items: center;">
-                        <input
-                            type="text"
-                            id="location_${emp.id}"
-                            value="${record.location || ''}"
-                            placeholder="Şantiye/Proje adı (virgülle ayırın)"
-                            class="input-small"
-                            style="width: 100%;"
-                            list="locationSuggestions"
-                            onchange="updateDatalist(this.value)"
-                            ${!record.worked ? 'disabled' : ''}>
-                        ${index > 0 ? `
-                        <button class="btn-icon" onclick="copyLocationFromAbove(${index})" title="Üstten Kopyala (⬇)" ${!record.worked ? 'disabled' : ''} style="font-size: 1.2rem;">⬇</button>
-                        ` : `
-                        <button class="btn-icon" style="font-size: 1.2rem; visibility: hidden;">⬇</button>
-                        `}
+                    <!-- Tag Input Logic Replacement -->
+                    <div id="location-container-${emp.id}" style="width: 100%; min-width: 200px;">
+                        ${renderTagsInput(emp.id, locationTags, !record.worked)}
                     </div>
+                    <!-- Hidden input to store value for easier POST -->
+                    <input type="hidden" id="location_${emp.id}" value="${locationTags}">
                 </td>
                 <td>
-                    <input
-                        type="text"
-                        id="notes_${emp.id}"
+                    <input 
+                        type="text" 
+                        id="notes_${emp.id}" 
                         value="${record.notes || ''}"
                         placeholder="Notlar"
                         class="input-small"
@@ -197,7 +195,148 @@ function renderAttendance(date) {
     }).join('');
 }
 
-// Update datalist dynamically when user types a new location
+
+// --- Tag Input Functions ---
+
+function renderTagsInput(empId, currentTagsString, isDisabled = false) {
+    const tags = currentTagsString ? currentTagsString.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    // Style check: use .tag-container logic if CSS exists, otherwise inline fallback
+    return `
+        <div class="tag-container ${isDisabled ? 'disabled' : ''}" 
+             style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; background: ${isDisabled ? '#f3f4f6' : '#fff'}; align-items: center; min-height: 38px;">
+            ${tags.map((tag, index) => `
+                <div class="tag" style="background: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                    ${tag}
+                    ${!isDisabled ? `<span class="tag-remove" onclick="removeLocationTag(${empId}, ${index})" style="cursor: pointer; color: #666; font-weight: bold;">×</span>` : ''}
+                </div>
+            `).join('')}
+            <input 
+                type="text" 
+                id="tag-input-${empId}" 
+                class="tag-input-field" 
+                placeholder="${tags.length > 0 ? '' : 'Konum ekle...'}" 
+                style="border: none; outline: none; flex: 1; min-width: 60px; padding: 4px; background: transparent;"
+                list="locationSuggestions"
+                onkeydown="handleTagKeydown(event, ${empId})"
+                oninput="handleTagInput(event, ${empId})"
+                onblur="handleTagBlur(${empId})"
+                ${isDisabled ? 'disabled' : ''}
+            >
+        </div>
+    `;
+}
+
+function handleTagInput(event, empId) {
+    const input = event.target;
+    const value = input.value.trim();
+    if (!value) return;
+
+    // Direct match check for datalist auto-add
+    const list = document.getElementById('locationSuggestions');
+    if (list && list.options) {
+        let match = false;
+        for (let i = 0; i < list.options.length; i++) {
+            // Case insensitive check
+            if (list.options[i].value.toLowerCase() === value.toLowerCase()) {
+                match = true;
+                break;
+            }
+        }
+        if (match) {
+            setTimeout(() => {
+                addLocationTag(empId, value);
+                input.value = '';
+                input.focus();
+            }, 50); // Small delay to feel natural
+        }
+    }
+}
+
+function handleTagKeydown(event, empId) {
+    if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        event.stopPropagation();
+        const input = event.target;
+        const value = input.value.trim();
+
+        if (value) {
+            addLocationTag(empId, value);
+            input.value = '';
+            input.focus();
+        }
+    }
+    // Backspace to remove last tag if input is empty
+    if (event.key === 'Backspace' && event.target.value === '') {
+        const hiddenInput = document.getElementById(`location_${empId}`);
+        let currentString = hiddenInput ? hiddenInput.value : '';
+        let tags = currentString ? currentString.split(',').map(s => s.trim()).filter(s => s) : [];
+        if (tags.length > 0) {
+            removeLocationTag(empId, tags.length - 1);
+        }
+    }
+}
+
+function handleTagBlur(empId) {
+    const input = document.getElementById(`tag-input-${empId}`);
+    if (input && input.value.trim()) {
+        addLocationTag(empId, input.value.trim());
+        input.value = '';
+    }
+}
+
+function addLocationTag(empId, newTag) {
+    // Sanitize tag (remove commas since they are delimiters)
+    const cleanTag = newTag.replace(/,/g, '');
+    if (!cleanTag) return;
+
+    const hiddenInput = document.getElementById(`location_${empId}`);
+    let currentString = hiddenInput.value;
+    let tags = currentString ? currentString.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    // Prevent exact duplicates?
+    if (!tags.includes(cleanTag)) {
+        tags.push(cleanTag);
+    }
+
+    updateLocationTagsUI(empId, tags);
+
+    // Also update global Datalist with new Location for other users
+    updateDatalist(cleanTag);
+}
+
+function removeLocationTag(empId, indexToRemove) {
+    const hiddenInput = document.getElementById(`location_${empId}`);
+    let currentString = hiddenInput.value;
+    let tags = currentString ? currentString.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    if (indexToRemove >= 0 && indexToRemove < tags.length) {
+        tags.splice(indexToRemove, 1);
+        updateLocationTagsUI(empId, tags);
+    }
+}
+
+function updateLocationTagsUI(empId, tags) {
+    const hiddenInput = document.getElementById(`location_${empId}`);
+    const newString = tags.join(',');
+    hiddenInput.value = newString;
+
+    // Re-render the container
+    const container = document.getElementById(`location-container-${empId}`);
+    if (container) {
+        // Find if input was disabled? Checking worked status.
+        const worked = document.getElementById(`worked_${empId}`).checked;
+        container.innerHTML = renderTagsInput(empId, newString, !worked);
+
+        // Refocus
+        setTimeout(() => {
+            const input = document.getElementById(`tag-input-${empId}`);
+            if (input) input.focus();
+        }, 10);
+    }
+}
+
+// Update datalist dynamically (global list)
 function updateDatalist(newValue) {
     if (!newValue || newValue.trim() === '') return;
 
@@ -229,8 +368,12 @@ function toggleWorked(empId) {
     const buttons = document.querySelectorAll(`button[onclick*="${empId}"]`);
     buttons.forEach(btn => btn.disabled = !worked);
 
-    // Toggle Location Input
-    document.getElementById(`location_${empId}`).disabled = !worked;
+    // Toggle Location Input (Re-render with disabled state)
+    const hiddenInput = document.getElementById(`location_${empId}`);
+    if (hiddenInput) {
+        const container = document.getElementById(`location-container-${empId}`);
+        container.innerHTML = renderTagsInput(empId, hiddenInput.value, !worked);
+    }
 
     if (!worked) {
         document.getElementById(`hours_${empId}`).value = 0;
@@ -238,10 +381,6 @@ function toggleWorked(empId) {
         const currentVal = parseFloat(document.getElementById(`hours_${empId}`).value) || 0;
         if (currentVal === 8) {
             document.getElementById(`hours_${empId}`).value = 0;
-        } else {
-            // Keep existing value if safe, or define rule.
-            // For now, if re-checking, we leave it be unless it was 8.
-            // If it was 0, it stays 0.
         }
     }
 }
@@ -265,45 +404,15 @@ function setFullDayOvertime(empId) {
 }
 
 // Copy Location from the row above (SMART COPY)
+// IMPORTANT: With Tag Input, we copy the RAW string
 function copyLocationFromAbove(currentIndex) {
-    if (currentIndex <= 0) return;
-
-    // Search upwards for the first employee who WORKED and has a location
-    let targetLocation = '';
-
-    for (let i = currentIndex - 1; i >= 0; i--) {
-        const emp = employees[i];
-        const workedInput = document.getElementById(`worked_${emp.id}`);
-        const locationInput = document.getElementById(`location_${emp.id}`);
-
-        if (workedInput && workedInput.checked && locationInput && locationInput.value.trim() !== '') {
-            targetLocation = locationInput.value;
-            break; // Found one!
-        }
-    }
-
-    if (!targetLocation) {
-        // Fallback: If no one above worked/has location, maybe just try immediate above or do nothing?
-        // Let's try immediate above even if empty, to behave predictably?
-        // No, user specifically said "1. gelmeyince 2. adam ve 3 adam gelince 2. nin görev yerini yazınca alttaki çalışana ekleyemiyorum"
-        // Meaning if #1 is absent, and #2 is present, he wants to copy... wait.
-        // "1. çalışan gelmeyince... 2. nin görev yerini ... alttaki çalışana ekleyemiyorum"
-        // This implies copying FROM #2 TO #3 works.
-        // But if #1 is absent, #2 can't copy from #1 (empty).
-        // I think he means "If I am at #3, and #2 is absent/empty, copy from #1".
-        // My loop serves exactly that: Find the first VALID location upwards.
-        alert('Üst satırlarda kopyalanacak bir konum bulunamadı.');
-        return;
-    }
-
-    const currentEmp = employees[currentIndex];
-    const currentLocationInput = document.getElementById(`location_${currentEmp.id}`);
-
-    if (currentLocationInput && !currentLocationInput.disabled) {
-        currentLocationInput.value = targetLocation;
-        updateDatalist(targetLocation);
-    }
+    // This functionality is REMOVED as per user request
+    // "konum görev kısmındaki oku emojisine gerek yok"
+    // So this function is likely unused or can be removed.
+    // I will keep it commented out or just remove calls to it.
+    // The render function no longer generates the button.
 }
+
 
 // Mark all as worked/not worked
 function markAllWorked(worked) {
@@ -321,6 +430,7 @@ async function saveAllAttendance() {
     employees.forEach(emp => {
         const worked = document.getElementById(`worked_${emp.id}`).checked;
         const overtime = parseFloat(document.getElementById(`hours_${emp.id}`).value) || 0;
+        // With Tag Input, the value is in the hidden input
         const location = document.getElementById(`location_${emp.id}`).value;
         const notes = document.getElementById(`notes_${emp.id}`).value;
 
