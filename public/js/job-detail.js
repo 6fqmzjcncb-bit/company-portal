@@ -309,37 +309,39 @@ function renderIncompleteItem(item) {
     const sourceName = item.source ? item.source.name : '';
 
     return `
-        <div class="item-row" data-item-id="${item.id}" style="padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: flex-start; gap: 12px;">
-            <!-- 1. CHECKBOX -->
-            <div class="item-checkbox" onclick="checkItem(${item.id})" style="cursor: pointer; font-size: 1.2rem; color: #d1d5db; width: 28px; height: 28px; border-radius: 4px; flex-shrink: 0;">☐</div>
+        <div class="item-row" data-item-id="${item.id}" style="padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); display: flex; align-items: flex-start; gap: 15px;">
+            <!-- 1. CHECKBOX (Custom Styled) -->
+            <div class="item-checkbox-custom" onclick="checkItem(${item.id})" title="Tamamla">
+                <span style="font-size: 1.2rem; line-height: 1;">✓</span>
+            </div>
             
             <!-- 2. DETAILS -->
             <div class="item-details" style="flex: 1;">
-                <div class="item-name" style="font-size: 1rem; font-weight: 600; color: #1f2937;">${productName}</div>
+                <div class="item-name" style="font-size: 1rem; font-weight: 600; color: #1f2937; margin-bottom: 8px;">${productName}</div>
                 
-                <div class="item-visual-row">
+                <div class="item-visual-row" style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
                     <!-- Gerekli -->
-                    <div style="width: 80px;">
-                        <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli</label>
-                        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                    <div class="qty-input-group">
+                        <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Gerekli</label>
+                        <input type="number" class="qty-input-field"
                             value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
                     </div>
 
                      <!-- Alınan -->
-                    <div style="width: 80px;">
-                        <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan</label>
-                        <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                    <div class="qty-input-group">
+                        <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Alınan</label>
+                        <input type="number" class="qty-input-field"
                             value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
                     </div>
 
                     <!-- Kaynaklar + Not -->
-                    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
-                            <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar ve Notlar</label>
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start;">
+                    <div style="flex: 1; min-width: 200px;">
+                            <label style="font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; font-weight: 500;">Kaynaklar ve Notlar</label>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
                                 ${renderTagsInput(item.id, sourceName)}
                                 <input type="text" class="note-input"
                                     value="${item.note || ''}" 
-                                    placeholder="Personel için not..." 
+                                    placeholder="Not ekle..." 
                                     onblur="autoSaveNote(${item.id}, this.value)">
                             </div>
                     </div>
@@ -378,9 +380,10 @@ function renderIncompleteItem(item) {
                     ` : ''}
                 </div>
 
-                <div class="item-actions">
-                    <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil">🗑️</button>
-                    <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla">✅</button>
+                <!-- 3. ACTIONS (Vertical Stack) -->
+                <div class="item-actions" style="display: flex; flex-direction: column; gap: 8px; justify-content: flex-start;">
+                    <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">🗑️</button>
+                    <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">✅</button>
                 </div>
             </div>
     `;
