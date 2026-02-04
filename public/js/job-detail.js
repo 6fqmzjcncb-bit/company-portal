@@ -272,10 +272,6 @@ function renderItems(items) {
     const partial = items.filter(i => i.is_checked && i.quantity_found && i.quantity_found < i.quantity);
     const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found === i.quantity));
 
-    // ÖNEMLI: Partial item'lar BOTH eksikler VE tamamlanan'da görünecek
-    // - TAMAMLANAN: quantity_found göster
-    // - EKSİKLER: quantity_missing göster (incomplete gibi)
-
     let html = '';
 
     // TAMAMLANMAYAN İŞLER
@@ -397,8 +393,8 @@ function renderItems(items) {
 
     if (eksiklerItems.length > 0) {
         html += `
-                < div style = "background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;" >
-                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${eksiklerItems.length})</h3>
+            <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⚠️ Eksikler (${eksiklerItems.length})</h3>
                 ${eksiklerItems.map(item => {
             const productName = item.product ? item.product.name : item.custom_name;
             const sourceName = item.missing_source || (item.source ? item.source.name : '');
@@ -445,18 +441,17 @@ function renderItems(items) {
                             </div>
                         </div>
                     `;
-        }).join('')
-            }
-            </div >
-                `;
+        }).join('')}
+            </div>
+        `;
     }
 
     // TAMAMLANAN İŞLER (completed + partial'ın alınan kısmı)
     const allCompleted = [...completed, ...partial];
     if (allCompleted.length > 0) {
         html += `
-                < div style = "background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;" >
-                    <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
+            <div style="background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
                 ${allCompleted.map(item => {
             const productName = item.product ? item.product.name : item.custom_name;
             const sourceName = item.source ? item.source.name : '';
@@ -480,10 +475,9 @@ function renderItems(items) {
                             </div>
                         </div>
                     `;
-        }).join('')
-            }
-            </div >
-                `;
+        }).join('')}
+            </div>
+        `;
     }
 
     container.innerHTML = html;
@@ -499,7 +493,7 @@ async function autoSaveQuantity(itemId, newQuantity) {
     }
 
     try {
-        const response = await fetch(`/ api / jobs / items / ${itemId} `, {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity })
@@ -527,7 +521,7 @@ async function autoSaveSource(itemId, newSourceName) {
     }
 
     try {
-        const response = await fetch(`/ api / jobs / items / ${itemId} `, {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ source_name: sourceName })
@@ -547,7 +541,7 @@ async function autoSaveSource(itemId, newSourceName) {
 // Auto-save quantity found (onBlur)
 async function autoSaveQuantityFound(itemId, newValue) {
     try {
-        await fetch(`/ api / jobs / items / ${itemId} `, {
+        await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity_found: parseInt(newValue) || 0 })
@@ -561,7 +555,7 @@ async function autoSaveQuantityFound(itemId, newValue) {
 // Auto-save quantity missing (onBlur)
 async function autoSaveQuantityMissing(itemId, newValue) {
     try {
-        await fetch(`/ api / jobs / items / ${itemId} `, {
+        await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity_missing: parseInt(newValue) || 0 })
@@ -575,7 +569,7 @@ async function autoSaveQuantityMissing(itemId, newValue) {
 // Auto-save missing source (nereden alınacak)
 async function autoSaveMissingSource(itemId, newValue) {
     try {
-        await fetch(`/ api / jobs / items / ${itemId} `, {
+        await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ missing_source: newValue })
@@ -589,7 +583,7 @@ async function autoSaveMissingSource(itemId, newValue) {
 // Update missing reason (buy_from_source or buy_later)
 async function updateMissingReason(itemId, reason) {
     try {
-        await fetch(`/ api / jobs / items / ${itemId} `, {
+        await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ missing_reason: reason })
