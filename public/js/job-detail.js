@@ -332,10 +332,16 @@ function renderIncompleteItem(item) {
                             value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
                     </div>
 
-                    <!-- Kaynaklar -->
-                    <div style="flex: 1; min-width: 150px;">
-                            <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar</label>
-                            ${renderTagsInput(item.id, sourceName)}
+                    <!-- Kaynaklar + Not -->
+                    <div style="flex: 1; min-width: 150px; display: flex; flex-direction: column;">
+                            <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar ve Notlar</label>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start;">
+                                ${renderTagsInput(item.id, sourceName)}
+                                <input type="text" class="note-input"
+                                    value="${item.note || ''}" 
+                                    placeholder="Personel için not..." 
+                                    onblur="autoSaveNote(${item.id}, this.value)">
+                            </div>
                     </div>
                 </div>
 
@@ -391,6 +397,7 @@ function renderCompletedItem(item) {
                 <div style="font-weight: 500; text-decoration: line-through; color: #4b5563;">${productName}</div>
                 <div style="font-size: 0.85rem; color: #6b7280;">
                     ${item.quantity_found || item.quantity} adet • 📦 ${sourceName}
+                    ${item.note ? `<span style="margin-left:8px; color:#f59e0b;">📝 ${item.note}</span>` : ''}
                 </div>
             </div>
             <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.8rem; padding: 2px 8px;">Geri Al</button>
@@ -516,6 +523,20 @@ async function updateMissingReason(itemId, reason) {
         await loadJobDetail(); // Reload to show/hide input
     } catch (error) {
         console.error('Missing reason update error:', error);
+    }
+}
+
+// Update note
+async function autoSaveNote(itemId, note) {
+    try {
+        await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ note: note })
+        });
+        // No reload needed for simple text input
+    } catch (error) {
+        console.error('Note update error:', error);
     }
 }
 

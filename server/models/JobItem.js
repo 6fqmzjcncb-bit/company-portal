@@ -65,6 +65,11 @@ const JobItem = sequelize.define('JobItem', {
         defaultValue: null,
         comment: 'Eksik malzeme sebebi: buy_from_source = başka yerden alınacak, buy_later = daha sonra alınacak'
     },
+    note: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Personel notu (örn: Yan sanayi olsun)'
+    },
     is_checked: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
