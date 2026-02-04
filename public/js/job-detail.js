@@ -417,22 +417,36 @@ function renderCompletedItem(item) {
     const productName = item.product ? item.product.name : item.custom_name;
     const sourceName = item.source ? item.source.name : 'Belirtilmedi';
 
+    // Status Badge Logic
+    let statusBadge = '';
+
+    if (item.quantity_missing > 0) {
+        // Partial (Red Badge)
+        statusBadge = `
+            <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+                 ✓ ${item.quantity_found || 0} alındı • ✕ ${item.quantity_missing} eksik
+            </span>
+        `;
+    } else {
+        // Full (Green Badge)
+        statusBadge = `
+            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+                 ✓ ${item.quantity} tam alındı
+            </span>
+        `;
+    }
+
     return `
         <div class="item-row item-checked" style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #10b981; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
             <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #10b981; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✓</div>
             <div style="flex: 1;">
-                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px;">
+                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap;">
                     ${productName}
-                    ${item.quantity_missing > 0 ? `
-                        <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px;">
-                             ✓ ${item.quantity_found || 0} alındı • ✕ ${item.quantity_missing} eksik
-                        </span>
-                    ` : ''}
+                    ${statusBadge}
                 </div>
-                <div style="font-size: 0.85rem; color: #6b7280;">
-                    ${item.quantity_missing === 0 ? `✓ ${item.quantity} adet tam alındı` : ''} 
-                    • 📦 ${sourceName}
-                    ${item.note ? `<span style="margin-left:8px; color:#f59e0b;">📝 ${item.note}</span>` : ''}
+                <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 6px;">
+                    <span>📦 ${sourceName}</span>
+                    ${item.note ? `<span style="color:#f59e0b;">• 📝 ${item.note}</span>` : ''}
                 </div>
             </div>
             <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.8rem; padding: 4px 12px; border-radius: 6px;">Geri Al</button>
