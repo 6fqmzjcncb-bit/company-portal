@@ -1180,6 +1180,7 @@ textarea.input-small {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
+
 /* ===========================
    JOB DETAIL PAGE - ITEM ROWS
    =========================== */
@@ -1288,59 +1289,67 @@ textarea.input-small {
    TAG INPUT STYLES (ADDED FOR CRITICAL FIX)
    =========================== */
 .tag-container {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
-    padding: 8px;
-    border: 1px solid var(--gray-300);
-    border-radius: var(--radius-md);
-    background: white;
-    min-height: 42px;
-    transition: var(--transition);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  gap: 5px;
+  padding: 4px 8px;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  background: white;
+  min-height: 36px;
+  transition: var(--transition);
+}
+
+.item-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .tag-container:focus-within {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .active-tag {
-    background: var(--gray-100);
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-size: 0.85rem;
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--gray-200);
-    color: var(--gray-800);
+  background: var(--gray-100);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--gray-200);
+  color: var(--gray-800);
 }
 
 .remove-tag {
-    margin-left: 6px;
-    cursor: pointer;
-    color: var(--gray-500);
-    font-weight: bold;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    transition: var(--transition);
+  margin-left: 6px;
+  cursor: pointer;
+  color: var(--gray-500);
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  transition: var(--transition);
 }
 
 .remove-tag:hover {
-    color: white;
-    background: var(--error-text);
+  color: white;
+  background: var(--error-text);
 }
 
 .tag-input-field {
-    border: none;
-    outline: none;
-    flex: 1;
-    min-width: 80px;
-    font-size: 0.9rem;
-    padding: 4px;
-    background: transparent;
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 80px;
+  font-size: 0.9rem;
+  padding: 4px;
+  background: transparent;
 }

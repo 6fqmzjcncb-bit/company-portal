@@ -309,31 +309,31 @@ function renderIncompleteItem(item) {
     const sourceName = item.source ? item.source.name : '';
 
     return `
-        <div class="item-row" data-item-id="${item.id}" style="padding: 12px; background: white; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-            <div style="display: flex; align-items: flex-start; gap: 12px;">
-                <div class="item-checkbox" onclick="checkItem(${item.id})" style="cursor: pointer; font-size: 1.2rem; color: #d1d5db;">☐</div>
+        <div class="item-row" data-item-id="${item.id}" style="padding: 10px; background: white; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <div class="item-checkbox" onclick="checkItem(${item.id})" style="cursor: pointer; font-size: 1.2rem; color: #d1d5db; width: 24px; height: 24px; border-radius: 4px;">☐</div>
                 
                 <div class="item-details" style="flex: 1;">
-                    <div class="item-name" style="font-size: 1.05rem; font-weight: 600; color: #1f2937; margin-bottom: 8px;">${productName}</div>
+                    <div class="item-name" style="font-size: 0.95rem; font-weight: 600; color: #1f2937; margin-bottom: 4px;">${productName}</div>
                     
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="item-grid-compact">
                         <!-- Miktarlar -->
-                        <div style="display: flex; gap: 10px;">
+                        <div style="display: flex; gap: 8px;">
                             <div style="flex: 1;">
-                                <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Gerekli</label>
-                                <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                                <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli</label>
+                                <input type="number" class="form-input" style="padding: 3px 6px; font-size: 0.85rem; height: 34px;" 
                                     value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
                             </div>
                             <div style="flex: 1;">
-                                <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Alınan</label>
-                                <input type="number" class="form-input" style="padding: 4px 8px; font-size: 0.9rem;" 
+                                <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Alınan</label>
+                                <input type="number" class="form-input" style="padding: 3px 6px; font-size: 0.85rem; height: 34px;" 
                                     value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
                             </div>
                         </div>
 
                         <!-- Kaynaklar -->
                         <div>
-                             <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 4px;">Kaynaklar</label>
+                             <label style="font-size: 0.7rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar</label>
                              ${renderTagsInput(item.id, sourceName)}
                         </div>
                     </div>
