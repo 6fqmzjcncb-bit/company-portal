@@ -298,7 +298,9 @@ body {
 
 .form-input,
 .form-select,
-.form-textarea {
+.form-textarea,
+select {
+  /* Catch-all for basic selects like in the modal */
   width: 100%;
   padding: 0.875rem 1rem;
   border: 2px solid var(--gray-200);

@@ -110,6 +110,10 @@ function showAddModal() {
     document.getElementById('modalTitle').textContent = 'Yeni Personel Ekle';
     document.getElementById('employeeForm').reset();
     document.getElementById('employeeId').value = '';
+
+    // Enable inputs (in case they were disabled by view mode)
+    setModalInputsDisabled(false);
+
     document.getElementById('employeeModal').style.display = 'flex';
 }
 
@@ -126,14 +130,44 @@ function editEmployee(id) {
     document.getElementById('role').value = employee.role;
     document.getElementById('dailyWage').value = employee.daily_wage || '';
     document.getElementById('monthlySalary').value = employee.monthly_salary || '';
-    document.getElementById('hireDate').value = employee.hire_date || '';
+    document.getElementById('hireDate').value = employee.hire_date ? employee.hire_date.split('T')[0] : '';
     document.getElementById('notes').value = employee.notes || '';
+
+    // Enable inputs
+    setModalInputsDisabled(false);
+
     document.getElementById('employeeModal').style.display = 'flex';
 }
 
-// View employee detail (navigate to detail page - to be created)
+// View employee detail (Populate modal in readonly mode)
 function viewEmployee(id) {
-    window.location.href = `/employee-detail.html?id=${id}`;
+    const employee = employees.find(e => e.id === id);
+    if (!employee) return;
+
+    editingId = null; // No editing
+    document.getElementById('modalTitle').textContent = 'Personel Detayı';
+    document.getElementById('fullName').value = employee.full_name;
+    document.getElementById('phone').value = employee.phone || '-';
+    document.getElementById('role').value = employee.role;
+    document.getElementById('dailyWage').value = employee.daily_wage || '';
+    document.getElementById('monthlySalary').value = employee.monthly_salary || '';
+    document.getElementById('hireDate').value = employee.hire_date ? employee.hire_date.split('T')[0] : '';
+    document.getElementById('notes').value = employee.notes || '-';
+
+    // Disable inputs for viewing
+    setModalInputsDisabled(true);
+
+    document.getElementById('employeeModal').style.display = 'flex';
+}
+
+function setModalInputsDisabled(disabled) {
+    const form = document.getElementById('employeeForm');
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => input.disabled = disabled);
+
+    // Hide/Show Save button
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.style.display = disabled ? 'none' : 'block';
 }
 
 // Delete employee
