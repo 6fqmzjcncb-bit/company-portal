@@ -619,8 +619,8 @@ function initInlineSearch() {
                      data-name="${p.name.replace(/"/g, '&quot;')}">
                     
                     <div style="pointer-events: none; flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden;">
-                        <span class="text-xs text-gray-500 whitespace-nowrap font-medium" style="min-width: 60px;">${p.barcode || ''}</span>
-                        <span class="font-bold text-gray-900 text-sm truncate" style="font-size: 0.95rem;" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
+                        <span class="font-bold text-gray-900 text-sm truncate" style="font-size: 0.95rem; min-width: 0;" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
+                        <span class="text-xs text-gray-500 whitespace-nowrap font-normal">(${p.barcode || '-'})</span>
                     </div>
 
                     ${p.current_stock !== undefined ? `
