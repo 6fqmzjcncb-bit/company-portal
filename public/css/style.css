@@ -1506,6 +1506,14 @@ textarea.input-small {
   box-sizing: border-box;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+
+  /* Match Input Style */
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  padding: 4px 8px;
 }
 
 .note-input {
@@ -1514,6 +1522,11 @@ textarea.input-small {
   /* Match height */
   padding: 0 10px;
   box-sizing: border-box;
+
+  /* Match Input Style */
+  border: 1px solid var(--gray-300);
+  border-radius: 6px;
+  font-size: 0.95rem;
 }
 
 .tag-input-field {
