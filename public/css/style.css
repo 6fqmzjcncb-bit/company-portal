@@ -1050,7 +1050,10 @@ textarea.input-small {
   padding: 0.5rem 0.75rem;
   border: 2px solid var(--gray-300);
   border-radius: var(--radius-md);
-  font-size: 0.875rem;
+  font-size: 1.2rem;
+  /* Increased size for larger picker */
+  font-weight: 500;
+  cursor: pointer;
 }
 
 /* Button utilities */

@@ -186,17 +186,28 @@ function renderAttendance(date) {
                     <input type="hidden" id="location_${emp.id}" value="${locationTags}">
                 </td>
                 <td>
-                    <input 
-                        type="text" 
+                    <textarea 
                         id="notes_${emp.id}" 
-                        value="${record.notes || ''}"
+                        class="input-small type-notes"
                         placeholder="Notlar"
-                        class="input-small"
-                        style="width: 100%;">
+                        rows="1"
+                        style="width: 100%; resize: none; overflow: hidden; min-height: 38px; padding-top: 8px;"
+                        oninput="autoResizeTextarea(this)">${record.notes || ''}</textarea>
                 </td>
             </tr>
         `;
     }).join('');
+
+    // Trigger resize for existing content
+    setTimeout(() => {
+        document.querySelectorAll('textarea.type-notes').forEach(el => autoResizeTextarea(el));
+    }, 100);
+}
+
+// Auto-resize textarea
+function autoResizeTextarea(element) {
+    element.style.height = 'auto';
+    element.style.height = element.scrollHeight + 'px';
 }
 
 
