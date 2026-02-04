@@ -71,9 +71,13 @@ const startServer = async () => {
         await testConnection();
 
         // Auto-sync schema changes (non-destructive)
-        const { sequelize } = require('./config/database');
-        await sequelize.sync({ alter: true });
-        console.log('✓ Veritabanı şeması güncellendi (alter: true)');
+        try {
+            const { sequelize } = require('./config/database');
+            await sequelize.sync({ alter: true });
+            console.log('✓ Veritabanı şeması güncellendi (alter: true)');
+        } catch (syncError) {
+            console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
+        }
 
         app.listen(PORT, () => {
             console.log('╔════════════════════════════════════════╗');
