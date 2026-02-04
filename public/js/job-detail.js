@@ -685,7 +685,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const productId = document.getElementById('inlineSelectedProductId').value;
             const productName = document.getElementById('inlineSelectedProductName').value;
-            const sourceId = document.getElementById('inlineSourceSelect').value;
+
+            // Tag input value (Hidden)
+            const sourceName = document.getElementById('source-original-quick-add').value;
+
             const quantity = document.getElementById('inlineQuantity').value;
 
             if (!productId && !productName) {
@@ -693,8 +696,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            if (!sourceId) {
-                showAlert('Lütfen kaynak seçin');
+            if (!sourceName) {
+                showAlert('Lütfen kaynak girin (ve Enter tuşuna basın)');
                 return;
             }
 
@@ -705,7 +708,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: JSON.stringify({
                         product_id: productId || null,
                         custom_name: productId ? null : productName,
-                        source_id: parseInt(sourceId),
+                        source_name: sourceName, // Send name, backend will handle lookup/create
                         quantity: parseInt(quantity)
                     })
                 });
@@ -721,8 +724,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('inlineProductSearch').value = '';
                 document.getElementById('inlineSelectedProductId').value = '';
                 document.getElementById('inlineSelectedProductName').value = '';
-                document.getElementById('inlineQuantity').value = '1';
                 document.getElementById('inlineProductResults').innerHTML = '';
+                document.getElementById('inlineSourceSelect').value = ''; // Deprecated but safe to clear
+                document.getElementById('inlineQuantity').value = '1';
+
+                // Reset Tag Input
+                const container = document.getElementById('quick-add-source-container');
+                if (container) container.innerHTML = renderTagsInput('quick-add', '');
 
                 // Listeyi yenile
                 await loadJobDetail();
@@ -911,8 +919,15 @@ async function splitIncompleteItem(itemId, currentQuantity) {
 
 window.addEventListener('DOMContentLoaded', async () => {
     await loadUserInfo();
+    await loadUserInfo();
     await loadSources();
     await loadJobDetail();
+
+    // Init Quick Add Tag Input
+    const quickAddContainer = document.getElementById('quick-add-source-container');
+    if (quickAddContainer) {
+        quickAddContainer.innerHTML = renderTagsInput('quick-add', '');
+    }
 });
 
 // ===========================
@@ -932,7 +947,7 @@ function renderTagsInput(itemId, currentSource) {
     const tagsHtml = tags.map((tag, index) => `
         <span class="active-tag" style="background: ${getTagColor(tag)};">
             ${tag}
-            <span class="remove-tag" onclick="removeSourceTag(${itemId}, ${index}); event.stopPropagation();">×</span>
+            <span class="remove-tag" onclick="removeSourceTag('${itemId}', ${index}); event.stopPropagation();">×</span>
         </span>
     `).join('');
 
@@ -945,9 +960,9 @@ function renderTagsInput(itemId, currentSource) {
                 class="tag-input-field" 
                 placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
                 list="sourceList"
-                onkeydown="handleTagKeydown(event, ${itemId})"
-                oninput="handleTagInput(event, ${itemId})"
-                onblur="handleTagBlur(${itemId})"
+                onkeydown="handleTagKeydown(event, '${itemId}')"
+                oninput="handleTagInput(event, '${itemId}')"
+                onblur="handleTagBlur('${itemId}')"
             >
         </div>
         <!-- Hidden input for comparison -->
@@ -1016,6 +1031,20 @@ async function addSourceTag(itemId, newTag) {
     tags.push(newTag);
     const finalSourceString = tags.join(', ');
 
+    // Quick Add Mode: DOM only update
+    if (itemId === 'quick-add') {
+        if (originalInput) originalInput.value = finalSourceString;
+        const container = document.getElementById('quick-add-source-container');
+        if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
+
+        // Refocus logic
+        setTimeout(() => {
+            const input = document.getElementById('tag-input-quick-add');
+            if (input) input.focus();
+        }, 50);
+        return;
+    }
+
     await autoSaveSource(itemId, finalSourceString);
 }
 
@@ -1028,6 +1057,15 @@ async function removeSourceTag(itemId, indexToRemove) {
     if (indexToRemove >= 0 && indexToRemove < tags.length) {
         tags.splice(indexToRemove, 1);
         const finalSourceString = tags.join(', ');
+
+        // Quick Add Mode: DOM only update
+        if (itemId === 'quick-add') {
+            if (originalInput) originalInput.value = finalSourceString;
+            const container = document.getElementById('quick-add-source-container');
+            if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
+            return;
+        }
+
         await autoSaveSource(itemId, finalSourceString);
     }
 }

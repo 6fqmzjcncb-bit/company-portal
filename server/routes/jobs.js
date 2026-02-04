@@ -172,13 +172,27 @@ router.post('/', requireAuth, async (req, res) => {
 router.post('/:id/items', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { product_id, custom_name, source_id, quantity } = req.body;
+        const { product_id, custom_name, source_id, quantity, source_name } = req.body;
 
         // Validation: product_id veya custom_name birisi dolu olmalı
         if (!product_id && !custom_name) {
             return res.status(400).json({
                 error: 'Stoktan ürün seçin veya özel isim girin'
             });
+        }
+
+        // Source ID handling (name olarak geldiyse)
+        let finalSourceId = source_id;
+        if (!finalSourceId && source_name) {
+            const trimmedName = source_name.trim();
+            if (trimmedName) {
+                // Kaynağı bul veya oluştur
+                const [source] = await Source.findOrCreate({
+                    where: { name: trimmedName },
+                    defaults: { type: 'external' }
+                });
+                finalSourceId = source.id;
+            }
         }
 
         const item = await JobItem.create({
