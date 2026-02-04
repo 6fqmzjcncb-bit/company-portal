@@ -107,6 +107,9 @@ function renderAttendance(date) {
 
     tbody.innerHTML = employees.map((emp, index) => {
         const record = attendanceRecords[emp.id] || {};
+        // hours_worked now represents OVERTIME. Default to 0 if not present.
+        const overtime = record.hours_worked || 0;
+
         return `
             <tr>
                 <td>${index + 1}</td>
@@ -124,29 +127,35 @@ function renderAttendance(date) {
                         <input 
                             type="number" 
                             id="hours_${emp.id}" 
-                            value="${record.hours_worked || 8}"
+                            value="${overtime}"
                             min="0" 
                             max="24" 
                             step="0.5"
                             class="input-small"
-                            style="width: 70px;"
+                            style="width: 60px;"
                             ${!record.worked ? 'disabled' : ''}>
                         <div style="display: flex; gap: 3px;">
-                            <button class="btn-icon" onclick="addHours(${emp.id}, 1)" title="+1 Saat" ${!record.worked ? 'disabled' : ''}>+1</button>
-                            <button class="btn-icon" onclick="addHours(${emp.id}, 2)" title="+2 Saat" ${!record.worked ? 'disabled' : ''}>+2</button>
-                            <button class="btn-icon" onclick="addHours(${emp.id}, 3)" title="+3 Saat" ${!record.worked ? 'disabled' : ''}>+3</button>
-                            <button class="btn-icon" onclick="setFullDay(${emp.id})" title="Tam Gün (8 saat)" ${!record.worked ? 'disabled' : ''}>⏰</button>
+                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 1)" title="+1 Saat" ${!record.worked ? 'disabled' : ''}>+1</button>
+                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 2)" title="+2 Saat" ${!record.worked ? 'disabled' : ''}>+2</button>
+                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 3)" title="+3 Saat" ${!record.worked ? 'disabled' : ''}>+3</button>
+                            <button class="btn-icon" onclick="setFullDayOvertime(${emp.id})" title="Tam Gün Mesai (8 saat)" ${!record.worked ? 'disabled' : ''} style="background: #fef3c7; border: 1px solid #f59e0b;">🌕</button>
                         </div>
                     </div>
                 </td>
                 <td>
-                    <input 
-                        type="text" 
-                        id="location_${emp.id}" 
-                        value="${record.location || ''}"
-                        placeholder="Şantiye/Proje adı"
-                        class="input-small"
-                        ${!record.worked ? 'disabled' : ''}>
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <input 
+                            type="text" 
+                            id="location_${emp.id}" 
+                            value="${record.location || ''}"
+                            placeholder="Şantiye/Proje adı"
+                            class="input-small"
+                            style="flex: 1;"
+                            ${!record.worked ? 'disabled' : ''}>
+                        ${index > 0 ? `
+                        <button class="btn-icon" onclick="copyLocationFromAbove(${index})" title="Üstten Kopyala (⬇)" ${!record.worked ? 'disabled' : ''} style="font-size: 1.2rem;">⬇</button>
+                        ` : ''}
+                    </div>
                 </td>
                 <td>
                     <input 
@@ -164,32 +173,45 @@ function renderAttendance(date) {
 // Toggle worked checkbox
 function toggleWorked(empId) {
     const worked = document.getElementById(`worked_${empId}`).checked;
+
+    // Toggle Overtime Inputs
     document.getElementById(`hours_${empId}`).disabled = !worked;
-    document.getElementById(`location_${empId}`).disabled = !worked;
-
-    if (!worked) {
-        document.getElementById(`hours_${empId}`).value = 0;
-        document.getElementById(`location_${empId}`).value = '';
-    } else {
-        document.getElementById(`hours_${empId}`).value = 8;
-    }
-
-    // Also toggle button states
     const buttons = document.querySelectorAll(`button[onclick*="${empId}"]`);
     buttons.forEach(btn => btn.disabled = !worked);
+
+    // Toggle Location Input
+    document.getElementById(`location_${empId}`).disabled = !worked;
+
+    // Note: We do NOT clear values when unchecked, to preserve data if accidentally clicked.
+    // Logic: If unchecked, we save it as not worked, but UI keeps the text for convenience.
 }
 
-// Add hours to existing value
-function addHours(empId, hours) {
+// Add OVERTIME hours
+function addOvertime(empId, hours) {
     const input = document.getElementById(`hours_${empId}`);
     const currentValue = parseFloat(input.value) || 0;
-    const newValue = Math.min(currentValue + hours, 24); // Max 24 hours
+    const newValue = currentValue + hours;
     input.value = newValue;
 }
 
-// Set to full day (8 hours)
-function setFullDay(empId) {
+// Set Full Day OVERTIME (Assuming 8 hours or standard shift)
+function setFullDayOvertime(empId) {
     document.getElementById(`hours_${empId}`).value = 8;
+}
+
+// Copy Location from the row above
+function copyLocationFromAbove(currentIndex) {
+    if (currentIndex <= 0) return;
+
+    const currentEmp = employees[currentIndex];
+    const prevEmp = employees[currentIndex - 1];
+
+    const prevLocation = document.getElementById(`location_${prevEmp.id}`).value;
+    const currentLocationInput = document.getElementById(`location_${currentEmp.id}`);
+
+    if (currentLocationInput && !currentLocationInput.disabled) {
+        currentLocationInput.value = prevLocation;
+    }
 }
 
 // Mark all as worked/not worked
@@ -207,14 +229,14 @@ async function saveAllAttendance() {
 
     employees.forEach(emp => {
         const worked = document.getElementById(`worked_${emp.id}`).checked;
-        const hours = parseFloat(document.getElementById(`hours_${emp.id}`).value) || 0;
+        const overtime = parseFloat(document.getElementById(`hours_${emp.id}`).value) || 0;
         const location = document.getElementById(`location_${emp.id}`).value;
         const notes = document.getElementById(`notes_${emp.id}`).value;
 
         records.push({
             employee_id: emp.id,
             worked,
-            hours_worked: worked ? hours : 0,
+            hours_worked: worked ? overtime : 0, // Store OVERTIME here
             location: worked ? location : null,
             notes: notes || null
         });
