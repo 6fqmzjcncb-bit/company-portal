@@ -398,7 +398,7 @@ function renderCompletedItem(item) {
         <div class="item-row item-checked" style="opacity: 0.7; background: #f9fafb; padding: 10px; border-radius: 6px; display: flex; align-items: center; gap: 12px;">
             <div class="item-checkbox" style="color: #059669;">✓</div>
             <div style="flex: 1;">
-                <div style="font-weight: 500; text-decoration: line-through; color: #4b5563;">${productName}</div>
+                <div style="font-weight: 600; color: #111827;">${productName}</div>
                 <div style="font-size: 0.85rem; color: #6b7280;">
                     ${item.quantity_found || item.quantity} adet • 📦 ${sourceName}
                     ${item.note ? `<span style="margin-left:8px; color:#f59e0b;">📝 ${item.note}</span>` : ''}
@@ -614,22 +614,26 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="search-result-item p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
-                     style="display: flex; justify-content: space-between; align-items: center;"
+                     style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px;"
                      data-id="${p.id}"
                      data-name="${p.name.replace(/"/g, '&quot;')}">
                     
-                    <div style="pointer-events: none; flex: 1; display: flex; align-items: center; gap: 8px; overflow: hidden;">
-                        <span class="font-bold text-gray-900 text-sm truncate" style="font-size: 0.95rem; min-width: 0;" title="${p.name.replace(/"/g, '&quot;')}">${p.name}</span>
-                        <span class="text-xs text-gray-500 whitespace-nowrap font-normal">(${p.barcode || '-'})</span>
+                    <div style="pointer-events: none; font-size: 0.85rem; color: #111827; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${p.barcode || '-'}
                     </div>
 
-                    ${p.current_stock !== undefined ? `
-                        <div style="pointer-events: none; margin-left:12px; white-space: nowrap;">
-                             <span class="text-sm font-bold ${p.current_stock > 0 ? 'text-blue-700' : 'text-red-600'}">
-                                 Stok: ${p.current_stock}
-                             </span>
-                        </div>
-                    ` : ''}
+                    <div style="pointer-events: none; font-size: 0.95rem; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${p.name.replace(/"/g, '&quot;')}">
+                        ${p.name}
+                    </div>
+
+                    <div style="pointer-events: none; text-align: right;">
+                         <span class="text-sm font-bold ${p.current_stock > 0 ? 'text-blue-700' : 'text-red-600'}">
+                             Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
+                         </span>
+                    </div>
+                             Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
+                         </span>
+                    </div>
                 </div>
             `).join('');
 
@@ -1125,5 +1129,61 @@ async function removeSourceTag(itemId, indexToRemove) {
         }
 
         await autoSaveSource(itemId, finalSourceString);
+    }
+}
+
+// Check item (Complete) - Appended Fix
+async function checkItem(itemId) {
+    const itemCard = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
+    if (!itemCard) return;
+
+    // Get input values (Reliable selection)
+    const inputs = itemCard.querySelectorAll('.qty-input-field');
+    const qtyInput = inputs[0]; // Required
+    const receivedInput = inputs[1]; // Received
+
+    if (!receivedInput) {
+        console.error("Critical: Received input not found for item", itemId);
+        return;
+    }
+
+    const required = parseInt(qtyInput.value) || 0;
+    const received = parseInt(receivedInput.value) || 0;
+    const missing = required - received;
+
+    // Validation: If missing > 0, reason MUST be selected
+    if (missing > 0) {
+        // Force update received value in backend first to ensure state is consistent
+        await autoSaveQuantityFound(itemId, received); 
+
+        // Check if reason is selected
+        const reasonRadio = itemCard.querySelector(`input[name="missing_reason_${itemId}"]:checked`);
+        
+        if (!reasonRadio) {
+            // Check if warning section is even visible
+            const warningSection = itemCard.querySelector(`input[name^="missing_reason_"]`);
+            if (!warningSection) {
+                 // Force reload to show the missing UI
+                 await loadJobDetail(); // Reload to render warning
+                 return; 
+            }
+             
+            showAlert('⚠️ Eksik miktar var! Lütfen aşağıdan "Başka yerden alınacak" veya "Daha sonra" seçeneğini işaretleyin.');
+            return;
+        }
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}/check`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) throw new Error('İşlem başarısız');
+        await loadJobDetail();
+
+    } catch (error) {
+        console.error(error);
+        showAlert(error.message);
     }
 }
