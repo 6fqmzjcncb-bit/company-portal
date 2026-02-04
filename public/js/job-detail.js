@@ -471,11 +471,11 @@ function renderItems(items) {
                                 <div class="item-quantity">
                                     ${item.quantity_found || item.quantity} adet alındı
                                     ${item.quantity_found && item.quantity_found < item.quantity
-                    ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik)</span>`
+                    ? ` <span style="color: #dc2626; font-weight: 600;">(${item.quantity - item.quantity_found} eksik • İstenen: ${item.quantity})</span>`
                     : ''
                 }
                                     ${item.quantity_found && item.quantity_found > item.quantity
-                    ? ` <span style="color: #059669; font-weight: 600;">(${item.quantity_found - item.quantity} fazla)</span>`
+                    ? ` <span style="color: #059669; font-weight: 600;">(${item.quantity_found - item.quantity} fazla • İstenen: ${item.quantity})</span>`
                     : ''
                 } • 📦 ${sourceName}
                                 </div>
