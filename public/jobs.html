@@ -36,7 +36,12 @@
             const statusColors = { pending: 'warning', processing: 'primary', completed: 'success' };
             const statusLabels = { pending: 'Bekliyor', processing: 'İşlemde', completed: 'Tamamlandı' };
 
-            container.innerHTML = jobs.map(job => `
+            container.innerHTML = jobs.map(job => {
+                const viewersText = job.recent_viewers && job.recent_viewers.length > 0
+                    ? job.recent_viewers.map(v => v.full_name).join(', ')
+                    : 'Henüz kimse bakmadı';
+
+                return `
         <div class="card">
           <div class="card-header">
             <div>
@@ -45,11 +50,26 @@
             </div>
             <span class="badge badge-${statusColors[job.status]}">${statusLabels[job.status]}</span>
           </div>
+          <div class="card-body" style="padding: 12px 20px;">
+            <div style="margin-bottom: 8px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                <span><strong>Tamamlanma:</strong></span>
+                <span><strong>%${job.completion_percentage || 0}</strong></span>
+              </div>
+              <div style="background: #e5e7eb; height: 6px; border-radius: 3px; overflow: hidden;">
+                <div style="background: #059669; height: 100%; width: ${job.completion_percentage || 0}%; transition: width 0.3s;"></div>
+              </div>
+            </div>
+            <div style="font-size: 0.8rem; color: #6b7280;">
+              <span>👁️ ${viewersText}</span>
+            </div>
+          </div>
           <div class="card-footer">
             <a href="/job-detail.html?id=${job.id}" class="btn btn-primary btn-sm">Detay Gör</a>
           </div>
         </div>
-      `).join('');
+      `;
+            }).join('');
         }
 
         async function createNewJob() {

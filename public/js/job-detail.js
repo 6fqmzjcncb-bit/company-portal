@@ -259,7 +259,7 @@ function renderDeletions(deletions) {
     `;
 }
 
-// Kalemleri render et (tek düz list, kaynak her item'da gösterilir)
+// Kalemleri render et (TAMAMLANMAYAN + TAMAMLANAN AYRI)
 function renderItems(items) {
     const container = document.getElementById('groupedItems');
 
@@ -268,62 +268,123 @@ function renderItems(items) {
         return;
     }
 
-    container.innerHTML = items.map(item => {
-        const productName = item.product ? item.product.name : item.custom_name;
-        const sourceName = item.source ? item.source.name : '';
-        const isChecked = item.is_checked;
+    const incomplete = items.filter(i => !i.is_checked);
+    const completed = items.filter(i => i.is_checked);
 
-        return `
-            <div class="item-row ${isChecked ? 'item-checked' : ''}" data-item-id="${item.id}">
-                <div class="item-checkbox">
-                    ${isChecked ? '✓' : '☐'}
-                </div>
-                <div class="item-details">
-                    <div class="item-name"><strong>${productName}</strong></div>
-                    ${!isChecked ? `
-                        <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px; flex-wrap: wrap;">
-                            <input 
-                                type="number" 
-                                class="input-small" 
-                                style="width: 80px;"
-                                value="${item.quantity}" 
-                                min="1"
-                                onblur="autoSaveQuantity(${item.id}, this.value)"
-                                placeholder="Gerekli">
-                            <span>gerekli</span>
-                            <span style="color: #888;">•</span>
-                            <input 
-                                type="text" 
-                                class="input-small" 
-                                style="width: 200px;"
-                                value="${sourceName}"
-                                list="sourceList"
-                                onblur="autoSaveSource(${item.id}, this.value)"
-                                placeholder="Kaynak">
-                        </div>
-                        ${item.quantity_missing && item.quantity_missing > 0 ? `
-                            <div style="background: #fef3c7; padding: 6px 10px; border-radius: 4px; margin-top: 8px; font-size: 0.85rem; color: #92400e;">
-                                ⚠️ <strong>${item.quantity_found || 0}/${item.quantity}</strong> bulundu, 
-                                <strong>${item.quantity_missing} eksik</strong>
-                                ${item.missing_source ? ` → ${item.missing_source}'tan alınacak` : ''}
+    let html = '';
+
+    // TAMAMLANMAYAN İŞLER
+    if (incomplete.length > 0) {
+        html += `
+            <div style="background: #fef9e7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e;">⏳ Tamamlanmayan İşler (${incomplete.length})</h3>
+                ${incomplete.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.source ? item.source.name : '';
+
+            return `
+                        <div class="item-row" data-item-id="${item.id}" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">☐</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px;">
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Gerekli Miktar</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${item.quantity}" 
+                                            min="1"
+                                            onblur="autoSaveQuantity(${item.id}, this.value)"
+                                            placeholder="Gerekli">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Bulunan</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${item.quantity_found || ''}" 
+                                            min="0"
+                                            onblur="autoSaveQuantityFound(${item.id}, this.value)"
+                                            placeholder="0">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Eksik</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${item.quantity_missing || ''}" 
+                                            min="0"
+                                            onblur="autoSaveQuantityMissing(${item.id}, this.value)"
+                                            placeholder="0">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynak</label>
+                                        <input 
+                                            type="text" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${sourceName}"
+                                            list="sourceList"
+                                            onblur="autoSaveSource(${item.id}, this.value)"
+                                            placeholder="Kaynak">
+                                    </div>
+                                    ${item.quantity_missing > 0 ? `
+                                        <div>
+                                            <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Nereden Alınacak</label>
+                                            <input 
+                                                type="text" 
+                                                class="input-small" 
+                                                style="width: 100%;"
+                                                value="${item.missing_source || ''}"
+                                                onblur="autoSaveMissingSource(${item.id}, this.value)"
+                                                placeholder="ör: Koçtaş">
+                                        </div>
+                                    ` : ''}
+                                </div>
                             </div>
-                        ` : ''}
-                    ` : `
-                        <div class="item-quantity">${item.quantity} adet • 📦 ${sourceName}</div>
-                        <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
-                    `}
-                </div>
-                <div class="item-actions">
-                    ${!isChecked ? `
-                        <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
-                        <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
-                    ` : `
-                        <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
-                    `}
-                </div>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
+                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
+                            </div>
+                        </div>
+                    `;
+        }).join('')}
             </div>
         `;
-    }).join('');
+    }
+
+    // TAMAMLANAN İŞLER
+    if (completed.length > 0) {
+        html += `
+            <div style="background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${completed.length})</h3>
+                ${completed.map(item => {
+            const productName = item.product ? item.product.name : item.custom_name;
+            const sourceName = item.source ? item.source.name : '';
+
+            return `
+                        <div class="item-row item-checked" data-item-id="${item.id}" style="margin-bottom: 8px; padding: 10px; background: white; border-radius: 6px;">
+                            <div class="item-checkbox">✓</div>
+                            <div class="item-details" style="flex: 1;">
+                                <div class="item-name"><strong>${productName}</strong></div>
+                                <div class="item-quantity">${item.quantity} adet • 📦 ${sourceName}</div>
+                                <div class="item-meta">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
+                            </div>
+                        </div>
+                    `;
+        }).join('')}
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
 }
 
 // Auto-save quantity (onBlur)
@@ -381,6 +442,48 @@ async function autoSaveSource(itemId, newSourceName) {
         await loadJobDetail();
     }
 }
+// Auto-save quantity found (onBlur)
+async function autoSaveQuantityFound(itemId, newValue) {
+    try {
+        await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity_found: parseInt(newValue) || 0 })
+        });
+        await loadJobDetail();
+    } catch (error) {
+        console.error('Quantity found update error:', error);
+    }
+}
+
+// Auto-save quantity missing (onBlur)
+async function autoSaveQuantityMissing(itemId, newValue) {
+    try {
+        await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ quantity_missing: parseInt(newValue) || 0 })
+        });
+        await loadJobDetail();
+    } catch (error) {
+        console.error('Quantity missing update error:', error);
+    }
+}
+
+// Auto-save missing source (nereden alınacak)
+async function autoSaveMissingSource(itemId, newValue) {
+    try {
+        await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ missing_source: newValue })
+        });
+        await loadJobDetail();
+    } catch (error) {
+        console.error('Missing source update error:', error);
+    }
+}
+
 
 // ===========================
 // INLINE AUTOCOMPLETE

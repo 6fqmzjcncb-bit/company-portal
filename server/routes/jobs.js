@@ -13,12 +13,42 @@ router.get('/', requireAuth, async (req, res) => {
                     model: User,
                     as: 'creator',
                     attributes: ['id', 'full_name']
+                },
+                {
+                    model: JobItem,
+                    as: 'items',
+                    attributes: ['id', 'is_checked']
                 }
             ],
             order: [['created_at', 'DESC']]
         });
 
-        res.json(jobLists);
+        // Her job için completion % ve viewers hesapla
+        const JobView = require('../models/JobView');
+        const jobsWithStats = await Promise.all(jobLists.map(async (job) => {
+            const jobData = job.toJSON();
+
+            // Completion %
+            const totalItems = jobData.items.length;
+            const completedItems = jobData.items.filter(i => i.is_checked).length;
+            jobData.completion_percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+
+            // Viewers (son 3)
+            const viewers = await JobView.findAll({
+                where: { job_list_id: job.id },
+                include: [{ model: User, as: 'viewer', attributes: ['id', 'full_name'] }],
+                order: [['viewed_at', 'DESC']],
+                limit: 3
+            });
+            jobData.recent_viewers = viewers.map(v => v.viewer);
+
+            // items array'ini kaldır (gereksiz)
+            delete jobData.items;
+
+            return jobData;
+        }));
+
+        res.json(jobsWithStats);
     } catch (error) {
         console.error('Job lists fetch error:', error);
         res.status(500).json({ error: 'İş listeleri getirilemedi' });
@@ -454,7 +484,7 @@ router.post('/:id/view', requireAuth, async (req, res) => {
         const userId = req.session.userId;
 
         const JobView = require('../models/JobView');
-        
+
         // Zaten görüntülemiş mi kontrol et (son 1 saatte)
         const recentView = await JobView.findOne({
             where: {
@@ -465,7 +495,7 @@ router.post('/:id/view', requireAuth, async (req, res) => {
         });
 
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-        
+
         // Son 1 saat içinde görüntülememişse yeni kayıt oluştur
         if (!recentView || recentView.viewed_at < oneHourAgo) {
             await JobView.create({
