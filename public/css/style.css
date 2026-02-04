@@ -1502,16 +1502,14 @@ textarea.input-small {
 .tag-container {
   width: 100%;
 
-  /* Allow dynamic height growth, match standard input size */
+  /* Allow dynamic height growth, compact match */
   height: auto !important;
-  min-height: 38px !important;
+  min-height: 36px !important;
 
   box-sizing: border-box;
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  /* Allow wrapping */
-  /* Prevent scroll, allow growth */
   overflow: visible;
   gap: 4px;
 
@@ -1519,7 +1517,8 @@ textarea.input-small {
   background: white;
   border: 1px solid var(--gray-300);
   border-radius: 6px;
-  padding: 0 8px;
+  padding: 2px 6px;
+  /* Tighter padding */
   /* Remove vertical padding, rely on flex centering */
 }
 

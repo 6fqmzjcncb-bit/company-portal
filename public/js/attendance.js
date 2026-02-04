@@ -206,9 +206,9 @@ function renderTagsInput(empId, currentTagsString, isDisabled = false) {
         <div class="tag-container ${isDisabled ? 'disabled' : ''}" 
              style="display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; background: ${isDisabled ? '#f3f4f6' : '#fff'}; align-items: center; min-height: 38px;">
             ${tags.map((tag, index) => `
-                <div class="tag" style="background: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 4px;">
+                <div class="tag" style="background: #e5e7eb; padding: 1px 6px; border-radius: 12px; font-size: 0.8rem; display: flex; align-items: center; gap: 4px; border: 1px solid #d1d5db; height: 24px;">
                     ${tag}
-                    ${!isDisabled ? `<span class="tag-remove" onclick="removeLocationTag(${empId}, ${index})" style="cursor: pointer; color: #666; font-weight: bold;">×</span>` : ''}
+                    ${!isDisabled ? `<span class="tag-remove" onclick="removeLocationTag(${empId}, ${index})" style="cursor: pointer; color: #666; font-weight: bold; line-height: 1; display: flex; height: 100%; align-items: center; padding-bottom: 2px;">×</span>` : ''}
                 </div>
             `).join('')}
             <input 
@@ -216,7 +216,7 @@ function renderTagsInput(empId, currentTagsString, isDisabled = false) {
                 id="tag-input-${empId}" 
                 class="tag-input-field" 
                 placeholder="${tags.length > 0 ? '' : 'Konum ekle...'}" 
-                style="border: none; outline: none; flex: 1; min-width: 60px; padding: 4px; background: transparent;"
+                style="border: none; outline: none; flex: 1; min-width: 60px; padding: 2px 4px; background: transparent; height: 28px; font-size: 0.9rem;"
                 list="locationSuggestions"
                 onkeydown="handleTagKeydown(event, ${empId})"
                 oninput="handleTagInput(event, ${empId})"
