@@ -128,7 +128,7 @@ function renderAttendance(date) {
 
     tbody.innerHTML = employees.map((emp, index) => {
         const record = attendanceRecords[emp.id] || {};
-        // hours_worked now represents OVERTIME. Default to 0.
+        // hours_worked now represents OVERTIME. Default to 0 if not present.
         const overtime = record.hours_worked || 0;
 
         return `
@@ -136,21 +136,21 @@ function renderAttendance(date) {
                 <td>${index + 1}</td>
                 <td><strong>${emp.full_name}</strong></td>
                 <td class="text-center">
-                    <input 
-                        type="checkbox" 
-                        id="worked_${emp.id}" 
+                    <input
+                        type="checkbox"
+                        id="worked_${emp.id}"
                         ${record.worked ? 'checked' : ''}
                         onchange="toggleWorked(${emp.id})"
                         style="width: 20px; height: 20px; cursor: pointer;">
                 </td>
                 <td>
                     <div style="display: flex; gap: 5px; align-items: center;">
-                        <input 
-                            type="number" 
-                            id="hours_${emp.id}" 
+                        <input
+                            type="number"
+                            id="hours_${emp.id}"
                             value="${overtime}"
-                            min="0" 
-                            max="24" 
+                            min="0"
+                            max="24"
                             step="0.5"
                             class="input-small"
                             style="width: 60px; text-align: center;"
@@ -165,25 +165,27 @@ function renderAttendance(date) {
                 </td>
                 <td>
                     <div style="display: flex; gap: 5px; align-items: center;">
-                        <input 
-                            type="text" 
-                            id="location_${emp.id}" 
+                        <input
+                            type="text"
+                            id="location_${emp.id}"
                             value="${record.location || ''}"
                             placeholder="Şantiye/Proje adı"
                             class="input-small"
-                            style="width: 100%;" 
+                            style="width: 100%;"
                             list="locationSuggestions"
                             onchange="updateDatalist(this.value)"
                             ${!record.worked ? 'disabled' : ''}>
                         ${index > 0 ? `
                         <button class="btn-icon" onclick="copyLocationFromAbove(${index})" title="Üstten Kopyala (⬇)" ${!record.worked ? 'disabled' : ''} style="font-size: 1.2rem;">⬇</button>
-                        ` : ''}
+                        ` : `
+                        <button class="btn-icon" style="font-size: 1.2rem; visibility: hidden;">⬇</button>
+                        `}
                     </div>
                 </td>
                 <td>
-                    <input 
-                        type="text" 
-                        id="notes_${emp.id}" 
+                    <input
+                        type="text"
+                        id="notes_${emp.id}"
                         value="${record.notes || ''}"
                         placeholder="Notlar"
                         class="input-small"
@@ -234,12 +236,33 @@ function toggleWorked(empId) {
         document.getElementById(`hours_${empId}`).value = 0;
         // Do NOT clear location text, user might have unchecked by mistake
     } else {
-        // If Just Checked, ensure Overtime is 0 (Default), NOT 8
-        // Unless it has a value (re-checking), but standard flow is 0.
+        // If CHECKED, we force defaultValue to 0 if it was "8" (from legacy data)
+        // or just ensure logic is "0 overtime by default".
+        // The user complained about seeing "8,0" or "9,3".
+        // We will force it to 0 only if it was previously 0 or empty?
+        // No, if the user explicitly checks the box now, they expect 0 overtime.
+        // But what if they are re-enabling a record that HAD overtime?
+        // User said: "mesai saatleri niye otomatik olarak geliyor 8".
+        // This implies they want it to start at 0.
+
+        // Let's check the current value. If it's > 0, maybe we should keep it?
+        // BUT, if it's exactly 8 (legacy full day), we should definitely reset it to 0.
         const currentVal = parseFloat(document.getElementById(`hours_${empId}`).value) || 0;
-        if (currentVal === 0) {
+        if (currentVal === 8) {
             document.getElementById(`hours_${empId}`).value = 0;
         }
+        // If it was 0, it stays 0.
+        // If it was 9.3 (legacy calculated), the user probably wants 0 too if they are just marking "Came".
+        // Safest bet for "Design Change" is: When you check the box manually, start Overtime at 0.
+        // Only existing DB records retrieved on load should show non-zero.
+
+        // Note: This function runs ON CHANGE. So if user clicks the checkbox manually.
+        // It does NOT run on initial load.
+        // So resetting to 0 here is correct for manual interaction.
+        // Wait, if I uncheck and recheck, I lose my overtime?
+        // Ideally yes, "reset".
+
+        document.getElementById(`hours_${empId}`).value = 0;
     }
 }
 
