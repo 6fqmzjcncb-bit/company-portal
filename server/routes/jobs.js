@@ -189,7 +189,10 @@ router.post('/:id/items', requireAuth, async (req, res) => {
                 // Kaynağı bul veya oluştur
                 const [source] = await Source.findOrCreate({
                     where: { name: trimmedName },
-                    defaults: { type: 'external' }
+                    defaults: {
+                        type: 'external',
+                        color_code: ['#fee2e2', '#e0f2fe', '#dcfce7', '#fef3c7'][Math.floor(Math.random() * 4)]
+                    }
                 });
                 finalSourceId = source.id;
             }
@@ -365,6 +368,7 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
                 source = await Source.create({
                     name: source_name,
                     type: 'external', // Free text kaynaklar external
+                    color_code: ['#fee2e2', '#e0f2fe', '#dcfce7', '#fef3c7'][Math.floor(Math.random() * 4)],
                     is_active: true
                 });
             }
