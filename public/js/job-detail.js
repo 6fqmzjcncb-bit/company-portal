@@ -270,7 +270,7 @@ function renderItems(items) {
 
     const incomplete = items.filter(i => !i.is_checked);
     const partial = items.filter(i => i.is_checked && i.quantity_found && i.quantity_found < i.quantity);
-    const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found === i.quantity));
+    const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found >= i.quantity));
 
     let html = '';
 
