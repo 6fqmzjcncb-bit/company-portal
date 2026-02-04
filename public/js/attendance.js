@@ -105,9 +105,30 @@ function renderAttendance(date) {
         return;
     }
 
+    // Collect all unique locations from today's records for autocomplete
+    const uniqueLocations = [...new Set(Object.values(attendanceRecords)
+        .map(r => r.location)
+        .filter(l => l && l.trim() !== '')
+    )];
+
+    const datalistHtml = `
+        <datalist id="locationSuggestions">
+            ${uniqueLocations.map(loc => `<option value="${loc}">`).join('')}
+        </datalist>
+    `;
+
+    // Append datalist to body if not exists, or update it
+    let datalistContainer = document.getElementById('datalistContainer');
+    if (!datalistContainer) {
+        datalistContainer = document.createElement('div');
+        datalistContainer.id = 'datalistContainer';
+        document.body.appendChild(datalistContainer);
+    }
+    datalistContainer.innerHTML = datalistHtml;
+
     tbody.innerHTML = employees.map((emp, index) => {
         const record = attendanceRecords[emp.id] || {};
-        // hours_worked now represents OVERTIME. Default to 0 if not present.
+        // hours_worked now represents OVERTIME. Default to 0.
         const overtime = record.hours_worked || 0;
 
         return `
@@ -132,13 +153,13 @@ function renderAttendance(date) {
                             max="24" 
                             step="0.5"
                             class="input-small"
-                            style="width: 60px;"
+                            style="width: 60px; text-align: center;"
                             ${!record.worked ? 'disabled' : ''}>
                         <div style="display: flex; gap: 3px;">
                             <button class="btn-icon" onclick="addOvertime(${emp.id}, 1)" title="+1 Saat" ${!record.worked ? 'disabled' : ''}>+1</button>
                             <button class="btn-icon" onclick="addOvertime(${emp.id}, 2)" title="+2 Saat" ${!record.worked ? 'disabled' : ''}>+2</button>
                             <button class="btn-icon" onclick="addOvertime(${emp.id}, 3)" title="+3 Saat" ${!record.worked ? 'disabled' : ''}>+3</button>
-                            <button class="btn-icon" onclick="setFullDayOvertime(${emp.id})" title="Tam Gün Mesai (8 saat)" ${!record.worked ? 'disabled' : ''} style="background: #fef3c7; border: 1px solid #f59e0b;">🌕</button>
+                            <button class="btn-icon" onclick="setFullDayOvertime(${emp.id})" title="Tam Gün Mesai (8 saat)" ${!record.worked ? 'disabled' : ''} style="background: #e0f2fe; border: 1px solid #0ea5e9; color: #0284c7; font-weight: bold; font-size: 0.8rem; width: auto; padding: 0 8px;">Tam</button>
                         </div>
                     </div>
                 </td>
@@ -150,7 +171,9 @@ function renderAttendance(date) {
                             value="${record.location || ''}"
                             placeholder="Şantiye/Proje adı"
                             class="input-small"
-                            style="flex: 1;"
+                            style="width: 100%;" 
+                            list="locationSuggestions"
+                            onchange="updateDatalist(this.value)"
                             ${!record.worked ? 'disabled' : ''}>
                         ${index > 0 ? `
                         <button class="btn-icon" onclick="copyLocationFromAbove(${index})" title="Üstten Kopyala (⬇)" ${!record.worked ? 'disabled' : ''} style="font-size: 1.2rem;">⬇</button>
@@ -163,11 +186,35 @@ function renderAttendance(date) {
                         id="notes_${emp.id}" 
                         value="${record.notes || ''}"
                         placeholder="Notlar"
-                        class="input-small">
+                        class="input-small"
+                        style="width: 100%;">
                 </td>
             </tr>
         `;
     }).join('');
+}
+
+// Update datalist dynamically when user types a new location
+function updateDatalist(newValue) {
+    if (!newValue || newValue.trim() === '') return;
+
+    const datalist = document.getElementById('locationSuggestions');
+    if (!datalist) return;
+
+    // Check if already exists
+    let exists = false;
+    for (let i = 0; i < datalist.options.length; i++) {
+        if (datalist.options[i].value === newValue) {
+            exists = true;
+            break;
+        }
+    }
+
+    if (!exists) {
+        const option = document.createElement('option');
+        option.value = newValue;
+        datalist.appendChild(option);
+    }
 }
 
 // Toggle worked checkbox
@@ -182,8 +229,18 @@ function toggleWorked(empId) {
     // Toggle Location Input
     document.getElementById(`location_${empId}`).disabled = !worked;
 
-    // Note: We do NOT clear values when unchecked, to preserve data if accidentally clicked.
-    // Logic: If unchecked, we save it as not worked, but UI keeps the text for convenience.
+    if (!worked) {
+        // Correctly reset Overtime to 0 if NOT worked
+        document.getElementById(`hours_${empId}`).value = 0;
+        // Do NOT clear location text, user might have unchecked by mistake
+    } else {
+        // If Just Checked, ensure Overtime is 0 (Default), NOT 8
+        // Unless it has a value (re-checking), but standard flow is 0.
+        const currentVal = parseFloat(document.getElementById(`hours_${empId}`).value) || 0;
+        if (currentVal === 0) {
+            document.getElementById(`hours_${empId}`).value = 0;
+        }
+    }
 }
 
 // Add OVERTIME hours
@@ -211,6 +268,7 @@ function copyLocationFromAbove(currentIndex) {
 
     if (currentLocationInput && !currentLocationInput.disabled) {
         currentLocationInput.value = prevLocation;
+        updateDatalist(prevLocation); // Add to suggestions list
     }
 }
 
