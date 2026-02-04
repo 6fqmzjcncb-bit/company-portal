@@ -34,13 +34,18 @@ router.get('/search', requireAuth, async (req, res) => {
     try {
         const { q } = req.query;
 
-        const products = await Product.findAll({
-            where: {
+        let whereClause = {};
+        if (q && q.trim().length > 0) {
+            whereClause = {
                 [Op.or]: [
                     { name: { [Op.like]: `%${q}%` } },
                     { barcode: { [Op.like]: `%${q}%` } }
                 ]
-            },
+            };
+        }
+
+        const products = await Product.findAll({
+            where: whereClause,
             limit: 20,
             order: [['name', 'ASC']]
         });
