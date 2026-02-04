@@ -1502,17 +1502,17 @@ textarea.input-small {
 .tag-container {
   width: 100%;
 
-  /* FORCE EQUAL HEIGHT */
-  height: 42px !important;
+  /* Allow dynamic height growth */
+  height: auto !important;
   min-height: 42px !important;
 
   box-sizing: border-box;
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
-  /* Prevent wrapping from growing height illegally */
-  overflow-x: auto;
-  /* Scroll if too many tags */
+  flex-wrap: wrap;
+  /* Allow wrapping */
+  /* Prevent scroll, allow growth */
+  overflow: visible;
   gap: 4px;
 
   /* Match Input Style */
