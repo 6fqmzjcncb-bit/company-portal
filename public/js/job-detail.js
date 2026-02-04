@@ -379,6 +379,7 @@ function renderItems(items) {
                             </div>
                             <div class="item-actions">
                                 <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})">🗑️ Sil</button>
+                                ${item.quantity > 1 ? `<button class="btn btn-sm" onclick="splitIncompleteItem(${item.id}, ${item.quantity})" style="background: #e5e7eb; color: #374151; margin-right: 4px;">➗ Böl</button>` : ''}
                                 <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
                             </div>
                         </div>
@@ -863,6 +864,60 @@ async function uncheckItem(itemId) {
 
     } catch (error) {
         showAlert(error.message);
+    }
+}
+
+// Split partial completion item into 2: completed (taken) + incomplete (missing)
+async function splitItem(itemId) {
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}/split`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'İşlem başarısız');
+        }
+
+        const result = await response.json();
+        showAlert(result.message || 'Başarılı', 'success');
+        await loadJobDetail();
+
+    } catch (error) {
+        alert('Hata: ' + error.message);
+    }
+}
+
+// Split incomplete item (Quantity based)
+async function splitIncompleteItem(itemId, currentQuantity) {
+    const qtyStr = prompt(`Bu kalemden kaç adet ayırmak istiyorsunuz?\n(Mevcut Miktar: ${currentQuantity})`);
+    if (qtyStr === null) return; // Cancelled
+
+    const splitQty = parseInt(qtyStr);
+
+    if (!splitQty || isNaN(splitQty) || splitQty <= 0 || splitQty >= currentQuantity) {
+        alert('Geçersiz miktar! 1 ile ' + (currentQuantity - 1) + ' arasında bir sayı giriniz.');
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}/split`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ split_quantity: splitQty })
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'İşlem başarısız');
+        }
+
+        const result = await response.json();
+        showAlert(result.message || 'Kalem bölündü', 'success');
+        await loadJobDetail();
+
+    } catch (error) {
+        alert('Hata: ' + error.message);
     }
 }
 

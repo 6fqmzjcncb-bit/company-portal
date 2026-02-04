@@ -386,14 +386,13 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
     }
 });
 
-// Kısmi tamamlanan item'ı 2'ye böl (alınan + eksik)
+// Item'ı böl (Hem incomplete hem partial destekler)
 router.post('/items/:itemId/split', requireAuth, async (req, res) => {
     const transaction = await sequelize.transaction();
 
     try {
         const { itemId } = req.params;
-        const userId = req.session.userId;
-
+        const { split_quantity } = req.body;
         const item = await JobItem.findByPk(itemId, { transaction });
 
         if (!item) {
@@ -401,10 +400,40 @@ router.post('/items/:itemId/split', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Kalem bulunamadı' });
         }
 
-        // Kısmi tamamlanmış olmalı
-        if (!item.is_checked || !item.quantity_found || item.quantity_found >= item.quantity) {
+        // SENARYO 1: Henüz alınmamış (Incomplete) item'ı bölme
+        if (!item.is_checked) {
+            const qtyToSplit = parseInt(split_quantity);
+
+            if (!qtyToSplit || isNaN(qtyToSplit) || qtyToSplit >= item.quantity || qtyToSplit <= 0) {
+                await transaction.rollback();
+                return res.status(400).json({ error: 'Geçersiz ayırma miktarı. Toplam miktardan az olmalı.' });
+            }
+
+            // 1. Mevcut item miktarını azalt
+            await item.update({ quantity: item.quantity - qtyToSplit }, { transaction });
+
+            // 2. Yeni item oluştur (aynı özelliklerle)
+            await JobItem.create({
+                job_list_id: item.job_list_id,
+                product_id: item.product_id,
+                custom_name: item.custom_name,
+                source_id: item.source_id,
+                quantity: qtyToSplit,
+                is_checked: false,
+                quantity_found: null,
+                quantity_missing: null,
+                missing_source: null,
+                missing_reason: null
+            }, { transaction });
+
+            await transaction.commit();
+            return res.json({ success: true, message: 'Kalem başarıyla bölündü' });
+        }
+
+        // SENARYO 2: Kısmi tamamlanmış (Partial) item'ı bölme (Eski Logic)
+        if (!item.quantity_found || item.quantity_found >= item.quantity) {
             await transaction.rollback();
-            return res.status(400).json({ error: 'Sadece kısmi tamamlanmış itemlar bölünebilir' });
+            return res.status(400).json({ error: 'Tamamlanmış itemlar bölünemez.' });
         }
 
         const missing = item.quantity - item.quantity_found;
@@ -423,9 +452,9 @@ router.post('/items/:itemId/split', requireAuth, async (req, res) => {
             job_list_id: item.job_list_id,
             product_id: item.product_id,
             custom_name: item.custom_name,
-            source_id: item.source_id,
+            source_id: item.source_id, // Ana kaynağı koru
             quantity: missing,
-            is_checked: false,
+            is_checked: false, // Yeni item incomplete başlar
             quantity_found: null,
             quantity_missing: null,
             missing_source: null,
@@ -433,13 +462,12 @@ router.post('/items/:itemId/split', requireAuth, async (req, res) => {
         }, { transaction });
 
         await transaction.commit();
-
-        res.json({ success: true, message: 'Item başarıyla ayrıldı' });
+        res.json({ success: true, message: 'Kısmi item başarıyla ayrıldı' });
 
     } catch (error) {
         await transaction.rollback();
         console.error('Item split error:', error);
-        res.status(500).json({ error: 'Item ayrılamadı' });
+        res.status(500).json({ error: 'İşlem sırasında hata oluştu' });
     }
 });
 
