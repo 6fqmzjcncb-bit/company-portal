@@ -588,16 +588,16 @@ function initInlineSearch() {
             }
 
             resultsDiv.innerHTML = products.map(p => `
-                <div class="p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
+                <div class="search-result-item p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
                      style="display: flex; justify-content: space-between; align-items: center;"
-                     onmousedown="selectInlineProduct('${p.id}', '${p.name}')"
-                     ontouchstart="selectInlineProduct('${p.id}', '${p.name}')">
-                    <div>
+                     data-id="${p.id}"
+                     data-name="${p.name.replace(/"/g, '&quot;')}">
+                    <div style="pointer-events: none;">
                         <div class="font-bold text-gray-800">${p.name}</div>
                         ${p.barcode ? `<div class="text-xs text-gray-500">${p.barcode}</div>` : ''}
                     </div>
                     ${p.current_stock !== undefined ? `
-                        <div class="text-sm font-semibold ${p.current_stock > 0 ? 'text-green-600' : 'text-red-500'}">
+                        <div class="text-sm font-semibold ${p.current_stock > 0 ? 'text-green-600' : 'text-red-500'}" style="pointer-events: none;">
                             Stok: ${p.current_stock}
                         </div>
                     ` : ''}
@@ -609,6 +609,19 @@ function initInlineSearch() {
             console.error('Search error:', error);
         }
     }
+
+    // Event delegation for selection (Robust)
+    const handleSelection = (e) => {
+        // Prevent default to avoid blur issues
+        e.preventDefault();
+        const item = e.target.closest('.search-result-item');
+        if (item) {
+            selectInlineProduct(item.dataset.id, item.dataset.name);
+        }
+    };
+
+    resultsDiv.addEventListener('mousedown', handleSelection);
+    resultsDiv.addEventListener('touchstart', handleSelection);
 
     // Hide results on outside click
     document.addEventListener('click', (e) => {
