@@ -313,15 +313,8 @@ function renderItems(items) {
                                             placeholder="Kaç adet aldınız?">
                                     </div>
                                     <div>
-                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynak</label>
-                                        <input 
-                                            type="text" 
-                                            class="input-small" 
-                                            style="width: 100%;"
-                                            value="${sourceName}"
-                                            list="sourceList"
-                                            onblur="autoSaveSource(${item.id}, this.value)"
-                                            placeholder="Kaynak (örn: Koçtaş, Bauhaus)">
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 2px;">Kaynaklar (örn: 1xKoçtaş, Bauhaus)</label>
+                                        ${renderTagsInput(item.id, sourceName)}
                                     </div>
                                 </div>
                                 ${item.quantity_found && item.quantity_found < item.quantity ? `
@@ -429,16 +422,8 @@ function renderItems(items) {
                                     </button>
 
                                     <!-- Edit Mode (Hidden) -->
-                                    <div id="source-edit-${item.id}" style="display: none; align-items: center; margin-left: 5px;">
-                                        <input 
-                                            type="text" 
-                                            id="source-input-${item.id}"
-                                            class="input-small" 
-                                            style="padding: 2px 6px; width: 140px; font-size: 0.85rem;"
-                                            value="${sourceName}"
-                                            list="sourceList"
-                                            onblur="autoSaveMissingSource(${item.id}, this.value)"
-                                            placeholder="Kaynak...">
+                                    <div id="source-edit-${item.id}" style="display: none; align-items: center; margin-left: 5px; flex: 1; max-width: 400px;">
+                                        ${renderTagsInput(item.id, sourceName)}
                                     </div>
                                 </div>
                             </div>
@@ -503,7 +488,7 @@ function toggleSourceEdit(itemId) {
     const displayEl = document.getElementById(`source-display-${itemId}`);
     const editBtn = document.getElementById(`edit-btn-${itemId}`);
     const editContainer = document.getElementById(`source-edit-${itemId}`);
-    const inputEl = document.getElementById(`source-input-${itemId}`);
+    const inputEl = document.getElementById(`tag-input-${itemId}`);
 
     if (displayEl && editContainer) {
         displayEl.style.display = 'none';
@@ -930,24 +915,89 @@ window.addEventListener('DOMContentLoaded', async () => {
     await loadJobDetail();
 });
 
-// Split partial completion item into 2: completed (taken) + incomplete (missing)
-async function splitItem(itemId) {
-    if (!confirm('Alınan kısmı tamamlananlara, eksik kısmı yeni satıra eklemek istediğinizden emin misiniz?')) return;
+// ===========================
+// TAG INPUT HELPERS
+// ===========================
 
-    try {
-        const response = await fetch(`/api/jobs/items/${itemId}/split`, {
-            method: 'POST'
-        });
+function renderTagsInput(itemId, currentSource) {
+    // Virgülle ayrılmış stringi taglere çevir
+    const tags = currentSource ? currentSource.split(',').map(s => s.trim()).filter(s => s) : [];
 
-        if (!response.ok) {
-            const error = await response.json();
-            alert(error.error || 'İşlem başarısız');
-            return;
+    // Tag renkleri
+    const getTagColor = (tag) => {
+        if (!isNaN(parseInt(tag))) return '#dcfce7'; // Miktar içeriyorsa yeşilimsi
+        return '#e5e7eb'; // Standart gri
+    };
+
+    const tagsHtml = tags.map((tag, index) => `
+        <span class="active-tag" style="background: ${getTagColor(tag)};">
+            ${tag}
+            <span class="remove-tag" onclick="removeSourceTag(${itemId}, ${index}); event.stopPropagation();">×</span>
+        </span>
+    `).join('');
+
+    return `
+        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()">
+            ${tagsHtml}
+            <input 
+                type="text" 
+                id="tag-input-${itemId}"
+                class="tag-input-field" 
+                placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
+                list="sourceList"
+                onkeydown="handleTagKeydown(event, ${itemId})"
+                onblur="handleTagBlur(${itemId})"
+            >
+        </div>
+        <!-- Hidden input for comparison -->
+        <input type="hidden" id="source-original-${itemId}" value="${currentSource || ''}">
+    `;
+}
+
+async function handleTagKeydown(event, itemId) {
+    if (event.key === 'Enter' || event.key === ',') {
+        event.preventDefault();
+        const input = event.target;
+        const value = input.value.trim();
+
+        if (value) {
+            await addSourceTag(itemId, value);
+            input.value = '';
         }
+    }
+    if (event.key === 'Backspace' && event.target.value === '') {
+        // Opsiyonel: son tagi silme özelliği eklenebilir
+    }
+}
 
-        await loadJobDetail();
-    } catch (error) {
-        console.error('Split error:', error);
-        alert('Bir hata oluştu');
+async function handleTagBlur(itemId) {
+    const input = document.getElementById(`tag-input-${itemId}`);
+    if (input && input.value.trim()) {
+        await addSourceTag(itemId, input.value.trim());
+        input.value = '';
+    }
+}
+
+async function addSourceTag(itemId, newTag) {
+    const originalInput = document.getElementById(`source-original-${itemId}`);
+    let currentSource = originalInput ? originalInput.value : '';
+    let tags = currentSource ? currentSource.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    tags.push(newTag);
+    const finalSourceString = tags.join(', ');
+
+    await autoSaveSource(itemId, finalSourceString);
+}
+
+
+async function removeSourceTag(itemId, indexToRemove) {
+    const originalInput = document.getElementById(`source-original-${itemId}`);
+    let currentSource = originalInput ? originalInput.value : '';
+    let tags = currentSource ? currentSource.split(',').map(s => s.trim()).filter(s => s) : [];
+
+    if (indexToRemove >= 0 && indexToRemove < tags.length) {
+        tags.splice(indexToRemove, 1);
+        const finalSourceString = tags.join(', ');
+        await autoSaveSource(itemId, finalSourceString);
     }
 }

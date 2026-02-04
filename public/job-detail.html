@@ -6,6 +6,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>İş Listesi Detay - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Tag Input Styles */
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 4px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            padding: 4px;
+            background: white;
+            min-height: 38px;
+            cursor: text;
+            width: 100%;
+        }
+
+        .tag-container:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px #bfdbfe;
+        }
+
+        .active-tag {
+            background: #e5e7eb;
+            color: #374151;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            border: 1px solid #d1d5db;
+        }
+
+        .active-tag .remove-tag {
+            cursor: pointer;
+            font-weight: bold;
+            color: #6b7280;
+            font-size: 1.1rem;
+            line-height: 0.8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+        }
+
+        .active-tag .remove-tag:hover {
+            color: #ef4444;
+            background: #fed7d7;
+        }
+
+        .tag-input-field {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 80px;
+            font-size: 0.9rem;
+            padding: 2px 4px;
+            background: transparent;
+            color: #111827;
+        }
+
+        .tag-input-field::placeholder {
+            color: #9ca3af;
+        }
+    </style>
 </head>
 
 <body>
