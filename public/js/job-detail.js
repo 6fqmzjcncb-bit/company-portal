@@ -201,7 +201,8 @@ function renderIncompleteItems(items) {
     const container = document.getElementById('incompleteItems');
     if (!container) return;
 
-    const incomplete = items.filter(item => !item.is_checked && item.quantity_missing > 0);
+    // Show ALL items that have missing parts, even if checked (e.g. checked but "buy later")
+    const incomplete = items.filter(item => item.quantity_missing > 0);
 
     if (incomplete.length === 0) {
         container.innerHTML = '';
@@ -1145,7 +1146,20 @@ async function checkItem(itemId) {
     }
 
     const required = parseInt(qtyInput.value) || 0;
-    const received = parseInt(receivedInput.value) || 0;
+
+    // IMPLICIT COMPLETION LOGIC
+    let receivedVal = receivedInput.value;
+    let received = 0;
+
+    if (receivedVal === '' || receivedVal === null || isNaN(parseInt(receivedVal))) {
+        // Empty -> Assume user implies "I got everything"
+        received = required;
+        // We MUST save this value to backend so 'quantity_found' is correct
+        await autoSaveQuantityFound(itemId, required);
+    } else {
+        received = parseInt(receivedVal);
+    }
+
     const missing = required - received;
 
     // Validation: If missing > 0, reason MUST be selected
