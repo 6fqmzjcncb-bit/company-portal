@@ -357,7 +357,7 @@ function renderIncompleteItem(item) {
             </div>
 
             <!-- EXCEPTION: Missing Quantity Warning -->
-            ${item.quantity_found && item.quantity_found < item.quantity ? `
+            ${(item.quantity_found !== undefined && item.quantity_found !== null) && item.quantity_found < item.quantity ? `
                 <div style="margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
                     <div style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
                         ⚠️ ${item.quantity - item.quantity_found} adet eksik!
@@ -628,9 +628,6 @@ function initInlineSearch() {
 
                     <div style="pointer-events: none; text-align: right;">
                          <span class="text-sm font-bold ${p.current_stock > 0 ? 'text-blue-700' : 'text-red-600'}">
-                             Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
-                         </span>
-                    </div>
                              Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
                          </span>
                     </div>
@@ -1154,20 +1151,20 @@ async function checkItem(itemId) {
     // Validation: If missing > 0, reason MUST be selected
     if (missing > 0) {
         // Force update received value in backend first to ensure state is consistent
-        await autoSaveQuantityFound(itemId, received); 
+        await autoSaveQuantityFound(itemId, received);
 
         // Check if reason is selected
         const reasonRadio = itemCard.querySelector(`input[name="missing_reason_${itemId}"]:checked`);
-        
+
         if (!reasonRadio) {
             // Check if warning section is even visible
             const warningSection = itemCard.querySelector(`input[name^="missing_reason_"]`);
             if (!warningSection) {
-                 // Force reload to show the missing UI
-                 await loadJobDetail(); // Reload to render warning
-                 return; 
+                // Force reload to show the missing UI
+                await loadJobDetail(); // Reload to render warning
+                return;
             }
-             
+
             showAlert('⚠️ Eksik miktar var! Lütfen aşağıdan "Başka yerden alınacak" veya "Daha sonra" seçeneğini işaretleyin.');
             return;
         }
