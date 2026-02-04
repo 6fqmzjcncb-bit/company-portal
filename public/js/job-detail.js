@@ -519,6 +519,20 @@ async function autoSaveMissingSource(itemId, newValue) {
     }
 }
 
+// Update missing reason (buy_from_source or buy_later)
+async function updateMissingReason(itemId, reason) {
+    try {
+        await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ missing_reason: reason })
+        });
+        await loadJobDetail(); // Reload to show/hide input
+    } catch (error) {
+        console.error('Missing reason update error:', error);
+    }
+}
+
 
 // ===========================
 // INLINE AUTOCOMPLETE
