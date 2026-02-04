@@ -1535,6 +1535,27 @@ textarea.input-small {
   font-size: 0.95rem;
 }
 
+/* Quick Add Form Specific Fixes */
+#inlineProductSearch,
+#inlineQuantity,
+#quick-add-source-container .tag-container {
+  height: 42px !important;
+  min-height: 42px !important;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  padding-top: 0;
+  padding-bottom: 0;
+  display: flex;
+  /* For alignment if they become flex containers */
+  align-items: center;
+}
+
+#inlineProductSearch {
+  display: block;
+  /* Standard input */
+  padding: 0 12px;
+}
+
 .tag-input-field {
   border: none;
   outline: none;
