@@ -335,6 +335,7 @@ function renderItems(items) {
                                                 class="input-small" 
                                                 style="width: 100%; max-width: 300px;"
                                                 value="${item.missing_source || ''}"
+                                                list="sourceList"
                                                 onblur="autoSaveMissingSource(${item.id}, this.value)"
                                                 placeholder="ör: Koçtaş, Bauhaus">
                                         </div>
