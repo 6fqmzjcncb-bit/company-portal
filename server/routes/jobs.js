@@ -267,14 +267,17 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
             checked_at: new Date(),
             // Eğer zaten checked ise (kısmi -> tam), o zaman hepsini aldık
             // Değilse, mevcut girilen (found) değeri kullan veya hepsini aldık say
-            quantity_found: isAlreadyChecked ? item.quantity : (item.quantity_found || item.quantity),
-            quantity_missing: 0, // Varsayılan 0
-            missing_source: null,
-            missing_reason: null
+            quantity_found: isAlreadyChecked ? item.quantity : (item.quantity_found || item.quantity)
         };
 
-        // Eğer ilk check ve kısmi ise, eksik miktarını hesapla
-        if (!isAlreadyChecked && updateData.quantity_found < item.quantity) {
+        // Eğer tam tamamlandıysa eksik bilgilerini temizle
+        if (updateData.quantity_found >= item.quantity) {
+            updateData.quantity_missing = 0;
+            updateData.missing_source = null;
+            updateData.missing_reason = null;
+        } else {
+            // Kısmi tamamlandı ise eksik miktarını güncelle
+            // missing_source ve reason alanlarına dokunma (varsa korunsun)
             updateData.quantity_missing = item.quantity - updateData.quantity_found;
         }
 
