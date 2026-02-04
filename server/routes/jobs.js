@@ -253,11 +253,13 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Bu kalem zaten işaretlenmiş' });
         }
 
-        // İşaretle
+        // İşaretle + quantity_found'u tüm miktara ayarla
         await item.update({
             is_checked: true,
             checked_by_user_id: userId,
-            checked_at: new Date()
+            checked_at: new Date(),
+            quantity_found: item.quantity, // TÜMÜ ALINDI
+            quantity_missing: 0 // EKSİK YOK
         }, { transaction });
 
         // STOK DÜŞÜMÜ: Eğer product_id doluysa VE source internal ise
@@ -338,6 +340,11 @@ router.put('/items/:itemId', requireAuth, async (req, res) => {
         const updateData = {};
         if (quantity) updateData.quantity = quantity;
         if (source_id) updateData.source_id = source_id;
+
+        // Partial completion fields
+        if (req.body.quantity_found !== undefined) updateData.quantity_found = req.body.quantity_found;
+        if (req.body.quantity_missing !== undefined) updateData.quantity_missing = req.body.quantity_missing;
+        if (req.body.missing_source !== undefined) updateData.missing_source = req.body.missing_source;
 
         await item.update(updateData);
 
