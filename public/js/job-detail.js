@@ -272,6 +272,10 @@ function renderItems(items) {
     const partial = items.filter(i => i.is_checked && i.quantity_found && i.quantity_found < i.quantity);
     const completed = items.filter(i => i.is_checked && (!i.quantity_found || i.quantity_found === i.quantity));
 
+    // ÖNEMLI: Partial item'lar BOTH eksikler VE tamamlanan'da görünecek
+    // - TAMAMLANAN: quantity_found göster
+    // - EKSİKLER: quantity_missing göster (incomplete gibi)
+
     let html = '';
 
     // TAMAMLANMAYAN İŞLER
@@ -387,7 +391,7 @@ function renderItems(items) {
         `;
     }
 
-    // EKSİKLER (Kısmi Tamamlananlar)
+    // EKSİKLER (Sadece eksik kısım - tamamlanmayan gibi)
     if (partial.length > 0) {
         html += `
             <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
@@ -402,59 +406,40 @@ function renderItems(items) {
                             <div class="item-checkbox">⚠️</div>
                             <div class="item-details" style="flex: 1;">
                                 <div class="item-name"><strong>${productName}</strong></div>
-                                <div style="margin-top: 6px; padding: 10px; background: #f0fdf4; border-radius: 4px; border: 1px solid #bbf7d0;">
-                                    <span style="color: #059669; font-weight: 600;">✓ ${item.quantity_found || 0} adet alındı</span>
-                                </div>
-                                
-                                <!-- EKSIK MALZEME INPUT -->
-                                <div style="background: #fee2e2; padding: 10px 12px; border-radius: 6px; margin-top: 10px; border-left: 3px solid #dc2626;">
-                                    <div style="font-size: 0.9rem; color: #991b1b; font-weight: 600; margin-bottom: 8px;">
-                                        ⚠️ <strong>${item.quantity - (item.quantity_found || 0)} adet eksik!</strong>
-                                    </div>
-                                    
-                                    <!-- Seçenek 1: Başka yerden alınacak -->
-                                    <div style="margin-bottom: 8px;">
-                                        <label style="display: flex; align-items: center; cursor: pointer;">
-                                            <input 
-                                                type="radio" 
-                                                name="missing_reason_${item.id}" 
-                                                value="buy_from_source"
-                                                ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
-                                                onchange="updateMissingReason(${item.id}, 'buy_from_source')"
-                                                style="margin-right: 6px;">
-                                            <span style="font-size: 0.85rem; color: #374151;">📦 Başka yerden alınacak</span>
-                                        </label>
-                                        ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
-                                            <input 
-                                                type="text" 
-                                                class="input-small" 
-                                                style="width: 100%; max-width: 300px; margin-top: 6px; margin-left: 22px;"
-                                                value="${item.missing_source || ''}"
-                                                list="sourceList"
-                                                onblur="autoSaveMissingSource(${item.id}, this.value)"
-                                                placeholder="Nereden? (ör: Koçtaş)">
-                                        ` : ''}
-                                    </div>
-                                    
-                                    <!-- Seçenek 2: Daha sonra alınacak -->
+                                <div class="item-inputs" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px;">
                                     <div>
-                                        <label style="display: flex; align-items: center; cursor: pointer;">
-                                            <input 
-                                                type="radio" 
-                                                name="missing_reason_${item.id}" 
-                                                value="buy_later"
-                                                ${item.missing_reason === 'buy_later' ? 'checked' : ''}
-                                                onchange="updateMissingReason(${item.id}, 'buy_later')"
-                                                style="margin-right: 6px;">
-                                            <span style="font-size: 0.85rem; color: #374151;">⏰ Daha sonra alınacak (şimdi gerekli değil)</span>
-                                        </label>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Gerekli</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            value="${missing}"
+                                            min="1"
+                                            readonly>
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Alınan Adet</label>
+                                        <input 
+                                            type="number" 
+                                            class="input-small" 
+                                            value="0"
+                                            placeholder="Kaç adet aldınız?"
+                                            min="0"
+                                            max="${missing}">
+                                    </div>
+                                    <div>
+                                        <label style="font-size: 0.75rem; color: #6b7280; display: block; margin-bottom: 3px;">Kaynak</label>
+                                        <input 
+                                            type="text" 
+                                            class="input-small" 
+                                            style="width: 100%;"
+                                            value="${sourceName}"
+                                            list="sourceList"
+                                            placeholder="Kaynak">
                                     </div>
                                 </div>
-                                <div class="item-meta" style="margin-top: 6px;">Hazır (${item.checkedBy?.full_name || 'Bilinmiyor'}, ${new Date(item.checked_at).toLocaleString('tr-TR')})</div>
                             </div>
                             <div class="item-actions">
-                                <button class="btn btn-sm btn-primary" onclick="splitItem(${item.id})" title="Alınanı ayır ve tamamla">✂️ Ayır</button>
-                                <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})">↩️ Geri Al</button>
+                                <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})">☑️ Alındı</button>
                             </div>
                         </div>
                     `;
@@ -463,12 +448,13 @@ function renderItems(items) {
         `;
     }
 
-    // TAMAMLANAN İŞLER
-    if (completed.length > 0) {
+    // TAMAMLANAN İŞLER (completed + partial'ın alınan kısmı)
+    const allCompleted = [...completed, ...partial];
+    if (allCompleted.length > 0) {
         html += `
             <div style="background: #d1fae5; padding: 15px; border-radius: 8px; border-left: 4px solid #059669;">
-                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${completed.length})</h3>
-                ${completed.map(item => {
+                <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #065f46;">✅ Tamamlanan İşler (${allCompleted.length})</h3>
+                ${allCompleted.map(item => {
             const productName = item.product ? item.product.name : item.custom_name;
             const sourceName = item.source ? item.source.name : '';
 
@@ -861,18 +847,18 @@ window.addEventListener('DOMContentLoaded', async () => {
 // Split partial completion item into 2: completed (taken) + incomplete (missing)
 async function splitItem(itemId) {
     if (!confirm('Alınan kısmı tamamlananlara, eksik kısmı yeni satıra eklemek istediğinizden emin misiniz?')) return;
-    
+
     try {
         const response = await fetch(`/api/jobs/items/${itemId}/split`, {
             method: 'POST'
         });
-        
+
         if (!response.ok) {
             const error = await response.json();
             alert(error.error || 'İşlem başarısız');
             return;
         }
-        
+
         await loadJobDetail();
     } catch (error) {
         console.error('Split error:', error);
