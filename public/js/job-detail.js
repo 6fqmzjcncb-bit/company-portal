@@ -210,8 +210,8 @@ function renderIncompleteItems(items) {
     }
 
     container.innerHTML = `
-        <div style="background: #fef9e7; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #f59e0b; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #92400e; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+        <div style="background: #fef2f2; padding: 15px; border-radius: 8px; margin-top: 20px; border-left: 5px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <h3 style="margin: 0 0 15px 0; font-size: 1.1rem; color: #991b1b; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                 ⚠️ Eksikler (${incomplete.length})
             </h3>
             <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -219,7 +219,7 @@ function renderIncompleteItems(items) {
         const productName = item.product ? item.product.name : item.custom_name;
         const sourceName = item.missing_source ? item.missing_source : 'Belirtilmedi';
         return `
-                        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #fcd34d; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #fca5a5; display: flex; align-items: center; justify-content: space-between; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
                             
                             <div style="display: flex; align-items: flex-start; gap: 12px; flex: 1;">
                                 <div style="font-size: 1.4rem; line-height: 1;">⚠️</div>
