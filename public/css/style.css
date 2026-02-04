@@ -1105,6 +1105,8 @@ textarea.input-small {
   text-align: left;
   font-weight: 700;
   color: var(--gray-700);
+  white-space: nowrap;
+  /* Prevent wrapping */
   border-bottom: 2px solid var(--gray-200);
 }
 
