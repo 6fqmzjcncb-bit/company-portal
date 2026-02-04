@@ -72,7 +72,6 @@ async function loadSources() {
         sources = await response.json();
 
         // Inline form source select
-        // Inline form source select
         const inlineSelect = document.getElementById('inlineSourceSelect');
         if (inlineSelect) {
             inlineSelect.innerHTML = '<option value="">Kaynak seçin...</option>';
@@ -613,62 +612,96 @@ async function updateMissingReason(itemId, reason) {
     }
 }
 
-
 // ===========================
-// INLINE AUTOCOMPLETE
+// MAIN INITIALIZATION
 // ===========================
 
-// Inline autocomplete için ürün arama
-let inlineSearchTimeout = null;
-document.addEventListener('DOMContentLoaded', () => {
-    const inlineSearch = document.getElementById('inlineProductSearch');
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Data Loading
+    await loadUserInfo();
+    await loadSources();
+    await loadJobDetail();
 
-    if (inlineSearch) {
-        inlineSearch.addEventListener('input', (e) => {
-            const query = e.target.value.trim();
+    // 2. Component Initialization
 
-            clearTimeout(inlineSearchTimeout);
-
-            if (query.length < 1) {
-                document.getElementById('inlineProductResults').innerHTML = '';
-                document.getElementById('inlineSelectedProductId').value = '';
-                document.getElementById('inlineSelectedProductName').value = '';
-                return;
-            }
-
-            inlineSearchTimeout = setTimeout(async () => {
-                try {
-                    const response = await fetch(`/ api / products / search ? q = ${encodeURIComponent(query)} `);
-                    const products = await response.json();
-
-                    const resultsContainer = document.getElementById('inlineProductResults');
-
-                    if (products.length === 0) {
-                        resultsContainer.innerHTML = '<div class="no-results">Ürün bulunamadı</div>';
-                        return;
-                    }
-
-                    resultsContainer.innerHTML = `
-                < div class="autocomplete-results" >
-                    ${products.map(p => `
-                                <div class="autocomplete-item" onclick="selectInlineProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
-                                    <strong>${p.name}</strong>
-                                    ${p.barcode ? `<span>${p.barcode}</span>` : ''}
-                                    ${currentUser && currentUser.role === 'admin' ? `<span>Stok: ${p.current_stock}</span>` : ''}
-                                </div>
-                            `).join('')
-                        }
-                        </div >
-                `;
-                } catch (error) {
-                    console.error('Product search error:', error);
-                }
-            }, 300);
-        });
+    // Quick Add Tag Input
+    const quickAddContainer = document.getElementById('quick-add-source-container');
+    if (quickAddContainer) {
+        quickAddContainer.innerHTML = renderTagsInput('quick-add', '');
     }
+
+    // Inline Search & Add Form
+    initInlineSearch();
+    initInlineAddForm();
 });
 
-// Inline'dan ürün seç
+
+// ===========================
+// INLINE AUTOCOMPLETE & FORM
+// ===========================
+
+let inlineSearchTimeout = null;
+
+function initInlineSearch() {
+    const inlineSearch = document.getElementById('inlineProductSearch');
+    if (!inlineSearch) return;
+
+    inlineSearch.addEventListener('input', (e) => {
+        const query = e.target.value.trim();
+        clearTimeout(inlineSearchTimeout);
+
+        if (query.length < 1) {
+            const results = document.getElementById('inlineProductResults');
+            if (results) results.innerHTML = '';
+
+            const pId = document.getElementById('inlineSelectedProductId');
+            if (pId) pId.value = '';
+
+            const pName = document.getElementById('inlineSelectedProductName');
+            if (pName) pName.value = '';
+            return;
+        }
+
+        inlineSearchTimeout = setTimeout(async () => {
+            try {
+                // Fixed URL syntax
+                const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error('Search failed');
+
+                const products = await response.json();
+                const resultsContainer = document.getElementById('inlineProductResults');
+
+                if (products.length === 0) {
+                    resultsContainer.innerHTML = '<div class="no-results">Ürün bulunamadı</div>';
+                    return;
+                }
+
+                resultsContainer.innerHTML = `
+                    <div class="autocomplete-results">
+                        ${products.map(p => `
+                            <div class="autocomplete-item" onclick="selectInlineProduct(${p.id}, '${p.name.replace(/'/g, "\\'")}')">
+                                <strong>${p.name}</strong>
+                                ${p.barcode ? `<span>${p.barcode}</span>` : ''}
+                                ${currentUser && currentUser.role === 'admin' ? `<span>Stok: ${p.current_stock}</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Product search error:', error);
+            }
+        }, 300);
+    });
+
+    // Hide results on outside click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#inlineProductSearch') && !e.target.closest('#inlineProductResults')) {
+            const results = document.getElementById('inlineProductResults');
+            if (results) results.innerHTML = '';
+        }
+    });
+}
+
 function selectInlineProduct(productId, productName) {
     document.getElementById('inlineProductSearch').value = productName;
     document.getElementById('inlineSelectedProductId').value = productId;
@@ -676,72 +709,79 @@ function selectInlineProduct(productId, productName) {
     document.getElementById('inlineProductResults').innerHTML = '';
 }
 
-// Inline form submit
-document.addEventListener('DOMContentLoaded', () => {
+function initInlineAddForm() {
     const form = document.getElementById('inlineAddForm');
+    if (!form) return;
 
-    if (form) {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-            const productId = document.getElementById('inlineSelectedProductId').value;
-            const productName = document.getElementById('inlineSelectedProductName').value;
+        const selectedProductId = document.getElementById('inlineSelectedProductId').value;
+        const selectedProductName = document.getElementById('inlineSelectedProductName').value;
+        const rawSearchValue = document.getElementById('inlineProductSearch').value.trim();
 
-            // Tag input value (Hidden)
-            const sourceName = document.getElementById('source-original-quick-add').value;
+        // Priority: Selected Product > Raw Input
+        const productId = selectedProductId || null;
+        const productName = selectedProductName || rawSearchValue;
 
-            const quantity = document.getElementById('inlineQuantity').value;
+        // Tag input value (Hidden) check
+        const sourceNameInput = document.getElementById('source-original-quick-add');
+        const sourceName = sourceNameInput ? sourceNameInput.value : '';
 
-            if (!productId && !productName) {
-                showAlert('Lütfen bir ürün seçin');
-                return;
+        const quantity = document.getElementById('inlineQuantity').value;
+
+        if (!productName) {
+            showAlert('Lütfen bir ürün adı yazın veya seçin');
+            return;
+        }
+
+        if (!sourceName) {
+            showAlert('Lütfen kaynak girin (ve Enter tuşuna basın)');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/jobs/${jobId}/items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    product_id: productId,
+                    custom_name: productId ? null : productName,
+                    source_name: sourceName,
+                    quantity: parseInt(quantity)
+                })
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || 'Kalem eklenemedi');
             }
 
-            if (!sourceName) {
-                showAlert('Lütfen kaynak girin (ve Enter tuşuna basın)');
-                return;
-            }
+            showAlert('Kalem başarıyla eklendi!', 'success');
 
-            try {
-                const response = await fetch(`/ api / jobs / ${jobId}/items`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        product_id: productId || null,
-                        custom_name: productId ? null : productName,
-                        source_name: sourceName, // Send name, backend will handle lookup/create
-                        quantity: parseInt(quantity)
-                    })
-                });
+            // Reset Form
+            document.getElementById('inlineProductSearch').value = '';
+            document.getElementById('inlineSelectedProductId').value = '';
+            document.getElementById('inlineSelectedProductName').value = '';
+            document.getElementById('inlineProductResults').innerHTML = '';
+            // Deprecated input check
+            const depSelect = document.getElementById('inlineSourceSelect');
+            if (depSelect) depSelect.value = '';
 
-                if (!response.ok) {
-                    const data = await response.json();
-                    throw new Error(data.error || 'Kalem eklenemedi');
-                }
+            document.getElementById('inlineQuantity').value = '1';
 
-                showAlert('Kalem başarıyla eklendi!', 'success');
+            // Reset Tag Input
+            const container = document.getElementById('quick-add-source-container');
+            if (container) container.innerHTML = renderTagsInput('quick-add', '');
 
-                // Formu temizle
-                document.getElementById('inlineProductSearch').value = '';
-                document.getElementById('inlineSelectedProductId').value = '';
-                document.getElementById('inlineSelectedProductName').value = '';
-                document.getElementById('inlineProductResults').innerHTML = '';
-                document.getElementById('inlineSourceSelect').value = ''; // Deprecated but safe to clear
-                document.getElementById('inlineQuantity').value = '1';
+            // Refresh List
+            await loadJobDetail();
 
-                // Reset Tag Input
-                const container = document.getElementById('quick-add-source-container');
-                if (container) container.innerHTML = renderTagsInput('quick-add', '');
-
-                // Listeyi yenile
-                await loadJobDetail();
-
-            } catch (error) {
-                showAlert(error.message);
-            }
-        });
-    }
-});
+        } catch (error) {
+            showAlert(error.message);
+        }
+    });
+}
 
 // ===========================
 // DÜZENLE MODAL
@@ -914,22 +954,6 @@ async function splitIncompleteItem(itemId, currentQuantity) {
     }
 }
 
-// ===========================
-// INIT
-// ===========================
-
-window.addEventListener('DOMContentLoaded', async () => {
-    await loadUserInfo();
-    await loadUserInfo();
-    await loadSources();
-    await loadJobDetail();
-
-    // Init Quick Add Tag Input
-    const quickAddContainer = document.getElementById('quick-add-source-container');
-    if (quickAddContainer) {
-        quickAddContainer.innerHTML = renderTagsInput('quick-add', '');
-    }
-});
 
 // ===========================
 // TAG INPUT HELPERS
@@ -1043,6 +1067,13 @@ async function addSourceTag(itemId, newTag) {
             const input = document.getElementById('tag-input-quick-add');
             if (input) input.focus();
         }, 50);
+        return;
+    }
+
+    // Missing Source Mode (Incomplete items)
+    if (String(itemId).startsWith('missing-')) {
+        const realItemId = String(itemId).replace('missing-', '');
+        await autoSaveMissingSource(realItemId, finalSourceString);
         return;
     }
 
