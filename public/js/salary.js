@@ -137,8 +137,16 @@ document.getElementById('employeeForm').addEventListener('submit', handleEmploye
 
 async function loadBalances() {
     try {
+        console.log('Veri yükleniyor...');
         const response = await fetch('/api/salary/balance');
+
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Sunucu Hatası: ${response.status} - ${errText}`);
+        }
+
         const balances = await response.json();
+        console.log('Gelen veri:', balances);
 
         // Save for modal lookup
         allEmployees = balances;
@@ -147,7 +155,7 @@ async function loadBalances() {
         const tbody = document.getElementById('balanceTable');
 
         if (balances.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Personel bulunamadı</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center">Personel bulunamadı</td></tr>';
             return;
         }
 
@@ -183,9 +191,10 @@ async function loadBalances() {
             </tr>
             `;
         }).join('');
-
     } catch (error) {
-        console.error('Hata:', error);
+        console.error('Bakiye yükleme hatası:', error);
+        document.getElementById('balanceTable').innerHTML =
+            `<tr><td colspan="9" class="text-center text-danger">⚠️ Veri yüklenemedi: ${error.message}<br><button onclick="loadBalances()" class="btn-small btn-secondary mt-2">Tekrar Dene</button></td></tr>`;
     }
 }
 
