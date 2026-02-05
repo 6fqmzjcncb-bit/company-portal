@@ -55,18 +55,25 @@
         }
 
         async function loadUsers() {
-            const response = await fetch('/api/admin/users');
-            const users = await response.json();
             const container = document.getElementById('usersContainer');
+            try {
+                const response = await fetchWithTimeout('/api/admin/users');
+                if (!response.ok) throw new Error('Kullanıcılar alınamadı');
 
-            container.innerHTML = users.map(user => `
-        <tr>
-          <td><strong>${user.full_name}</strong></td>
-          <td>${user.username}</td>
-          <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
-          <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
-        </tr>
-      `).join('');
+                const users = await response.json();
+
+                container.innerHTML = users.map(user => `
+                    <tr>
+                    <td><strong>${user.full_name}</strong></td>
+                    <td>${user.username}</td>
+                    <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
+                    <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Kullanıcı yükleme hatası:', error);
+                container.innerHTML = `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
+            }
         }
 
         async function addUser() {
