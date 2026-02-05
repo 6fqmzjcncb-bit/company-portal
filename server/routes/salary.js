@@ -71,15 +71,21 @@ router.get('/balance', requireAuth, async (req, res) => {
             // 1. Toplam Hak Ediş (Maaş/Yevmiye)
             let totalAccrued = 0;
             let totalWorkedDays = 0;
-            let startDate = null;
+
+            // Sıfırlama tarihi (Varsayılan: En baş)
+            // start_date varsa, o tarihten SONRAKİ (veya o tarihli) çalışmaları alır
+            const filterDate = emp.start_date ? emp.start_date : '2000-01-01';
 
             const attendances = await Attendance.findAll({
-                where: { employee_id: emp.id, worked: true },
+                where: {
+                    employee_id: emp.id,
+                    worked: true,
+                    date: { [Op.gte]: filterDate }
+                },
                 order: [['date', 'ASC']]
             });
 
             if (attendances.length > 0) {
-                startDate = attendances[0].date;
                 totalWorkedDays = attendances.length;
             }
 
@@ -96,7 +102,10 @@ router.get('/balance', requireAuth, async (req, res) => {
 
             // 2. İşlemler
             const payments = await SalaryPayment.findAll({
-                where: { employee_id: emp.id }
+                where: {
+                    employee_id: emp.id,
+                    payment_date: { [Op.gt]: filterDate } // GT (Greater Than) - Sıfırlama anındaki ödeme dahil edilmez!
+                }
             });
 
             const totalPaid = payments
