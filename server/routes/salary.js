@@ -127,7 +127,7 @@ router.get('/balance', requireAuth, async (req, res) => {
                 id: emp.id,
                 full_name: emp.full_name,
                 daily_wage: emp.daily_wage,
-                start_date: startDate,
+                start_date: emp.start_date,
                 total_worked_days: totalWorkedDays,
                 total_accrued: totalAccrued,
                 total_paid: totalPaid,
