@@ -1,11 +1,13 @@
 // Oturum kontrolü middleware'i
 const requireAuth = (req, res, next) => {
     if (!req.session || !req.session.userId) {
+        console.log(`⛔ Auth Blocked: No session for ${req.method} ${req.url}`);
         return res.status(401).json({
             error: 'Giriş yapmanız gerekiyor',
             redirectTo: '/index.html'
         });
     }
+    // console.log(`✅ Auth OK: User ${req.session.userId} -> ${req.url}`);
     next();
 };
 
