@@ -16,15 +16,15 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
         }
     },
     transaction_type: {
-        type: DataTypes.ENUM('payment', 'expense'),
-        allowNull: false,
+        type: DataTypes.STRING,
+        allowNull: true, // Relaxed for migration
         defaultValue: 'payment',
-        comment: 'İşlem tipi: ödeme veya harcama'
+        comment: 'İşlem tipi: payment veya expense'
     },
     account: {
         type: DataTypes.STRING,
-        allowNull: true,
-        defaultValue: 'cash', // 'cash', 'bank_a', 'bank_b'
+        allowNull: true, // Relaxed for migration
+        defaultValue: 'cash',
         comment: 'Ödeme aracı/Hesap'
     },
     period_start: {
