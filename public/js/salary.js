@@ -171,12 +171,13 @@ async function loadBalances() {
                 <td>${wageDisplay}</td>
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
-                <td>${formatCurrency(emp.total_accrued + (emp.total_reimbursement || 0))}</td>
+                <td>${formatCurrency(emp.total_accrued)}</td>
+                <td>${formatCurrency(emp.total_reimbursement || 0)}</td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
                     <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
-                        Ödeme Yap
+                        İşlem Yap
                     </button>
                 </td>
             </tr>
