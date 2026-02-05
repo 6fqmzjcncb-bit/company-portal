@@ -22,10 +22,21 @@ const limiter = rateLimit({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Global Request Logger
+app.use((req, res, next) => {
+    console.log(`🔍 Incoming Request: ${req.method} ${req.url} | IP: ${req.ip}`);
+    next();
+});
+
 // Disable Caching (Debug Mode)
 app.use((req, res, next) => {
     res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
     next();
+});
+
+// Health Check (No Auth)
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', version: '2.4', timestamp: new Date() });
 });
 
 app.use(limiter);
