@@ -3,7 +3,6 @@ const router = express.Router();
 const { Op } = require('sequelize');
 const { Employee, SalaryPayment, Attendance } = require('../models');
 const { requireAuth } = require('../middleware/auth');
-const { Op } = require('sequelize');
 const sequelize = require('sequelize');
 
 // Maaş hesaplama (dönem için)
