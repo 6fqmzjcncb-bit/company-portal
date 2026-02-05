@@ -71,36 +71,30 @@ router.get('/balance', requireAuth, async (req, res) => {
             // 1. Toplam Hak Ediş (Maaş/Yevmiye)
             let totalAccrued = 0;
             let totalWorkedDays = 0;
+            let startDate = null;
 
             const attendances = await Attendance.findAll({
-                where: { employee_id: emp.id, worked: true }
+                where: { employee_id: emp.id, worked: true },
+                order: [['date', 'ASC']]
             });
-            totalWorkedDays = attendances.length;
+
+            if (attendances.length > 0) {
+                startDate = attendances[0].date;
+                totalWorkedDays = attendances.length;
+            }
 
             if (emp.daily_wage) {
-                // Günlük ücret * Gün sayısı + Mesai (opsiyonel, şimdilik sadece günlük)
-                // Mesai hesabı karmaşıksa buraya eklenebilir. Basitçe günlük * gün diyelim.
-                // Eğer mesai ücreti ayrıca varsa: (saat * saatlik_ücret). 
-                // Şimdilik basit model: Sadece Günlük Ücret * Gün.
                 totalAccrued = totalWorkedDays * parseFloat(emp.daily_wage);
 
-                // Mesai ekle
+                // Mesai
                 const totalOvertimeHours = attendances.reduce((sum, a) => sum + (parseFloat(a.hours_worked) || 0), 0);
-                const hourlyRate = parseFloat(emp.daily_wage) / 9; // Varsayılan 9 saat?
+                const hourlyRate = parseFloat(emp.daily_wage) / 9;
                 totalAccrued += totalOvertimeHours * hourlyRate;
             } else if (emp.monthly_salary) {
-                // Aylık maaş: Burada karmaşık. Kaç ay çalıştı?
-                // Basitlik için: Aylık maaşlıların 'balance' takibi zor olabilir.
-                // Şimdilik sadece günlük ücretliler için tam otomatik olsun.
-                // Aylıklar için manuel hakediş eklenebilir mi?
-                // Kullanıcı "esnek ödüyorum" dedi. Muhtemelen günlükçüler ağırlıklı.
-                // Aylık maaşı şimdilik 0 kabul edip manuel ekleme mi yapsak?
-                // Yoksa Attendance'a göre oranlasak mı?
-                // Basit mantık: (Maaş / 30) * Çalışılan Gün
                 totalAccrued = (parseFloat(emp.monthly_salary) / 30) * totalWorkedDays;
             }
 
-            // 2. Toplam Ödemeler ve Harcamalar
+            // 2. İşlemler
             const payments = await SalaryPayment.findAll({
                 where: { employee_id: emp.id }
             });
@@ -113,14 +107,24 @@ router.get('/balance', requireAuth, async (req, res) => {
                 .filter(p => p.transaction_type === 'expense')
                 .reduce((sum, p) => sum + parseFloat(p.amount_paid), 0);
 
+            const totalReimbursement = payments
+                .filter(p => p.transaction_type === 'reimbursement')
+                .reduce((sum, p) => sum + parseFloat(p.amount_paid), 0);
+
+            // Bakiye = (Hakediş + Alacaklar) - (Ödemeler + Kesintiler)
+            const currentBalance = (totalAccrued + totalReimbursement) - (totalPaid + totalExpense);
+
             balances.push({
                 id: emp.id,
                 full_name: emp.full_name,
+                daily_wage: emp.daily_wage,
+                start_date: startDate,
                 total_worked_days: totalWorkedDays,
                 total_accrued: totalAccrued,
                 total_paid: totalPaid,
                 total_expense: totalExpense,
-                current_balance: totalAccrued - (totalPaid + totalExpense)
+                total_reimbursement: totalReimbursement,
+                current_balance: currentBalance
             });
         }
 
