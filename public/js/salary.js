@@ -35,6 +35,102 @@ async function loadData() {
     await loadHistory();
 }
 
+// --------------------------------------------------------------------------
+// EMPLOYEE CRUD SECTION
+// --------------------------------------------------------------------------
+
+function showAddEmployeeModal() {
+    document.getElementById('employeeForm').reset();
+    document.getElementById('editEmpId').value = '';
+    document.getElementById('empModalTitle').textContent = 'Yeni Personel Ekle';
+    document.getElementById('employeeModal').style.display = 'flex';
+}
+
+function editEmployee(id) {
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+
+    document.getElementById('empModalTitle').textContent = 'Personel Düzenle';
+    document.getElementById('editEmpId').value = emp.id;
+    document.getElementById('fullName').value = emp.full_name;
+    document.getElementById('phone').value = emp.phone || ''; // Assuming phone might be available in future backend update or currently hidden
+    document.getElementById('role').value = 'worker'; // Default or fetch real role if available in /balance. Currently /balance returns simple object. 
+    // START_DATE fix: We need fetch full details or rely on what we have. 
+    // /balance endpoint returns: {id, full_name, daily_wage, start_date ...}
+    // It does NOT return phone, role, hire_date, monthly_salary, notes etc fully.
+    // OPTIMAL TRICK: We should probably fetch /api/employees to get full list for editing, 
+    // or update /balance to return everything.
+    // Let's use /api/employees fetch inside loadData to populate a full list for editing context.
+
+    // For now, let's fetch full employee details on Edit click to be safe
+    fetch(`/api/employees/${id}`).then(res => res.json()).then(fullEmp => {
+        document.getElementById('fullName').value = fullEmp.full_name;
+        document.getElementById('phone').value = fullEmp.phone || '';
+        document.getElementById('role').value = fullEmp.role;
+        document.getElementById('dailyWage').value = fullEmp.daily_wage || '';
+        document.getElementById('monthlySalary').value = fullEmp.monthly_salary || '';
+        document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
+        document.getElementById('notes').value = fullEmp.notes || '';
+
+        document.getElementById('employeeModal').style.display = 'flex';
+    }).catch(err => alert('Personel detayı yüklenemedi'));
+}
+
+async function handleEmployeeSubmit(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('editEmpId').value;
+    const data = {
+        full_name: document.getElementById('fullName').value,
+        phone: document.getElementById('phone').value,
+        role: document.getElementById('role').value,
+        daily_wage: document.getElementById('dailyWage').value || null,
+        monthly_salary: document.getElementById('monthlySalary').value || null,
+        hire_date: document.getElementById('hireDate').value || null,
+        notes: document.getElementById('notes').value,
+        is_active: true
+    };
+
+    try {
+        const url = id ? `/api/employees/${id}` : '/api/employees';
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) throw new Error('İşlem başarısız');
+
+        closeModal('employeeModal');
+        await loadData(); // Reload table
+        alert('Personel kaydedildi');
+    } catch (error) {
+        alert('Hata: ' + error.message);
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm('Bu personeli ve tüm verilerini silmek istediğinize emin misiniz?')) return;
+
+    try {
+        const response = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Silinemedi');
+        await loadData();
+    } catch (error) {
+        alert('Silme işlemi başarısız');
+    }
+}
+
+// Event Listener for Employee Form
+document.getElementById('employeeForm').addEventListener('submit', handleEmployeeSubmit);
+
+
+// --------------------------------------------------------------------------
+// UPDATED LOAD BALANCES
+// --------------------------------------------------------------------------
+
 async function loadBalances() {
     try {
         const response = await fetch('/api/salary/balance');
@@ -56,7 +152,14 @@ async function loadBalances() {
 
             return `
             <tr>
-                <td><strong>${emp.full_name}</strong></td>
+                <td>
+                    <strong>${emp.full_name}</strong>
+                    <div style="font-size:0.8em; margin-top:2px;">
+                        <a href="javascript:void(0)" onclick="editEmployee(${emp.id})" class="text-primary">Düzenle</a>
+                        <span class="text-gray">|</span>
+                        <a href="javascript:void(0)" onclick="deleteEmployee(${emp.id})" class="text-danger">Sil</a>
+                    </div>
+                </td>
                 <td>${formatCurrency(emp.daily_wage || 0)}</td>
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
@@ -140,10 +243,6 @@ function openExpenseModal(empId) {
     updateEmployeeContext();
 }
 
-function closeModal() {
-    document.getElementById('transactionModal').style.display = 'none';
-}
-
 function updateEmployeeSelect() {
     const select = document.getElementById('employeeSelect');
     if (select.options.length <= 1) { // Only fill if empty
@@ -181,10 +280,10 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
 
     const empId = document.getElementById('employeeSelect').value;
     const type = document.querySelector('input[name="transType"]:checked').value;
-    const amount = document.getElementById('amount').value;
+    const amount = document.getElementById('transAmount').value;
     const account = document.getElementById('accountSelect').value;
     const date = document.getElementById('transDate').value;
-    const notes = document.getElementById('notes').value;
+    const notes = document.getElementById('transNotes').value;
 
     try {
         const response = await fetch('/api/salary/pay', {
@@ -233,8 +332,13 @@ function getAccountLabel(acc) {
 
 // Close modal on outside click
 window.onclick = function (event) {
-    const modal = document.getElementById('transactionModal');
-    if (event.target == modal) {
-        closeModal();
+    const transModal = document.getElementById('transactionModal');
+    const empModal = document.getElementById('employeeModal');
+
+    if (event.target == transModal) {
+        closeModal('transactionModal');
+    }
+    if (event.target == empModal) {
+        closeModal('employeeModal');
     }
 }
