@@ -185,4 +185,22 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 });
 
+// GET /payments - Son işlemleri getir
+router.get('/payments', requireAuth, async (req, res) => {
+    try {
+        const payments = await SalaryPayment.findAll({
+            include: [{
+                model: Employee,
+                attributes: ['full_name']
+            }],
+            order: [['payment_date', 'DESC']],
+            limit: 20
+        });
+        res.json(payments);
+    } catch (error) {
+        console.error('Geçmiş yükleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
+
 module.exports = router;
