@@ -150,25 +150,41 @@ async function loadBalances() {
         tbody.innerHTML = balances.map(emp => {
             const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success';
 
+            // Format Daily Wage nicely
+            const wageDisplay = emp.daily_wage > 0
+                ? `<div class="font-weight-bold">${formatCurrency(emp.daily_wage)}</div><div class="text-muted small">Günlük</div>`
+                : (emp.monthly_salary > 0
+                    ? `<div class="font-weight-bold">${formatCurrency(emp.monthly_salary)}</div><div class="text-muted small">Aylık</div>`
+                    : '<span class="text-muted">-</span>');
+
             return `
             <tr>
                 <td>
-                    <strong>${emp.full_name}</strong>
-                    <div style="font-size:0.8em; margin-top:2px;">
-                        <a href="javascript:void(0)" onclick="editEmployee(${emp.id})" class="text-primary">Düzenle</a>
-                        <span class="text-gray">|</span>
-                        <a href="javascript:void(0)" onclick="deleteEmployee(${emp.id})" class="text-danger">Sil</a>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle mr-2">${emp.full_name.charAt(0)}</div>
+                        <div>
+                            <div class="font-weight-bold">${emp.full_name}</div>
+                            <div class="small text-muted">${emp.role || 'Personel'}</div>
+                        </div>
                     </div>
                 </td>
-                <td>${formatCurrency(emp.daily_wage || 0)}</td>
-                <td><small>${formatDate(emp.start_date)}</small></td>
-                <td>${emp.total_worked_days}</td>
+                <td>${wageDisplay}</td>
+                <td>${emp.total_worked_days} Gün</td>
                 <td>${formatCurrency(emp.total_accrued + (emp.total_reimbursement || 0))}</td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}" style="font-size: 1.1em;">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
-                    <button class="btn-small btn-primary" onclick="openPaymentModal(${emp.id})">Öde</button>
-                    <button class="btn-small border-danger text-danger" onclick="openExpenseModal(${emp.id})" style="background:white;">İşlem</button>
+                    <div class="btn-group">
+                        <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})" title="Ödeme Yap">
+                            💳 Öde
+                        </button>
+                        <button class="btn-small btn-secondary outline" onclick="editEmployee(${emp.id})" title="Düzenle">
+                            ✏️
+                        </button>
+                        <button class="btn-small btn-danger outline" onclick="deleteEmployee(${emp.id})" title="Sil">
+                            🗑️
+                        </button>
+                    </div>
                 </td>
             </tr>
             `;
