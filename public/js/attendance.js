@@ -99,6 +99,23 @@ async function loadAttendance() {
     }
 }
 
+// Change date by offset (days)
+function changeDate(offset) {
+    const dateInput = document.getElementById('selectedDate');
+    if (!dateInput.value) return;
+
+    const currentDate = new Date(dateInput.value);
+    currentDate.setDate(currentDate.getDate() + offset);
+
+    // Format YYYY-MM-DD
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+
+    dateInput.value = `${year}-${month}-${day}`;
+    loadAttendance();
+}
+
 // Render attendance table
 function renderAttendance(date) {
     const tbody = document.getElementById('attendanceList');
