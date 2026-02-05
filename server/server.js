@@ -109,7 +109,7 @@ const startServer = async () => {
         console.log('⚡ Uygulama dinlemeye başlıyor... (Adım 3)');
         app.listen(PORT, () => {
             console.log('╔════════════════════════════════════════╗');
-            console.log('║   ŞİRKET PORTALI - V2.1 GÜNCELLENDİ    ║');
+            console.log('║   ŞİRKET PORTALI - V2.2 GÜNCELLENDİ    ║');
             console.log('╚════════════════════════════════════════╝');
             console.log('');
             console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
