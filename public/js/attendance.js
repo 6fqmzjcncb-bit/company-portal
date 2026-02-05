@@ -416,15 +416,16 @@ function toggleWorked(empId) {
 }
 
 // Add OVERTIME hours
-const input = document.getElementById(`hours_${empId}`);
-const currentValue = parseFloat(input.value) || 0;
-let newValue = currentValue + hours;
+function addOvertime(empId, hours) {
+    const input = document.getElementById(`hours_${empId}`);
+    const currentValue = parseFloat(input.value) || 0;
+    let newValue = currentValue + hours;
 
-// Bounds Check
-if (newValue < 0) newValue = 0;
-if (newValue > 24) newValue = 24; // Physical limit of a day
+    // Bounds Check
+    if (newValue < 0) newValue = 0;
+    if (newValue > 24) newValue = 24; // Physical limit of a day
 
-input.value = newValue;
+    input.value = newValue;
 }
 
 // Reset OVERTIME to 0
