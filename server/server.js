@@ -68,6 +68,17 @@ app.use((err, req, res, next) => {
 // Sunucuyu başlat
 const startServer = async () => {
     try {
+        console.log('🚀 Sunucu başlatılıyor...');
+
+        // Veritabanı klasörünü kontrol et
+        const fs = require('fs');
+        const dbDir = path.join(__dirname, '../database');
+        if (!fs.existsSync(dbDir)) {
+            console.log('📁 Database klasörü oluşturuluyor...');
+            fs.mkdirSync(dbDir, { recursive: true });
+        }
+
+        console.log('🔌 Veritabanı bağlantısı test ediliyor...');
         await testConnection();
 
         // Auto-sync schema changes (non-destructive)
