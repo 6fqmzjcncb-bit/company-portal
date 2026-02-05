@@ -73,8 +73,11 @@ const startServer = async () => {
         // Auto-sync schema changes (non-destructive)
         try {
             const { sequelize } = require('./config/database');
-            await sequelize.sync({ alter: true });
-            console.log('✓ Veritabanı şeması güncellendi (alter: true)');
+            // Veritabanı senkronizasyonu
+            // "alter: true" bazen SQLite'da FK hatalarına sebep olabilir (orphaned data varsa).
+            // Şimdilik kapatıyoruz ki sunucu açılsın. Şema zaten büyük oranda uyumlu.
+            await sequelize.sync({ alter: false });
+            console.log('✓ Veritabanı senkronize edildi');
         } catch (syncError) {
             console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
         }
