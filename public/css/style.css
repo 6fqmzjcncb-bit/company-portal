@@ -1060,18 +1060,12 @@ textarea.input-small {
 }
 
 .date-input {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   border: 2px solid var(--gray-300);
   border-radius: var(--radius-md);
-  font-size: 1.5rem;
-  /* Force larger native picker */
-  font-weight: 700;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
-  height: 56px;
-  /* Larger touch target */
-  width: 220px;
-  /* Wider */
-  text-align: center;
 }
 
 /* Button utilities */
