@@ -5,6 +5,7 @@ const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 // List all accounts
 router.get('/', requireAuth, async (req, res) => {
+    console.log(`📡 GET /api/payment-accounts requested by User ${req.session.userId}`);
     try {
         const accounts = await PaymentAccount.findAll({
             order: [['name', 'ASC']]
