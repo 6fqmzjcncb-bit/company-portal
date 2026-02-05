@@ -52,20 +52,20 @@ async function loadBalances() {
         }
 
         tbody.innerHTML = balances.map(emp => {
-            const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success'; // Debt to employee is red? Or simple: Positive means we owe them.
-            // Let's stick to: Positive Balance = We owe employee (Liability).
+            const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success';
 
             return `
             <tr>
                 <td><strong>${emp.full_name}</strong></td>
-                <td>${emp.total_worked_days} Gün</td>
-                <td>${formatCurrency(emp.total_accrued)}</td>
-                <td class="text-success">${formatCurrency(emp.total_paid)}</td>
-                <td class="text-warning">${formatCurrency(emp.total_expense)}</td>
-                <td><strong class="${emp.current_balance > 0 ? 'text-danger' : 'text-success'}">${formatCurrency(emp.current_balance)}</strong></td>
+                <td>${formatCurrency(emp.daily_wage || 0)}</td>
+                <td><small>${formatDate(emp.start_date)}</small></td>
+                <td>${emp.total_worked_days}</td>
+                <td>${formatCurrency(emp.total_accrued + (emp.total_reimbursement || 0))}</td>
+                <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
+                <td><strong class="${balanceClass}" style="font-size: 1.1em;">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
                     <button class="btn-small btn-primary" onclick="openPaymentModal(${emp.id})">Öde</button>
-                    <button class="btn-small border-danger text-danger" onclick="openExpenseModal(${emp.id})" style="background:white;">Harcama</button>
+                    <button class="btn-small border-danger text-danger" onclick="openExpenseModal(${emp.id})" style="background:white;">İşlem</button>
                 </td>
             </tr>
             `;
@@ -78,26 +78,30 @@ async function loadBalances() {
 
 async function loadHistory() {
     try {
-        const response = await fetch('/api/salary/payments'); // Renamed route logic but kept same endpoint name in backed for simplicity
+        const response = await fetch('/api/salary/payments');
+        if (!response.ok) throw new Error('Veri alınamadı');
+
         const transactions = await response.json();
 
         const tbody = document.getElementById('transactionHistory');
-        if (transactions.length === 0) {
+        if (!transactions || transactions.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center">Kayıt bulunamadı</td></tr>';
             return;
         }
 
         tbody.innerHTML = transactions.map(t => {
-            const isExpense = t.transaction_type === 'expense';
+            const empName = t.employee ? t.employee.full_name : 'Silinmiş Personel';
+            const typeLabels = {
+                'payment': '<span class="badge badge-success">Ödeme</span>',
+                'expense': '<span class="badge badge-warning">Kesinti</span>',
+                'reimbursement': '<span class="badge badge-info">Masraf Fişi</span>'
+            };
+
             return `
             <tr>
-                <td><strong>${t.employee.full_name}</strong></td>
+                <td><strong>${empName}</strong></td>
                 <td>${formatDate(t.payment_date)}</td>
-                <td>
-                    <span class="badge ${isExpense ? 'badge-danger' : 'badge-success'}">
-                        ${isExpense ? 'Harcama' : 'Ödeme'}
-                    </span>
-                </td>
+                <td>${typeLabels[t.transaction_type] || t.transaction_type}</td>
                 <td>${formatCurrency(t.amount_paid)}</td>
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
@@ -106,7 +110,8 @@ async function loadHistory() {
         }).join('');
 
     } catch (error) {
-        console.error('Hata:', error);
+        console.error('Geçmiş hatası:', error);
+        document.getElementById('transactionHistory').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Yükleme hatası</td></tr>';
     }
 }
 
