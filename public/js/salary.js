@@ -279,8 +279,10 @@ function updateEmployeeContext() {
 }
 
 function toggleAccountSelect() {
-    // Logic if we want to hide account select for expenses? 
-    // Usually expenses also come from an account. Kept for now.
+    const type = document.querySelector('input[name="transType"]:checked').value;
+    const accountGroup = document.getElementById('accountGroup');
+    // Account selection is only needed for actual Money OUT (Payment)
+    accountGroup.style.display = (type === 'payment') ? 'block' : 'none';
 }
 
 // Form Submission
