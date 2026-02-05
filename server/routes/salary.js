@@ -191,6 +191,7 @@ router.get('/payments', requireAuth, async (req, res) => {
         const payments = await SalaryPayment.findAll({
             include: [{
                 model: Employee,
+                as: 'employee',
                 attributes: ['full_name']
             }],
             order: [['payment_date', 'DESC']],
