@@ -109,12 +109,34 @@
             `).join('');
         }
 
-        async function addPaymentAccount() {
-            const name = prompt('Hesap Adı (Örn: Ziraat Bankası):');
-            if (!name) return;
+        // Modal Functions
+        function openAccountModal() {
+            document.getElementById('accountForm').reset();
+            // Reset emoji selection
+            document.getElementById('accIcon').value = '🏦';
+            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector('.emoji-option').classList.add('selected'); // Select first
 
-            const type = prompt('Tip (cash, bank, credit_card):', 'bank');
-            const icon = prompt('İkon (Örn: 🏦):', '🏦');
+            document.getElementById('accountModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function selectEmoji(element, emoji) {
+            document.getElementById('accIcon').value = emoji;
+            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        // Add Account Form Submit
+        document.getElementById('accountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('accName').value;
+            const type = document.getElementById('accType').value;
+            const icon = document.getElementById('accIcon').value;
 
             const response = await fetch('/api/payment-accounts', {
                 method: 'POST',
@@ -123,11 +145,12 @@
             });
 
             if (response.ok) {
+                closeModal('accountModal');
                 loadPaymentAccounts();
             } else {
-                alert('Hata!');
+                alert('Hata oluştu!');
             }
-        }
+        });
 
         async function deleteAccount(id) {
             if (!confirm('Emin misiniz?')) return;
@@ -222,7 +245,7 @@
             <div class="card mb-4">
                 <div class="card-header">
                     <span>💳 Ödeme Hesapları (Kasa/Banka)</span>
-                    <button class="btn btn-success btn-sm" onclick="addPaymentAccount()">+ Yeni Hesap</button>
+                    <button class="btn btn-success btn-sm" onclick="openAccountModal()">+ Yeni Hesap</button>
                 </div>
                 <div class="table-container">
                     <table>
@@ -271,6 +294,54 @@
                 </div>
             </div>
         </main>
+
+        <!-- Account Add Modal -->
+        <div id="accountModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Yeni Ödeme Hesabı Ekle</h2>
+                    <button class="modal-close" onclick="closeModal('accountModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="accountForm">
+                        <div class="form-group">
+                            <label>Hesap Adı</label>
+                            <input type="text" id="accName" placeholder="Örn: Ziraat Bankası" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Hesap Tipi</label>
+                            <select id="accType" class="form-control">
+                                <option value="bank">Banka</option>
+                                <option value="cash">Nakit Kasa</option>
+                                <option value="credit_card">Kredi Kartı</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>İkon Seçimi</label>
+                            <input type="hidden" id="accIcon" value="🏦">
+                            <div class="emoji-grid">
+                                <div class="emoji-option selected" onclick="selectEmoji(this, '🏦')">🏦</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '💳')">💳</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '💵')">💵</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '💰')">💰</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '🏧')">🏧</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '🪙')">🪙</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '🧾')">🧾</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '📉')">📉</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '📊')">📊</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '💼')">💼</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '👜')">👜</div>
+                                <div class="emoji-option" onclick="selectEmoji(this, '🔐')">🔐</div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block mt-4">Hesabı Oluştur</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </body>
 
