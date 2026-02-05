@@ -69,64 +69,45 @@ app.use((err, req, res, next) => {
 
 // Sunucuyu başlat
 const startServer = async () => {
+    // 1. Önce sunucuyu başlat (Hızlı cevap vermek için)
+    app.listen(PORT, () => {
+        console.log('╔════════════════════════════════════════╗');
+        console.log('║   ŞİRKET PORTALI - V2.3 GÜNCELLENDİ    ║');
+        console.log('╚════════════════════════════════════════╝');
+        console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
+        console.log('📂 Veritabanı: database/portal.db');
+        console.log('Durdurmak için: Ctrl + C');
+
+        // 2. Veritabanı işlemlerini arka planda başlat
+        initializeDatabase();
+    });
+};
+
+const initializeDatabase = async () => {
     try {
-        console.log('🚀 Sunucu başlatılıyor... (Adım 1)');
+        console.log('🔌 Veritabanı bağlantısı başlatılıyor...');
 
         // Veritabanı klasörünü kontrol et
         const dbDir = path.join(__dirname, '../database');
-        console.log(`📁 Hedef veritabanı klasörü: ${dbDir}`);
-
-        try {
-            if (!fs.existsSync(dbDir)) {
-                console.log('📁 Klasör yok, oluşturuluyor...');
-                fs.mkdirSync(dbDir, { recursive: true });
-                console.log('✓ Klasör oluşturuldu.');
-            } else {
-                console.log('✓ Klasör zaten mevcut.');
-            }
-        } catch (fsError) {
-            console.error('⚠️ Dosya sistemi hatası (ihmal edilebilir):', fsError.message);
+        if (!fs.existsSync(dbDir)) {
+            fs.mkdirSync(dbDir, { recursive: true });
         }
 
-        console.log('🔌 Veritabanı bağlantısı test ediliyor... (Adım 2)');
-        await testConnection();
-        console.log('✓ Bağlantı testi tamamlandı.');
+        const { sequelize } = require('./config/database');
 
-        // Auto-sync schema changes (non-destructive)
-        try {
-            console.log('↻ Sequelize modelleri yükleniyor...');
-            const { sequelize } = require('./config/database');
-            // SQLite unique constraint error fix:
-            // "alter: true" tries to recreate tables and fails on existing data.
-            // We switch to standard sync() which creates MISSING tables (like PaymentAccounts)
-            // but leaves existing ones (like Attendance) alone.
-            await sequelize.sync();
+        // Bağlantıyı test et
+        await sequelize.authenticate();
+        console.log('✓ Veritabanı bağlantısı başarılı.');
 
-            console.log('✓ Veritabanı senkronize edildi (Güvenli Mod)');
-        } catch (syncError) {
-            console.error('⚠️ Schema sync error:', syncError.message);
-            // Server should continue even if sync fails
-        }
+        // Tabloları oluştur (Sync)
+        // force: false -> Tablo varsa silmez
+        // alter: false -> Tablo yapısını değiştirmeye çalışmaz (Güvenli mod)
+        await sequelize.sync({ force: false, alter: false });
+        console.log('✓ Tablolar senkronize edildi.');
 
-        console.log('⚡ Uygulama dinlemeye başlıyor... (Adım 3)');
-        app.listen(PORT, () => {
-            console.log('╔════════════════════════════════════════╗');
-            console.log('║   ŞİRKET PORTALI - V2.2 GÜNCELLENDİ    ║');
-            console.log('╚════════════════════════════════════════╝');
-            console.log('');
-            console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
-            console.log('📂 Veritabanı: database/portal.db');
-            console.log('');
-            console.log('Varsayılan Giriş Bilgileri:');
-            console.log('  Admin  -> Kullanıcı: admin  | Şifre: admin123');
-            console.log('  Personel -> Kullanıcı: staff  | Şifre: staff123');
-            console.log('');
-            console.log('Durdurmak için: Ctrl + C');
-            console.log('');
-        });
     } catch (error) {
-        console.error('Sunucu başlatılamadı:', error);
-        process.exit(1);
+        console.error('❌ Veritabanı başlatma hatası:', error.message);
+        // Sunucu çalışmaya devam eder, ama DB istekleri hata verebilir.
     }
 };
 
