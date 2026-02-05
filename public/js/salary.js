@@ -180,7 +180,9 @@ async function loadBalances() {
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued)}</td>
-                <td>${formatCurrency(emp.total_reimbursement || 0)}</td>
+                <td class="clickable-cell text-primary" onclick="openExpenseModal(${emp.id})" title="Harcama Ekle" style="cursor: pointer; text-decoration: underline;">
+                    ${formatCurrency(emp.total_reimbursement || 0)} ➕
+                </td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
@@ -219,10 +221,15 @@ async function loadHistory() {
                 'reimbursement': '<span class="badge badge-info">Masraf Fişi</span>'
             };
 
+            const daysBadge = t.days_worked > 0
+                ? `<span class="badge badge-secondary">${t.days_worked} Gün</span>`
+                : '-';
+
             return `
             <tr>
                 <td><strong>${empName}</strong></td>
                 <td>${formatDate(t.payment_date)}</td>
+                <td>${daysBadge}</td>
                 <td>${typeLabels[t.transaction_type] || t.transaction_type}</td>
                 <td>${formatCurrency(t.amount_paid)}</td>
                 <td>${getAccountLabel(t.account)}</td>

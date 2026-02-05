@@ -145,6 +145,7 @@ router.get('/balance', requireAuth, async (req, res) => {
 });
 
 // POST /pay - Ödeme veya Harcama Ekle (Esnek)
+// POST /pay - Ödeme veya Harcama Ekle
 router.post('/pay', requireAuth, async (req, res) => {
     try {
         const {
@@ -156,16 +157,47 @@ router.post('/pay', requireAuth, async (req, res) => {
             payment_date
         } = req.body;
 
+        const emp = await Employee.findByPk(employee_id);
+        if (!emp) return res.status(404).json({ error: 'Personel bulunamadı' });
+
+        const pDate = payment_date ? new Date(payment_date) : new Date();
+        let daysWorked = 0;
+
+        if (transaction_type === 'payment') {
+            // Ödeme yapılıyorsa:
+            // 1. Bugüne kadar (veya ödeme tarihine kadar) kaç gün çalışmış hesapla
+            const filterDate = emp.start_date ? emp.start_date : '2000-01-01';
+
+            // Eğer payment_date, start_date'den gerideyse hata olmasın, sadece o aralığı alalım.
+            // Ama mantıken start_date <= çalışma <= payment_date olmalı.
+
+            const attendances = await Attendance.findAll({
+                where: {
+                    employee_id,
+                    worked: true,
+                    date: {
+                        [Op.gte]: filterDate,
+                        [Op.lte]: pDate // Ödeme tarihine kadar olanları say
+                    }
+                }
+            });
+            daysWorked = attendances.length;
+
+            // 2. Personelin "Başlangıç Tarihi"ni (son ödeme tarihi) güncelle
+            // Böylece bir sonraki hesaplama bu tarihten sonrasını baz alır.
+            emp.start_date = pDate;
+            await emp.save();
+        }
+
         const payment = await SalaryPayment.create({
             employee_id,
             amount_paid,
             transaction_type: transaction_type || 'payment',
             account: account || 'cash',
             notes,
-            payment_date: payment_date || new Date(),
+            payment_date: pDate,
             created_by: req.session.userId,
-            // Opsiyonel alanlar boş kalabilir
-            days_worked: 0,
+            days_worked: daysWorked,
             total_hours: 0
         });
 
