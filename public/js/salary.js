@@ -152,38 +152,25 @@ async function loadBalances() {
 
             // Format Daily Wage nicely
             const wageDisplay = emp.daily_wage > 0
-                ? `<div class="font-weight-bold">${formatCurrency(emp.daily_wage)}</div><div class="text-muted small">Günlük</div>`
+                ? formatCurrency(emp.daily_wage)
                 : (emp.monthly_salary > 0
-                    ? `<div class="font-weight-bold">${formatCurrency(emp.monthly_salary)}</div><div class="text-muted small">Aylık</div>`
-                    : '<span class="text-muted">-</span>');
+                    ? formatCurrency(emp.monthly_salary) + ' (Ay)'
+                    : '-');
 
             return `
             <tr>
-                <td>
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-circle mr-2">${emp.full_name.charAt(0)}</div>
-                        <div>
-                            <div class="font-weight-bold">${emp.full_name}</div>
-                            <div class="small text-muted">${emp.role || 'Personel'}</div>
-                        </div>
-                    </div>
-                </td>
+                <td><strong>${emp.full_name}</strong></td>
                 <td>${wageDisplay}</td>
-                <td>${emp.total_worked_days} Gün</td>
+                <td><small>${formatDate(emp.start_date)}</small></td>
+                <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued + (emp.total_reimbursement || 0))}</td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
-                <td><strong class="${balanceClass}" style="font-size: 1.1em;">${formatCurrency(emp.current_balance)}</strong></td>
+                <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
-                    <div class="btn-group">
-                        <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})" title="Ödeme Yap">
-                            💳 Öde
-                        </button>
-                        <button class="btn-small btn-secondary outline" onclick="editEmployee(${emp.id})" title="Düzenle">
-                            ✏️
-                        </button>
-                        <button class="btn-small btn-danger outline" onclick="deleteEmployee(${emp.id})" title="Sil">
-                            🗑️
-                        </button>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">Öde</button>
+                        <button class="btn-small btn-primary" onclick="editEmployee(${emp.id})">Düzenle</button>
+                        <button class="btn-small btn-danger" onclick="deleteEmployee(${emp.id})">Sil</button>
                     </div>
                 </td>
             </tr>
