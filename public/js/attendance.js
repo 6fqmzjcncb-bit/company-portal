@@ -182,7 +182,7 @@ function renderAttendance(date) {
                             min="0" 
                             max="24" 
                             step="0.5"
-                            class="input-small"
+                            class="input-small no-spinners"
                             style="width: 60px; text-align: center;"
                             ${!record.worked ? 'disabled' : ''}>
                         <div style="display: flex; gap: 3px;">
