@@ -88,11 +88,13 @@ const startServer = async () => {
 
         console.log('🔌 Veritabanı bağlantısı test ediliyor... (Adım 2)');
         await testConnection();
+        console.log('✓ Bağlantı testi tamamlandı.');
 
         // Auto-sync schema changes (non-destructive)
         try {
+            console.log('↻ Sequelize modelleri yükleniyor...');
             const { sequelize } = require('./config/database');
-            console.log('↻ Şema senkronizasyonu başlıyor...');
+            console.log('↻ Şema senkronizasyonu başlıyor (alter: false)...');
 
             // Veritabanı senkronizasyonu
             // "alter: true" bazen SQLite'da FK hatalarına sebep olabilir (orphaned data varsa).
@@ -101,6 +103,7 @@ const startServer = async () => {
             console.log('✓ Veritabanı senkronize edildi');
         } catch (syncError) {
             console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
+            console.error(syncError);
         }
 
         console.log('⚡ Uygulama dinlemeye başlıyor... (Adım 3)');
@@ -109,7 +112,7 @@ const startServer = async () => {
             console.log('║   ŞİRKET PORTALI - BAŞARILI BAŞLATILD  ║');
             console.log('╚════════════════════════════════════════╝');
             console.log('');
-            console.log(`🌐 Sunucu çalışıyor: http://localhost:${PORT}`);
+            console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
             console.log('📂 Veritabanı: database/portal.db');
             console.log('');
             console.log('Varsayılan Giriş Bilgileri:');
