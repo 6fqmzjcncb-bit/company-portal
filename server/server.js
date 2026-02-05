@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const fs = require('fs');
 const rateLimit = require('express-rate-limit');
 const { testConnection } = require('./config/database');
 
@@ -97,10 +98,11 @@ const startServer = async () => {
             const { sequelize } = require('./config/database');
             console.log('↻ Şema senkronizasyonu başlıyor (alter: true)...');
 
-            // Veritabanı senkronizasyonu
-            // "alter: true" bazen SQLite'da FK hatalarına sebep olabilir (orphaned data varsa).
-            // Şimdilik kapatıyoruz ki sunucu açılsın. Şema zaten büyük oranda uyumlu.
+            // SQLite constraint fix: Disable FKs -> Sync -> Enable FKs
+            await sequelize.query('PRAGMA foreign_keys = OFF;');
             await sequelize.sync({ alter: true });
+            await sequelize.query('PRAGMA foreign_keys = ON;');
+
             console.log('✓ Veritabanı senkronize edildi (alter: true)');
         } catch (syncError) {
             console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
