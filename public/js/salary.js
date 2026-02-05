@@ -290,15 +290,24 @@ function updateEmployeeSelect() {
 
 function updateEmployeeContext() {
     const empId = document.getElementById('employeeSelect').value;
-    const balanceDisplay = document.getElementById('currentBalanceDisplay');
+    const summaryDiv = document.getElementById('financialSummary');
 
     if (empId) {
         const emp = allEmployees.find(e => e.id == empId);
         if (emp) {
-            balanceDisplay.textContent = `Mevcut Bakiye: ${formatCurrency(emp.current_balance)}`;
+            // Populate financial summary
+            document.getElementById('modalAccrued').textContent = formatCurrency(emp.total_accrued);
+            document.getElementById('modalReimbursement').textContent = formatCurrency(emp.total_reimbursement || 0);
+            document.getElementById('modalExpense').textContent = formatCurrency(emp.total_expense);
+            document.getElementById('modalPaid').textContent = formatCurrency(emp.total_paid);
+            document.getElementById('modalBalance').textContent = formatCurrency(emp.current_balance);
+
+            summaryDiv.classList.remove('hidden');
+        } else {
+            summaryDiv.classList.add('hidden');
         }
     } else {
-        balanceDisplay.textContent = '';
+        summaryDiv.classList.add('hidden');
     }
 }
 

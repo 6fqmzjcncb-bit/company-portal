@@ -155,7 +155,37 @@
                                 <select id="employeeSelect" onchange="updateEmployeeContext()" required>
                                     <option value="">Seçiniz...</option>
                                 </select>
-                                <div id="currentBalanceInfo" class="balance-badge"></div>
+                                <div id="financialSummary" class="financial-summary hidden"
+                                    style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #e2e8f0;">
+                                    <div class="summary-grid"
+                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.9rem;">
+                                        <div>
+                                            <span class="text-muted d-block" style="font-size: 0.8rem;">Hakediş:</span>
+                                            <strong id="modalAccrued" class="text-dark">₺0.00</strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted d-block"
+                                                style="font-size: 0.8rem;">Masraf/Fiş:</span>
+                                            <strong id="modalReimbursement" class="text-primary">₺0.00</strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted d-block"
+                                                style="font-size: 0.8rem;">Kesinti/Avans:</span>
+                                            <strong id="modalExpense" class="text-danger">₺0.00</strong>
+                                        </div>
+                                        <div>
+                                            <span class="text-muted d-block" style="font-size: 0.8rem;">Toplam
+                                                Ödenen:</span>
+                                            <strong id="modalPaid" class="text-success">₺0.00</strong>
+                                        </div>
+                                    </div>
+                                    <div
+                                        style="border-top: 1px solid #cbd5e1; margin-top: 8px; padding-top: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="font-weight: 600; color: #334155;">NET BAKİYE:</span>
+                                        <strong id="modalBalance"
+                                            style="font-size: 1.1rem; color: #0f172a;">₺0.00</strong>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
