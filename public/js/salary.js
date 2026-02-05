@@ -180,8 +180,15 @@ async function loadBalances() {
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued)}</td>
-                <td class="clickable-cell text-primary" onclick="openExpenseModal(${emp.id})" title="Harcama Ekle" style="cursor: pointer; text-decoration: underline;">
-                    ${formatCurrency(emp.total_reimbursement || 0)} ➕
+                <td style="min-width: 140px;">
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span class="text-muted small" style="min-width: 45px;">${formatCurrency(emp.total_reimbursement || 0)}</span>
+                        <input type="number" 
+                            class="form-control form-control-sm" 
+                            style="width: 80px; padding: 2px 5px; height: 24px;" 
+                            placeholder="EKLE"
+                            onchange="handleQuickReimbursement(${emp.id}, this)">
+                    </div>
                 </td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
@@ -379,5 +386,38 @@ window.onclick = function (event) {
     }
     if (event.target == empModal) {
         closeModal('employeeModal');
+    }
+}
+
+async function handleQuickReimbursement(empId, input) {
+    const amount = input.value;
+    if (!amount || amount <= 0) return;
+
+    try {
+        // Disable input while processing
+        input.disabled = true;
+
+        const response = await fetch('/api/salary/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_id: empId,
+                amount_paid: amount,
+                transaction_type: 'reimbursement', // Maps to Harcamalar/Masraf
+                notes: 'Hızlı Ekleme (Tablo)',
+                payment_date: new Date().toISOString().split('T')[0]
+            })
+        });
+
+        if (!response.ok) throw new Error('Kaydedilemedi');
+
+        // Success feedback
+        input.style.borderColor = 'green';
+        setTimeout(() => loadBalances(), 500); // Reload table
+
+    } catch (error) {
+        alert('Hata: ' + error.message);
+        input.disabled = false;
+        input.style.borderColor = 'red';
     }
 }
