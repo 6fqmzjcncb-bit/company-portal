@@ -68,7 +68,11 @@ function renderEmployees(data) {
 
     tbody.innerHTML = data.map(emp => `
         <tr>
-            <td><strong>${emp.full_name}</strong></td>
+            <td>
+                <a href="/employee-detail.html?id=${emp.id}" class="text-primary hover:underline" style="font-weight: bold; text-decoration: none;">
+                    ${emp.full_name} ↗
+                </a>
+            </td>
             <td>${emp.phone || '-'}</td>
             <td>${getRoleText(emp.role)}</td>
             <td>${emp.daily_wage ? formatCurrency(emp.daily_wage) : '-'}</td>

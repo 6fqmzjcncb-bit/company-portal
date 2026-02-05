@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personel Detayı - Şirket Portalı</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">🏢</div>
+                <span class="logo-text">Şirket Portalı</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/dashboard.html" class="nav-item">
+                    <span class="nav-icon">🏠</span>
+                    Ana Sayfa
+                </a>
+                <a href="/jobs.html" class="nav-item">
+                    <span class="nav-icon">📋</span>
+                    İş Listeleri
+                </a>
+                <a href="/sources.html" class="nav-item">
+                    <span class="nav-icon">📦</span>
+                    Kaynaklar
+                </a>
+                <a href="/products.html" class="nav-item">
+                    <span class="nav-icon">🏷️</span>
+                    Ürünler
+                </a>
+                <div class="nav-divider"></div>
+                <a href="/employees.html" class="nav-item active">
+                    <span class="nav-icon">👥</span>
+                    Personel
+                </a>
+                <a href="/attendance.html" class="nav-item">
+                    <span class="nav-icon">📅</span>
+                    Çalışma Kaydı
+                </a>
+                <a href="/salary.html" class="nav-item">
+                    <span class="nav-icon">💰</span>
+                    Maaş Yönetimi
+                </a>
+                <a href="/stock-movements.html" class="nav-item">
+                    <span class="nav-icon">📊</span>
+                    Stok Hareketi
+                </a>
+                <div class="nav-divider"></div>
+                <a href="/admin.html" class="nav-item" id="adminLink" style="display: none;">
+                    <span class="nav-icon">⚙️</span>
+                    Yönetim Paneli
+                </a>
+            </nav>
+
+            <div class="user-profile">
+                <div class="user-info">
+                    <div class="user-name" id="userName">Yükleniyor...</div>
+                    <div class="user-role" id="userRole">...</div>
+                </div>
+                <button onclick="logout()" class="btn-icon" title="Çıkış Yap">🚪</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <a href="/employees.html" class="btn btn-secondary btn-icon" title="Geri Dön">⬅️</a>
+                    <h1 class="page-title" id="pageTitle">Personel Detayı</h1>
+                </div>
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Yazdır</button>
+            </div>
+
+            <!-- Summary Cards -->
+            <div class="stats-grid" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-title">Toplam Çalışılan Gün</div>
+                    <div class="stat-value" id="totalDays">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Toplam Mesai (Saat)</div>
+                    <div class="stat-value" id="totalOvertime">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">Son Çalışma</div>
+                    <div class="stat-value" id="lastWorkDate">-</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2>Çalışma Geçmişi</h2>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Durum</th>
+                                <th>Mesai</th>
+                                <th>Konum / Görev</th>
+                                <th>Notlar</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyList">
+                            <tr>
+                                <td colspan="5" class="text-center">Yükleniyor...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/employee-detail.js"></script>
+</body>
+
+</html>

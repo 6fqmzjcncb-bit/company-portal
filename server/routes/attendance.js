@@ -39,6 +39,21 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
+// Personel bazlı çalışma geçmişi
+router.get('/employee/:id', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const attendances = await Attendance.findAll({
+            where: { employee_id: id },
+            order: [['date', 'DESC']]
+        });
+        res.json(attendances);
+    } catch (error) {
+        console.error('Personel geçmişi hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
+
 // Toplu çalışma kaydı ekle (günlük tüm personel için)
 router.post('/bulk', requireAuth, async (req, res) => {
     try {
