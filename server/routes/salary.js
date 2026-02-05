@@ -59,9 +59,7 @@ router.get('/calculate', requireAuth, async (req, res) => {
     }
 });
 
-res.status(500).json({ error: 'Sunucu hatası' });
-    }
-});
+
 
 // GET /balance - Tüm personel bakiyelerini getir
 router.get('/balance', requireAuth, async (req, res) => {
