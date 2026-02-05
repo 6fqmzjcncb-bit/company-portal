@@ -180,15 +180,13 @@ async function loadBalances() {
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued)}</td>
-                <td style="min-width: 140px;">
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <span class="text-muted small" style="min-width: 45px;">${formatCurrency(emp.total_reimbursement || 0)}</span>
-                        <input type="number" 
-                            class="form-control form-control-sm" 
-                            style="width: 80px; padding: 2px 5px; height: 24px;" 
-                            placeholder="EKLE"
-                            onchange="handleQuickReimbursement(${emp.id}, this)">
-                    </div>
+                <td style="min-width: 100px;">
+                    <input type="number" 
+                        class="form-control form-control-sm" 
+                        style="width: 100%; text-align: right;" 
+                        value="${(emp.total_reimbursement || 0).toFixed(2)}"
+                        data-original-value="${emp.total_reimbursement || 0}"
+                        onchange="handleSmartReimbursement(${emp.id}, this)">
                 </td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
@@ -389,12 +387,19 @@ window.onclick = function (event) {
     }
 }
 
-async function handleQuickReimbursement(empId, input) {
-    const amount = input.value;
-    if (!amount || amount <= 0) return;
+async function handleSmartReimbursement(empId, input) {
+    const newVal = parseFloat(input.value);
+    const oldVal = parseFloat(input.getAttribute('data-original-value')) || 0;
+
+    if (isNaN(newVal)) {
+        input.value = oldVal.toFixed(2); // Reset on error
+        return;
+    }
+
+    const diff = newVal - oldVal;
+    if (Math.abs(diff) < 0.01) return; // No change
 
     try {
-        // Disable input while processing
         input.disabled = true;
 
         const response = await fetch('/api/salary/pay', {
@@ -402,21 +407,23 @@ async function handleQuickReimbursement(empId, input) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 employee_id: empId,
-                amount_paid: amount,
+                amount_paid: diff, // Send the difference (positive or negative)
                 transaction_type: 'reimbursement', // Maps to Harcamalar/Masraf
-                notes: 'Hızlı Ekleme (Tablo)',
+                notes: 'Tablodan düzenleme (Fark: ' + diff.toFixed(2) + ')',
                 payment_date: new Date().toISOString().split('T')[0]
             })
         });
 
         if (!response.ok) throw new Error('Kaydedilemedi');
 
-        // Success feedback
+        // Success: Update original value to prevent double-submit
+        input.dataset.originalValue = newVal;
         input.style.borderColor = 'green';
-        setTimeout(() => loadBalances(), 500); // Reload table
+        setTimeout(() => loadBalances(), 500); // Refresh to be safe
 
     } catch (error) {
         alert('Hata: ' + error.message);
+        input.value = oldVal.toFixed(2); // Revert
         input.disabled = false;
         input.style.borderColor = 'red';
     }
