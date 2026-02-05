@@ -96,17 +96,16 @@ const startServer = async () => {
         try {
             console.log('↻ Sequelize modelleri yükleniyor...');
             const { sequelize } = require('./config/database');
-            console.log('↻ Şema senkronizasyonu başlıyor (alter: true)...');
+            // SQLite unique constraint error fix:
+            // "alter: true" tries to recreate tables and fails on existing data.
+            // We switch to standard sync() which creates MISSING tables (like PaymentAccounts)
+            // but leaves existing ones (like Attendance) alone.
+            await sequelize.sync();
 
-            // SQLite constraint fix: Disable FKs -> Sync -> Enable FKs
-            await sequelize.query('PRAGMA foreign_keys = OFF;');
-            await sequelize.sync({ alter: true });
-            await sequelize.query('PRAGMA foreign_keys = ON;');
-
-            console.log('✓ Veritabanı senkronize edildi (alter: true)');
+            console.log('✓ Veritabanı senkronize edildi (Güvenli Mod)');
         } catch (syncError) {
-            console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
-            console.error(syncError);
+            console.error('⚠️ Schema sync error:', syncError.message);
+            // Server should continue even if sync fails
         }
 
         console.log('⚡ Uygulama dinlemeye başlıyor... (Adım 3)');
