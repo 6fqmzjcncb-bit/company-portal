@@ -80,69 +80,126 @@
                 <h1 class="page-title">💰 Maaş Yönetimi</h1>
             </div>
 
-            <!-- Period Selection -->
+            <!-- Balance Sheet Table -->
             <div class="card">
                 <div class="card-header">
-                    <h2>Dönem Seç ve Hesapla</h2>
+                    <h2>Personel Bakiyeleri ve İşlemler</h2>
+                    <button class="btn btn-primary" onclick="showTransactionModal()">➕ Yeni İşlem</button>
                 </div>
                 <div class="card-body">
-                    <div
-                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
-                        <div class="form-group">
-                            <label>Başlangıç Tarihi</label>
-                            <input type="date" id="periodStart" class="input-small">
-                        </div>
-                        <div class="form-group">
-                            <label>Bitiş Tarihi</label>
-                            <input type="date" id="periodEnd" class="input-small">
-                        </div>
-                        <div>
-                            <button class="btn btn-primary" onclick="calculateSalaries()">🔢 Hesapla</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Salary Calculations -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 id="calculationTitle">Maaş Hesapları</h2>
-                    <button class="btn btn-success" onclick="saveAllPayments()">💾 Toplu Ödeme Kaydet</button>
-                </div>
-                <div class="card-body">
-                    <div id="salaryCards" class="salary-grid">
-                        <p class="text-center" style="grid-column: 1/-1;">Lütfen dönem seçip hesapla butonuna tıklayın
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment History -->
-            <div class="card">
-                <div class="card-header">
-                    <h2>Ödeme Geçmişi</h2>
-                </div>
-                <div class="card-body">
-                    <div class="table-wrapper">
+                    <div class="table-container">
                         <table class="table">
                             <thead>
                                 <tr>
                                     <th>Personel</th>
-                                    <th>Dönem</th>
-                                    <th>Gün</th>
-                                    <th>Saat</th>
-                                    <th>Tutar</th>
-                                    <th>Ödeme Tarihi</th>
+                                    <th>Çalışılan Gün</th>
+                                    <th>Toplam Hakediş</th>
+                                    <th>Ödenen</th>
+                                    <th>Kesintiler/Avans</th>
+                                    <th>Bakiye (Kalan)</th>
                                     <th>İşlem</th>
                                 </tr>
                             </thead>
-                            <tbody id="paymentHistory">
+                            <tbody id="balanceTable">
                                 <tr>
                                     <td colspan="7" class="text-center">Yükleniyor...</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="card" style="margin-top: 2rem;">
+                <div class="card-header">
+                    <h2>Son İşlemler</h2>
+                </div>
+                <div class="card-body">
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Personel</th>
+                                    <th>Tarih</th>
+                                    <th>İşlem Tipi</th>
+                                    <th>Tutar</th>
+                                    <th>Hesap</th>
+                                    <th>Notlar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionHistory">
+                                <tr>
+                                    <td colspan="6" class="text-center">Yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transaction Modal -->
+            <div id="transactionModal" class="modal">
+                <div class="modal-content" style="max-width: 500px;">
+                    <div class="modal-header">
+                        <h2 id="modalTitle">Yeni İşlem</h2>
+                        <span class="close" onclick="closeModal()">&times;</span>
+                    </div>
+                    <form id="transactionForm">
+                        <input type="hidden" id="employeeId">
+
+                        <div class="form-group">
+                            <label>Personel</label>
+                            <select id="employeeSelect" class="form-select" required onchange="updateEmployeeContext()">
+                                <option value="">Seçiniz...</option>
+                            </select>
+                            <div id="currentBalanceDisplay" class="text-sm text-gray" style="margin-top: 5px;"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>İşlem Tipi</label>
+                            <div class="radio-group" style="display: flex; gap: 15px; margin-top: 5px;">
+                                <label>
+                                    <input type="radio" name="transType" value="payment" checked
+                                        onchange="toggleAccountSelect()"> Ödeme (Maaş/Avans)
+                                </label>
+                                <label>
+                                    <input type="radio" name="transType" value="expense"
+                                        onchange="toggleAccountSelect()"> Harcama/Kesinti
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tutar (TL)</label>
+                            <input type="number" id="amount" class="form-input" required min="0" step="0.01">
+                        </div>
+
+                        <div class="form-group" id="accountGroup">
+                            <label>Ödeme Hesabı</label>
+                            <select id="accountSelect" class="form-select">
+                                <option value="cash">Nakit Kasa</option>
+                                <option value="bank_a">Banka A</option>
+                                <option value="bank_b">Banka B</option>
+                                <option value="personal">Şahsi Hesap</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Tarih</label>
+                            <input type="date" id="transDate" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notlar</label>
+                            <textarea id="notes" class="form-textarea" rows="2"></textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </main>

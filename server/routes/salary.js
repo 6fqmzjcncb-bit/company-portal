@@ -59,55 +59,112 @@ router.get('/calculate', requireAuth, async (req, res) => {
     }
 });
 
-// Ödeme geçmişi
-router.get('/payments', requireAuth, async (req, res) => {
-    try {
-        const { employee_id } = req.query;
+res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
 
-        let whereClause = {};
-        if (employee_id) {
-            whereClause.employee_id = employee_id;
+// GET /balance - Tüm personel bakiyelerini getir
+router.get('/balance', requireAuth, async (req, res) => {
+    try {
+        const employees = await Employee.findAll({ where: { is_active: true } });
+
+        const balances = [];
+        for (const emp of employees) {
+            // 1. Toplam Hak Ediş (Maaş/Yevmiye)
+            let totalAccrued = 0;
+            let totalWorkedDays = 0;
+
+            const attendances = await Attendance.findAll({
+                where: { employee_id: emp.id, worked: true }
+            });
+            totalWorkedDays = attendances.length;
+
+            if (emp.daily_wage) {
+                // Günlük ücret * Gün sayısı + Mesai (opsiyonel, şimdilik sadece günlük)
+                // Mesai hesabı karmaşıksa buraya eklenebilir. Basitçe günlük * gün diyelim.
+                // Eğer mesai ücreti ayrıca varsa: (saat * saatlik_ücret). 
+                // Şimdilik basit model: Sadece Günlük Ücret * Gün.
+                totalAccrued = totalWorkedDays * parseFloat(emp.daily_wage);
+
+                // Mesai ekle
+                const totalOvertimeHours = attendances.reduce((sum, a) => sum + (parseFloat(a.hours_worked) || 0), 0);
+                const hourlyRate = parseFloat(emp.daily_wage) / 9; // Varsayılan 9 saat?
+                totalAccrued += totalOvertimeHours * hourlyRate;
+            } else if (emp.monthly_salary) {
+                // Aylık maaş: Burada karmaşık. Kaç ay çalıştı?
+                // Basitlik için: Aylık maaşlıların 'balance' takibi zor olabilir.
+                // Şimdilik sadece günlük ücretliler için tam otomatik olsun.
+                // Aylıklar için manuel hakediş eklenebilir mi?
+                // Kullanıcı "esnek ödüyorum" dedi. Muhtemelen günlükçüler ağırlıklı.
+                // Aylık maaşı şimdilik 0 kabul edip manuel ekleme mi yapsak?
+                // Yoksa Attendance'a göre oranlasak mı?
+                // Basit mantık: (Maaş / 30) * Çalışılan Gün
+                totalAccrued = (parseFloat(emp.monthly_salary) / 30) * totalWorkedDays;
+            }
+
+            // 2. Toplam Ödemeler ve Harcamalar
+            const payments = await SalaryPayment.findAll({
+                where: { employee_id: emp.id }
+            });
+
+            const totalPaid = payments
+                .filter(p => p.transaction_type === 'payment')
+                .reduce((sum, p) => sum + parseFloat(p.amount_paid), 0);
+
+            const totalExpense = payments
+                .filter(p => p.transaction_type === 'expense')
+                .reduce((sum, p) => sum + parseFloat(p.amount_paid), 0);
+
+            balances.push({
+                id: emp.id,
+                full_name: emp.full_name,
+                total_worked_days: totalWorkedDays,
+                total_accrued: totalAccrued,
+                total_paid: totalPaid,
+                total_expense: totalExpense,
+                current_balance: totalAccrued - (totalPaid + totalExpense)
+            });
         }
 
-        const payments = await SalaryPayment.findAll({
-            where: whereClause,
-            include: [{
-                model: Employee,
-                as: 'employee'
-            }],
-            order: [['period_start', 'DESC']]
-        });
-
-        res.json(payments);
+        res.json(balances);
     } catch (error) {
-        console.error('Ödeme listesi hatası:', error);
+        console.error('Bakiye hesaplama hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 });
 
-// Maaş ödemesi kaydet
+// POST /pay - Ödeme veya Harcama Ekle (Esnek)
 router.post('/pay', requireAuth, async (req, res) => {
     try {
-        const { employee_id, period_start, period_end, days_worked, total_hours, amount_paid, payment_date, notes } = req.body;
+        const {
+            employee_id,
+            amount_paid,
+            transaction_type, // 'payment' or 'expense'
+            account,          // 'cash', 'bank'
+            notes,
+            payment_date
+        } = req.body;
 
         const payment = await SalaryPayment.create({
             employee_id,
-            period_start,
-            period_end,
-            days_worked,
-            total_hours,
             amount_paid,
-            payment_date: payment_date || new Date(),
+            transaction_type: transaction_type || 'payment',
+            account: account || 'cash',
             notes,
-            created_by: req.session.userId
+            payment_date: payment_date || new Date(),
+            created_by: req.session.userId,
+            // Opsiyonel alanlar boş kalabilir
+            days_worked: 0,
+            total_hours: 0
         });
 
         res.status(201).json(payment);
     } catch (error) {
-        console.error('Maaş ödeme hatası:', error);
+        console.error('İşlem kaydı hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 });
+
 
 // Ödeme silme
 router.delete('/:id', requireAuth, async (req, res) => {

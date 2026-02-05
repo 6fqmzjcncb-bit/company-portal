@@ -15,19 +15,31 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
             key: 'id'
         }
     },
+    transaction_type: {
+        type: DataTypes.ENUM('payment', 'expense'),
+        allowNull: false,
+        defaultValue: 'payment',
+        comment: 'İşlem tipi: ödeme veya harcama'
+    },
+    account: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue: 'cash', // 'cash', 'bank_a', 'bank_b'
+        comment: 'Ödeme aracı/Hesap'
+    },
     period_start: {
         type: DataTypes.DATEONLY,
-        allowNull: false,
-        comment: 'Dönem başlangıç'
+        allowNull: true,
+        comment: 'Dönem başlangıç (Opsiyonel)'
     },
     period_end: {
         type: DataTypes.DATEONLY,
-        allowNull: false,
-        comment: 'Dönem bitiş'
+        allowNull: true,
+        comment: 'Dönem bitiş (Opsiyonel)'
     },
     days_worked: {
         type: DataTypes.INTEGER,
-        allowNull: false,
+        allowNull: true,
         defaultValue: 0
     },
     total_hours: {
@@ -42,7 +54,8 @@ const SalaryPayment = sequelize.define('SalaryPayment', {
     },
     payment_date: {
         type: DataTypes.DATEONLY,
-        allowNull: true
+        allowNull: true,
+        defaultValue: DataTypes.NOW
     },
     notes: {
         type: DataTypes.TEXT,

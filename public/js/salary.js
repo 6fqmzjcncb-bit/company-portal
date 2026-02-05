@@ -1,5 +1,6 @@
 // Auth check
 let currentUser = null;
+let allEmployees = [];
 
 async function checkAuth() {
     try {
@@ -15,7 +16,6 @@ async function checkAuth() {
     }
 }
 
-// User info display and initialization
 document.addEventListener('DOMContentLoaded', async () => {
     currentUser = await checkAuth();
     if (!currentUser) return;
@@ -23,215 +23,213 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('userName').textContent = currentUser.full_name;
     document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
 
-    if (currentUser.role === 'admin') {
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) adminLink.style.display = 'block';
-    }
+    // Set default date for transaction
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('transDate').value = today;
 
-    // Set default period (this month)
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
-    document.getElementById('periodStart').value = firstDay.toISOString().split('T')[0];
-    document.getElementById('periodEnd').value = lastDay.toISOString().split('T')[0];
-
-    await loadPaymentHistory();
+    await loadData();
 });
 
-async function logout() {
-    try {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/index.html';
-    } catch (error) {
-        window.location.href = '/index.html';
-    }
+async function loadData() {
+    await loadBalances();
+    await loadHistory();
 }
 
-let calculations = [];
-
-// Calculate salaries for all employees
-async function calculateSalaries() {
-    const start = document.getElementById('periodStart').value;
-    const end = document.getElementById('periodEnd').value;
-
-    if (!start || !end) {
-        alert('Lütfen başlangıç ve bitiş tarihlerini seçin');
-        return;
-    }
-
+async function loadBalances() {
     try {
-        // Get all active employees
-        const empResponse = await fetch('/api/employees');
-        const employees = await empResponse.json();
-        const activeEmployees = employees.filter(e => e.is_active);
+        const response = await fetch('/api/salary/balance');
+        const balances = await response.json();
 
-        // Calculate for each employee
-        calculations = [];
-        for (const emp of activeEmployees) {
-            const calcResponse = await fetch(`/api/salary/calculate?employee_id=${emp.id}&start_date=${start}&end_date=${end}`);
-            const calc = await calcResponse.json();
-            calc.phone = emp.phone;
-            calculations.push(calc);
+        // Save for modal lookup
+        allEmployees = balances;
+        updateEmployeeSelect(); // Populate dropdown
+
+        const tbody = document.getElementById('balanceTable');
+
+        if (balances.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center">Personel bulunamadı</td></tr>';
+            return;
         }
 
-        renderSalaryCalculations();
+        tbody.innerHTML = balances.map(emp => {
+            const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success'; // Debt to employee is red? Or simple: Positive means we owe them.
+            // Let's stick to: Positive Balance = We owe employee (Liability).
+
+            return `
+            <tr>
+                <td><strong>${emp.full_name}</strong></td>
+                <td>${emp.total_worked_days} Gün</td>
+                <td>${formatCurrency(emp.total_accrued)}</td>
+                <td class="text-success">${formatCurrency(emp.total_paid)}</td>
+                <td class="text-warning">${formatCurrency(emp.total_expense)}</td>
+                <td><strong class="${emp.current_balance > 0 ? 'text-danger' : 'text-success'}">${formatCurrency(emp.current_balance)}</strong></td>
+                <td>
+                    <button class="btn-small btn-primary" onclick="openPaymentModal(${emp.id})">Öde</button>
+                    <button class="btn-small border-danger text-danger" onclick="openExpenseModal(${emp.id})" style="background:white;">Harcama</button>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
     } catch (error) {
         console.error('Hata:', error);
-        alert('Maaş hesaplama sırasında hata oluştu');
     }
 }
 
-// Render salary calculations
-function renderSalaryCalculations() {
-    const container = document.getElementById('salaryCards');
-    const start = document.getElementById('periodStart').value;
-    const end = document.getElementById('periodEnd').value;
-
-    document.getElementById('calculationTitle').textContent =
-        `Maaş Hesapları (${formatDate(start)} - ${formatDate(end)})`;
-
-    if (calculations.length === 0) {
-        container.innerHTML = '<p class="text-center" style="grid-column: 1/-1;">Hesaplama sonucu yok</p>';
-        return;
-    }
-
-    container.innerHTML = calculations.map(calc => `
-        <div class="salary-card">
-            <div class="salary-card-header">
-                <h3>${calc.employee_name}</h3>
-                <span class="badge badge-info">${calc.calculation_type === 'monthly' ? 'Aylık' : 'Günlük'}</span>
-            </div>
-            <div class="salary-card-body">
-                <div class="salary-stat">
-                    <span class="stat-label">Çalışılan Gün:</span>
-                    <span class="stat-value">${calc.days_worked}</span>
-                </div>
-                <div class="salary-stat">
-                    <span class="stat-label">Toplam Saat:</span>
-                    <span class="stat-value">${calc.total_hours.toFixed(1)}</span>
-                </div>
-                <div class="salary-stat highlight">
-                    <span class="stat-label">Hesaplanan Maaş:</span>
-                    <span class="stat-value">${formatCurrency(calc.amount_calculated)}</span>
-                </div>
-                ${calc.phone ? `<div class="salary-phone">📞 ${calc.phone}</div>` : ''}
-            </div>
-        </div>
-    `).join('');
-}
-
-// Save all payments
-async function saveAllPayments() {
-    if (calculations.length === 0) {
-        alert('Önce maaş hesaplama yapmalısınız');
-        return;
-    }
-
-    if (!confirm(`${calculations.length} personel için ödeme kaydı oluşturulacak. Onaylıyor musunuz?`)) {
-        return;
-    }
-
-    const start = document.getElementById('periodStart').value;
-    const end = document.getElementById('periodEnd').value;
-
+async function loadHistory() {
     try {
-        for (const calc of calculations) {
-            await fetch('/api/salary/pay', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    employee_id: calc.employee_id,
-                    period_start: calc.period_start,
-                    period_end: calc.period_end,
-                    days_worked: calc.days_worked,
-                    total_hours: calc.total_hours,
-                    amount_paid: calc.amount_calculated,
-                    payment_date: new Date().toISOString().split('T')[0],
-                    notes: `${calc.calculation_type === 'monthly' ? 'Aylık' : 'Günlük'} maaş ödemesi`
-                })
-            });
+        const response = await fetch('/api/salary/payments'); // Renamed route logic but kept same endpoint name in backed for simplicity
+        const transactions = await response.json();
+
+        const tbody = document.getElementById('transactionHistory');
+        if (transactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Kayıt bulunamadı</td></tr>';
+            return;
         }
 
-        alert('Tüm ödemeler başarıyla kaydedildi!');
-        loadPaymentHistory();
-        calculations = [];
-        document.getElementById('salaryCards').innerHTML =
-            '<p class="text-center" style="grid-column: 1/-1;">Ödemeler kaydedildi. Yeni hesaplama için dönem seçin.</p>';
+        tbody.innerHTML = transactions.map(t => {
+            const isExpense = t.transaction_type === 'expense';
+            return `
+            <tr>
+                <td><strong>${t.employee.full_name}</strong></td>
+                <td>${formatDate(t.payment_date)}</td>
+                <td>
+                    <span class="badge ${isExpense ? 'badge-danger' : 'badge-success'}">
+                        ${isExpense ? 'Harcama' : 'Ödeme'}
+                    </span>
+                </td>
+                <td>${formatCurrency(t.amount_paid)}</td>
+                <td>${getAccountLabel(t.account)}</td>
+                <td>${t.notes || '-'}</td>
+            </tr>
+            `;
+        }).join('');
+
     } catch (error) {
         console.error('Hata:', error);
-        alert('Ödeme kaydı sırasında hata oluştu');
     }
 }
 
-// Load payment history
-async function loadPaymentHistory() {
+// Modal Logic
+function showTransactionModal() {
+    document.getElementById('transactionForm').reset();
+    document.getElementById('employeeId').value = '';
+
+    // Set Default Date
+    document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+
+    document.getElementById('transactionModal').style.display = 'flex';
+}
+
+function openPaymentModal(empId) {
+    showTransactionModal();
+    document.getElementById('employeeSelect').value = empId;
+    document.querySelector('input[name="transType"][value="payment"]').checked = true;
+    updateEmployeeContext();
+}
+
+function openExpenseModal(empId) {
+    showTransactionModal();
+    document.getElementById('employeeSelect').value = empId;
+    document.querySelector('input[name="transType"][value="expense"]').checked = true;
+    updateEmployeeContext();
+}
+
+function closeModal() {
+    document.getElementById('transactionModal').style.display = 'none';
+}
+
+function updateEmployeeSelect() {
+    const select = document.getElementById('employeeSelect');
+    if (select.options.length <= 1) { // Only fill if empty
+        allEmployees.forEach(emp => {
+            const opt = document.createElement('option');
+            opt.value = emp.id;
+            opt.textContent = emp.full_name;
+            select.appendChild(opt);
+        });
+    }
+}
+
+function updateEmployeeContext() {
+    const empId = document.getElementById('employeeSelect').value;
+    const balanceDisplay = document.getElementById('currentBalanceDisplay');
+
+    if (empId) {
+        const emp = allEmployees.find(e => e.id == empId);
+        if (emp) {
+            balanceDisplay.textContent = `Mevcut Bakiye: ${formatCurrency(emp.current_balance)}`;
+        }
+    } else {
+        balanceDisplay.textContent = '';
+    }
+}
+
+function toggleAccountSelect() {
+    // Logic if we want to hide account select for expenses? 
+    // Usually expenses also come from an account. Kept for now.
+}
+
+// Form Submission
+document.getElementById('transactionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const empId = document.getElementById('employeeSelect').value;
+    const type = document.querySelector('input[name="transType"]:checked').value;
+    const amount = document.getElementById('amount').value;
+    const account = document.getElementById('accountSelect').value;
+    const date = document.getElementById('transDate').value;
+    const notes = document.getElementById('notes').value;
+
     try {
-        const response = await fetch('/api/salary/payments');
-        const payments = await response.json();
-        renderPaymentHistory(payments);
-    } catch (error) {
-        console.error('Hata:', error);
-        document.getElementById('paymentHistory').innerHTML =
-            '<tr><td colspan="7" class="text-center">Yükleme hatası</td></tr>';
-    }
-}
-
-// Render payment history
-function renderPaymentHistory(payments) {
-    const tbody = document.getElementById('paymentHistory');
-
-    if (payments.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">Henüz ödeme kaydı yok</td></tr>';
-        return;
-    }
-
-    tbody.innerHTML = payments.map(payment => `
-        <tr>
-            <td><strong>${payment.employee.full_name}</strong></td>
-            <td>${formatDate(payment.period_start)} - ${formatDate(payment.period_end)}</td>
-            <td>${payment.days_worked}</td>
-            <td>${payment.total_hours ? payment.total_hours.toFixed(1) : '-'}</td>
-            <td><strong>${formatCurrency(payment.amount_paid)}</strong></td>
-            <td>${formatDate(payment.payment_date)}</td>
-            <td>
-                <button class="btn-icon" onclick="deletePayment(${payment.id})" title="Sil">🗑️</button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-// Delete payment
-async function deletePayment(id) {
-    if (!confirm('Bu ödeme kaydını silmek istediğinizden emin misiniz?')) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/salary/${id}`, {
-            method: 'DELETE'
+        const response = await fetch('/api/salary/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_id: empId,
+                amount_paid: amount,
+                transaction_type: type,
+                account: account,
+                payment_date: date,
+                notes: notes
+            })
         });
 
-        if (!response.ok) throw new Error('Silme başarısız');
+        if (!response.ok) throw new Error('Kaydedilemedi');
 
-        alert('Ödeme kaydı silindi');
-        loadPaymentHistory();
+        alert('İşlem başarıyla kaydedildi');
+        closeModal();
+        loadData(); // Refresh all tables
+
     } catch (error) {
-        console.error('Hata:', error);
-        alert('Silme sırasında hata oluştu');
+        alert('Hata: ' + error.message);
     }
+});
+
+// Utils
+function formatCurrency(v) {
+    return new Intl.NumberFormat('tr-TR', { style: 'currency', currency: 'TRY' }).format(v);
 }
 
-// Helper functions
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('tr-TR', {
-        style: 'currency',
-        currency: 'TRY'
-    }).format(amount);
+function formatDate(d) {
+    if (!d) return '-';
+    return new Date(d).toLocaleDateString('tr-TR');
 }
 
-function formatDate(dateStr) {
-    if (!dateStr) return '-';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('tr-TR');
+function getAccountLabel(acc) {
+    const map = {
+        'cash': '💵 Nakit Kasa',
+        'bank_a': '🏦 Banka A',
+        'bank_b': '🏦 Banka B',
+        'personal': '👤 Şahsi'
+    };
+    return map[acc] || acc;
+}
+
+// Close modal on outside click
+window.onclick = function (event) {
+    const modal = document.getElementById('transactionModal');
+    if (event.target == modal) {
+        closeModal();
+    }
 }
