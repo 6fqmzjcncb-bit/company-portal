@@ -1,0 +1,72 @@
+/* Transaction Modal Styles */
+.transaction-types {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.type-option {
+    flex: 1;
+    cursor: pointer;
+}
+
+.type-option input {
+    display: none;
+}
+
+.type-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    height: 100%;
+}
+
+.type-card .icon {
+    font-size: 1.5rem;
+}
+
+.type-option input:checked+.type-card.payment {
+    border-color: var(--secondary-color);
+    background-color: var(--success-bg);
+    color: var(--success-text);
+}
+
+.type-option input:checked+.type-card.expense {
+    border-color: var(--error-text);
+    background-color: var(--error-bg);
+    color: var(--error-text);
+}
+
+.balance-badge {
+    background: var(--gray-100);
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    margin-top: 5px;
+    font-weight: 600;
+    display: none;
+    /* JS will show */
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+.clickable-name {
+    color: var(--primary-color);
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.clickable-name:hover {
+    text-decoration: underline;
+}

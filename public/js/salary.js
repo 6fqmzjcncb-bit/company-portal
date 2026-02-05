@@ -43,6 +43,7 @@ function showAddEmployeeModal() {
     document.getElementById('employeeForm').reset();
     document.getElementById('editEmpId').value = '';
     document.getElementById('empModalTitle').textContent = 'Yeni Personel Ekle';
+    document.getElementById('btnDeleteEmployee').style.display = 'none'; // Hide delete for new
     document.getElementById('employeeModal').style.display = 'flex';
 }
 
@@ -51,6 +52,9 @@ function editEmployee(id) {
     if (!emp) return;
 
     document.getElementById('empModalTitle').textContent = 'Personel Düzenle';
+    document.getElementById('btnDeleteEmployee').style.display = 'block'; // Show delete for edit
+    document.getElementById('btnDeleteEmployee').onclick = () => deleteEmployee(id); // Bind delete
+
     document.getElementById('editEmpId').value = emp.id;
     document.getElementById('fullName').value = emp.full_name;
     document.getElementById('phone').value = emp.phone || ''; // Assuming phone might be available in future backend update or currently hidden
@@ -159,7 +163,11 @@ async function loadBalances() {
 
             return `
             <tr>
-                <td><strong>${emp.full_name}</strong></td>
+                <td>
+                    <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
+                        ${emp.full_name} ✏️
+                    </div>
+                </td>
                 <td>${wageDisplay}</td>
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
@@ -167,11 +175,9 @@ async function loadBalances() {
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
-                    <div style="display:flex; gap:5px;">
-                        <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">Öde</button>
-                        <button class="btn-small btn-primary" onclick="editEmployee(${emp.id})">Düzenle</button>
-                        <button class="btn-small btn-danger" onclick="deleteEmployee(${emp.id})">Sil</button>
-                    </div>
+                    <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
+                        Ödeme Yap
+                    </button>
                 </td>
             </tr>
             `;

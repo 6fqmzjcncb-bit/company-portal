@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maaş Yönetimi - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/modal.css">
 </head>
 
 <body>
@@ -141,140 +142,145 @@
                 <div class="modal-content" style="max-width: 500px;">
                     <div class="modal-header">
                         <h2 id="modalTitle">Yeni İşlem</h2>
-                        <span class="close" onclick="closeModal('transactionModal')">&times;</span>
-                    </div>
-                    <form id="transactionForm">
-                        <input type="hidden" id="employeeId">
-
-                        <div class="form-group">
-                            <label>Personel Seç</label>
-                            <select id="employeeSelect" onchange="updateEmployeeContext()" required>
-                                <option value="">Seçiniz...</option>
-                            </select>
-                            <small id="currentBalanceInfo" class="form-text text-muted"
-                                style="display:block; margin-top:5px; font-weight:bold;"></small>
-                        </div>
-
-                        <div class="form-group">
-                            <label>İşlem Tipi</label>
-                            <div class="radio-group"
-                                style="display: flex; flex-direction: column; gap: 10px; margin-top: 5px;">
-                                <label>
-                                    <input type="radio" name="transType" value="payment" checked
-                                        onchange="toggleAccountSelect()">
-                                    <strong>Ödeme Yap</strong> (Maaş/Avans Ver) <span class="text-sm text-gray">-
-                                        Bakiyeyi düşürür</span>
-                                </label>
-                                <label>
-                                    <input type="radio" name="transType" value="expense"
-                                        onchange="toggleAccountSelect()">
-                                    <strong>Kesinti/Ceza</strong> (Bakiyeden Düş)
-                                </label>
-                                <label>
-                                    <input type="radio" name="transType" value="reimbursement"
-                                        onchange="toggleAccountSelect()">
-                                    <strong>Masraf Fişi / Alacak Ekle</strong> (Personel cebinden harcadı) <span
-                                        class="text-sm text-gray">+ Bakiyeyi artırır</span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Account Selection (Only for Payments) -->
-                        <div class="form-group" id="accountGroup">
-                            <label>Ödeme Hesabı</label>
-                            <select id="accountSelect">
-                                <option value="cash">Nakit Kasa</option>
-                                <option value="bank_a">Banka A (Yapı Kredi)</option>
-                                <option value="bank_b">Banka B (Garanti)</option>
-                                <option value="personal">Şahsi Hesap</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Tutar (₺)</label>
-                            <input type="number" id="transAmount" step="0.01" min="0" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Tarih</label>
-                            <input type="date" id="transDate" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Notlar</label>
-                            <textarea id="transNotes" rows="2"></textarea>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('transactionModal')">İptal</button>
-                            <button type="submit" class="btn btn-primary">Kaydet</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Employee Add/Edit Modal (Imported) -->
-            <div id="employeeModal" class="modal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2 id="empModalTitle">Yeni Personel Ekle</h2>
-                        <button class="modal-close" onclick="closeModal('employeeModal')">&times;</button>
+                        <button class="modal-close" onclick="closeModal('transactionModal')">&times;</button>
                     </div>
                     <div class="modal-body">
-                        <form id="employeeForm">
-                            <input type="hidden" id="editEmpId">
+                        <form id="transactionForm">
+                            <input type="hidden" id="employeeId">
 
                             <div class="form-group">
-                                <label for="fullName">Ad Soyad *</label>
-                                <input type="text" id="fullName" required>
+                                <label>Personel</label>
+                                <select id="employeeSelect" onchange="updateEmployeeContext()" required>
+                                    <option value="">Seçiniz...</option>
+                                </select>
+                                <div id="currentBalanceInfo" class="balance-badge"></div>
                             </div>
 
                             <div class="form-group">
-                                <label for="phone">Telefon</label>
-                                <input type="text" id="phone" placeholder="05xx xxx xx xx">
+                                <label>İşlem Tipi</label>
+                                <div class="transaction-types">
+                                    <label class="type-option">
+                                        <input type="radio" name="transType" value="payment" checked
+                                            onchange="toggleAccountSelect()">
+                                        <span class="type-card payment">
+                                            <span class="icon">💸</span>
+                                            <span><strong>Ödeme Yap</strong><br><small>Maaş veya Avans</small></span>
+                                        </span>
+                                    </label>
+                                    <label class="type-option">
+                                        <input type="radio" name="transType" value="expense"
+                                            onchange="toggleAccountSelect()">
+                                        <span class="type-card expense">
+                                            <span class="icon">📉</span>
+                                            <span><strong>Kesinti</strong><br><small>Ceza veya Düşüş</small></span>
+                                        </span>
+                                    </label>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label for="role">Rol *</label>
-                                <select id="role" required>
-                                    <option value="worker">İşçi</option>
-                                    <option value="supervisor">Ustabaşı</option>
-                                    <option value="manager">Yönetici</option>
+                            <div class="form-group" id="accountGroup">
+                                <label>Ödeme Yöntemi</label>
+                                <select id="accountSelect" class="form-control">
+                                    <option value="cash">💵 Nakit Kasa</option>
+                                    <option value="bank_a">🏦 Banka A (Yapı Kredi)</option>
+                                    <option value="bank_b">🏦 Banka B (Garanti)</option>
+                                    <option value="personal">👤 Şahsi Hesap</option>
                                 </select>
                             </div>
 
-                            <div class="form-group">
-                                <label for="dailyWage">Günlük Ücret (₺)</label>
-                                <input type="number" id="dailyWage" step="0.01" min="0">
+                            <div class="form-row">
+                                <div class="form-group half">
+                                    <label>Tutar (₺)</label>
+                                    <input type="number" id="transAmount" step="0.01" min="0" placeholder="0.00"
+                                        required>
+                                </div>
+                                <div class="form-group half">
+                                    <label>Tarih</label>
+                                    <input type="date" id="transDate" required>
+                                </div>
                             </div>
 
                             <div class="form-group">
-                                <label for="monthlySalary">Aylık Maaş (₺)</label>
-                                <input type="number" id="monthlySalary" step="0.01" min="0">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="hireDate">İşe Başlama Tarihi</label>
-                                <input type="date" id="hireDate">
-                            </div>
-
-                            <div class="form-group">
-                                <label for="notes">Notlar</label>
-                                <textarea id="notes" rows="3"></textarea>
+                                <label>Açıklama</label>
+                                <textarea id="transNotes" rows="2" placeholder="İşlem detayları..."></textarea>
                             </div>
 
                             <div class="modal-actions">
                                 <button type="button" class="btn btn-secondary"
-                                    onclick="closeModal('employeeModal')">İptal</button>
-                                <button type="submit" class="btn btn-primary">Kaydet</button>
+                                    onclick="closeModal('transactionModal')">İptal</button>
+                                <button type="submit" class="btn btn-primary">İşlemi Kaydet</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+    </div>
 
-        </main>
+    <!-- Employee Add/Edit Modal (Imported) -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="empModalTitle">Yeni Personel Ekle</h2>
+                <button class="modal-close" onclick="closeModal('employeeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="employeeForm">
+                    <input type="hidden" id="editEmpId">
+
+                    <div class="form-group">
+                        <label for="fullName">Ad Soyad *</label>
+                        <input type="text" id="fullName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phone">Telefon</label>
+                        <input type="text" id="phone" placeholder="05xx xxx xx xx">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Rol *</label>
+                        <select id="role" required>
+                            <option value="worker">İşçi</option>
+                            <option value="supervisor">Ustabaşı</option>
+                            <option value="manager">Yönetici</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dailyWage">Günlük Ücret (₺)</label>
+                        <input type="number" id="dailyWage" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="monthlySalary">Aylık Maaş (₺)</label>
+                        <input type="number" id="monthlySalary" step="0.01" min="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="hireDate">İşe Başlama Tarihi</label>
+                        <input type="date" id="hireDate">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notlar</label>
+                        <textarea id="notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="modal-actions" style="justify-content: space-between;">
+                        <button type="button" id="btnDeleteEmployee" class="btn btn-danger"
+                            style="display:none;">Sil</button>
+                        <div style="display:flex; gap:10px;">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('employeeModal')">İptal</button>
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    </main>
     </div>
 
     <script src="/js/salary.js"></script>
