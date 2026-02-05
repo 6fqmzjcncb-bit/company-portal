@@ -323,7 +323,7 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
     e.preventDefault();
 
     const empId = document.getElementById('employeeSelect').value;
-    const type = document.querySelector('input[name="transType"]:checked').value;
+    // const type = document.querySelector('input[name="transType"]:checked').value; // Removed
     const amount = document.getElementById('transAmount').value;
     const account = document.getElementById('accountSelect').value;
     const date = document.getElementById('transDate').value;
@@ -336,7 +336,7 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
             body: JSON.stringify({
                 employee_id: empId,
                 amount_paid: amount,
-                transaction_type: type,
+                transaction_type: 'payment', // Always payment from modal
                 account: account,
                 payment_date: date,
                 notes: notes
