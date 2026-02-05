@@ -183,8 +183,8 @@ async function loadBalances() {
                 <td style="width: 120px;">
                     <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
                         <input type="number" 
-                            style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 14px; background: transparent;" 
-                            value="${(emp.total_reimbursement || 0).toFixed(2)}"
+                            style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
+                            value="${parseFloat((emp.total_reimbursement || 0).toFixed(2))}"
                             data-original-value="${emp.total_reimbursement || 0}"
                             onchange="handleSmartReimbursement(${emp.id}, this)">
                         <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
