@@ -341,6 +341,17 @@ function getAccountLabel(acc) {
     return map[acc] || acc;
 }
 
+// Global close modal function
+window.closeModal = function (modalId) {
+    if (modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    } else {
+        // Fallback: close all
+        const modals = document.querySelectorAll('.modal');
+        modals.forEach(m => m.style.display = 'none');
+    }
+}
+
 // Close modal on outside click
 window.onclick = function (event) {
     const transModal = document.getElementById('transactionModal');
