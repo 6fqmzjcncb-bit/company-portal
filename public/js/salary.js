@@ -180,10 +180,10 @@ async function loadBalances() {
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued)}</td>
-                <td style="min-width: 100px;">
+                <td style="width: 100px;">
                     <input type="number" 
                         class="form-control form-control-sm" 
-                        style="width: 100%; text-align: right;" 
+                        style="width: 90px; text-align: right; padding: 2px 5px; font-size: 13px; border: 1px solid #ddd;" 
                         value="${(emp.total_reimbursement || 0).toFixed(2)}"
                         data-original-value="${emp.total_reimbursement || 0}"
                         onchange="handleSmartReimbursement(${emp.id}, this)">
@@ -192,7 +192,7 @@ async function loadBalances() {
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
                 <td>
                     <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
-                        İşlem Yap
+                        Ödeme Yap
                     </button>
                 </td>
             </tr>
