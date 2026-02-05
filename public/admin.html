@@ -96,16 +96,21 @@
         }
 
         async function loadPaymentAccounts() {
-            try {
-                const container = document.getElementById('accountsContainer');
-                const response = await fetch('/api/payment-accounts');
+            const container = document.getElementById('accountsContainer');
+            if (container.innerHTML.includes('loader')) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center"><div class="loader"></div><br><small>Hesaplar aranıyor...</small></td></tr>';
+            }
 
-                if (!response.ok) throw new Error('Sunucu hatası');
+            try {
+                console.log('📡 Fetching accounts...');
+                const response = await fetchWithTimeout('/api/payment-accounts');
+
+                if (!response.ok) throw new Error(`Sunucu Hatası: ${response.status}`);
 
                 const accounts = await response.json();
 
                 if (accounts.length === 0) {
-                    container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hesap bulunamadı</td></tr>';
+                    container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hesap bulunamadı (Yeni ekleyin)</td></tr>';
                     return;
                 }
 
@@ -119,10 +124,12 @@
                         </td>
                     </tr>
                 `).join('');
+                console.log('✅ Accounts loaded.');
             } catch (error) {
                 console.error('Hesap yükleme hatası:', error);
-                document.getElementById('accountsContainer').innerHTML =
-                    `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${error.message} <br> <button class="btn btn-sm btn-outline-secondary mt-2" onclick="loadPaymentAccounts()">Tekrar Dene</button></td></tr>`;
+                const msg = error.name === 'AbortError' ? 'Zaman aşımı (Sunucu yanıt vermedi)' : error.message;
+                container.innerHTML =
+                    `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${msg} <br> <button class="btn btn-sm btn-outline-secondary mt-2" onclick="loadPaymentAccounts()">Tekrar Dene</button></td></tr>`;
             }
         }
 
