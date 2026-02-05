@@ -48,6 +48,7 @@ app.use('/api/employees', require('./routes/employees'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/stock-movements', require('./routes/stock-movements'));
 app.use('/api/salary', require('./routes/salary'));
+app.use('/api/payment-accounts', require('./routes/payment-accounts'));
 
 // Ana sayfa yönlendirmesi
 app.get('/', (req, res) => {

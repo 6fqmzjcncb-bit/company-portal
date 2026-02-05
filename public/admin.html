@@ -87,9 +87,58 @@
             }
         }
 
+        async function loadPaymentAccounts() {
+            const response = await fetch('/api/payment-accounts');
+            const accounts = await response.json();
+            const container = document.getElementById('accountsContainer');
+
+            if (accounts.length === 0) {
+                container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hesap bulunamadı</td></tr>';
+                return;
+            }
+
+            container.innerHTML = accounts.map(acc => `
+                <tr>
+                    <td><strong>${acc.name}</strong></td>
+                    <td>${acc.type === 'bank' ? 'Banka' : acc.type === 'credit_card' ? 'Kredi Kartı' : 'Nakit'}</td>
+                    <td>${acc.icon || '-'}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteAccount(${acc.id})">Sil</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function addPaymentAccount() {
+            const name = prompt('Hesap Adı (Örn: Ziraat Bankası):');
+            if (!name) return;
+
+            const type = prompt('Tip (cash, bank, credit_card):', 'bank');
+            const icon = prompt('İkon (Örn: 🏦):', '🏦');
+
+            const response = await fetch('/api/payment-accounts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, type, icon })
+            });
+
+            if (response.ok) {
+                loadPaymentAccounts();
+            } else {
+                alert('Hata!');
+            }
+        }
+
+        async function deleteAccount(id) {
+            if (!confirm('Emin misiniz?')) return;
+            await fetch('/api/payment-accounts/' + id, { method: 'DELETE' });
+            loadPaymentAccounts();
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             loadStock();
+            loadPaymentAccounts();
             loadUsers();
         });
     </script>
@@ -162,6 +211,32 @@
                         <tbody id="stockContainer">
                             <tr>
                                 <td colspan="3" class="text-center">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>💳 Ödeme Hesapları (Kasa/Banka)</span>
+                    <button class="btn btn-success btn-sm" onclick="addPaymentAccount()">+ Yeni Hesap</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hesap Adı</th>
+                                <th>Tip</th>
+                                <th>İkon</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsContainer">
+                            <tr>
+                                <td colspan="4" class="text-center">
                                     <div class="loader"></div>
                                 </td>
                             </tr>

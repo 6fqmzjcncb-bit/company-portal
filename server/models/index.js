@@ -9,6 +9,7 @@ const StockMovement = require('./StockMovement');
 const SalaryPayment = require('./SalaryPayment');
 const JobView = require('./JobView');
 const JobItemDeletion = require('./JobItemDeletion');
+const PaymentAccount = require('./PaymentAccount');
 
 // İlişkileri tanımla
 // JobList ilişkileri
@@ -129,5 +130,6 @@ module.exports = {
     StockMovement,
     SalaryPayment,
     JobView,
-    JobItemDeletion
+    JobItemDeletion,
+    PaymentAccount
 };

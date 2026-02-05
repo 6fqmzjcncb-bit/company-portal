@@ -38,26 +38,26 @@ async function loadData() {
 
 async function loadSources() {
     try {
-        const response = await fetch('/api/sources');
-        if (!response.ok) throw new Error('Kaynaklar yüklenemedi');
+        const response = await fetch('/api/payment-accounts');
+        if (!response.ok) throw new Error('Hesaplar yüklenemedi');
 
-        const sources = await response.json();
+        const accounts = await response.json();
         const select = document.getElementById('accountSelect');
 
         // Keep the first option (placeholder)
         select.innerHTML = '<option value="">Seçiniz...</option>';
 
-        sources.forEach(source => {
+        accounts.forEach(acc => {
             const opt = document.createElement('option');
-            opt.value = source.name; // Storing name as originally planned to match 'account' string field
-            // Add icon based on type/name if possible, or just name
-            const icon = source.type === 'internal' ? '🏢' : '🏦';
-            opt.textContent = `${icon} ${source.name}`;
+            opt.value = acc.name;
+            // Use stored icon or default based on type
+            const icon = acc.icon || (acc.type === 'bank' ? '🏦' : '💵');
+            opt.textContent = `${icon} ${acc.name}`;
             select.appendChild(opt);
         });
 
     } catch (error) {
-        console.error('Kaynak yükleme hatası:', error);
+        console.error('Hesap yükleme hatası:', error);
     }
 }
 
