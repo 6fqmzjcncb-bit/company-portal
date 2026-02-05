@@ -68,22 +68,32 @@ app.use((err, req, res, next) => {
 // Sunucuyu başlat
 const startServer = async () => {
     try {
-        console.log('🚀 Sunucu başlatılıyor...');
+        console.log('🚀 Sunucu başlatılıyor... (Adım 1)');
 
         // Veritabanı klasörünü kontrol et
-        const fs = require('fs');
         const dbDir = path.join(__dirname, '../database');
-        if (!fs.existsSync(dbDir)) {
-            console.log('📁 Database klasörü oluşturuluyor...');
-            fs.mkdirSync(dbDir, { recursive: true });
+        console.log(`📁 Hedef veritabanı klasörü: ${dbDir}`);
+
+        try {
+            if (!fs.existsSync(dbDir)) {
+                console.log('📁 Klasör yok, oluşturuluyor...');
+                fs.mkdirSync(dbDir, { recursive: true });
+                console.log('✓ Klasör oluşturuldu.');
+            } else {
+                console.log('✓ Klasör zaten mevcut.');
+            }
+        } catch (fsError) {
+            console.error('⚠️ Dosya sistemi hatası (ihmal edilebilir):', fsError.message);
         }
 
-        console.log('🔌 Veritabanı bağlantısı test ediliyor...');
+        console.log('🔌 Veritabanı bağlantısı test ediliyor... (Adım 2)');
         await testConnection();
 
         // Auto-sync schema changes (non-destructive)
         try {
             const { sequelize } = require('./config/database');
+            console.log('↻ Şema senkronizasyonu başlıyor...');
+
             // Veritabanı senkronizasyonu
             // "alter: true" bazen SQLite'da FK hatalarına sebep olabilir (orphaned data varsa).
             // Şimdilik kapatıyoruz ki sunucu açılsın. Şema zaten büyük oranda uyumlu.
@@ -93,6 +103,7 @@ const startServer = async () => {
             console.error('⚠️ Schema sync error (non-fatal):', syncError.message);
         }
 
+        console.log('⚡ Uygulama dinlemeye başlıyor... (Adım 3)');
         app.listen(PORT, () => {
             console.log('╔════════════════════════════════════════╗');
             console.log('║   ŞİRKET PORTALI - BAŞARILI BAŞLATILD  ║');
