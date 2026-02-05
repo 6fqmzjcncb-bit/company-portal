@@ -192,11 +192,9 @@
 
                             <div class="form-group" id="accountGroup">
                                 <label>Ödeme Yöntemi</label>
-                                <select id="accountSelect" class="form-control">
-                                    <option value="cash">💵 Nakit Kasa</option>
-                                    <option value="bank_a">🏦 Banka A (Yapı Kredi)</option>
-                                    <option value="bank_b">🏦 Banka B (Garanti)</option>
-                                    <option value="personal">👤 Şahsi Hesap</option>
+                                <select id="accountSelect" class="form-control" required>
+                                    <option value="">Seçiniz...</option>
+                                    <!-- Dynamic options from /api/sources -->
                                 </select>
                             </div>
 

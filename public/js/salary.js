@@ -33,6 +33,32 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadData() {
     await loadBalances();
     await loadHistory();
+    await loadSources(); // Load payment sources
+}
+
+async function loadSources() {
+    try {
+        const response = await fetch('/api/sources');
+        if (!response.ok) throw new Error('Kaynaklar yüklenemedi');
+
+        const sources = await response.json();
+        const select = document.getElementById('accountSelect');
+
+        // Keep the first option (placeholder)
+        select.innerHTML = '<option value="">Seçiniz...</option>';
+
+        sources.forEach(source => {
+            const opt = document.createElement('option');
+            opt.value = source.name; // Storing name as originally planned to match 'account' string field
+            // Add icon based on type/name if possible, or just name
+            const icon = source.type === 'internal' ? '🏢' : '🏦';
+            opt.textContent = `${icon} ${source.name}`;
+            select.appendChild(opt);
+        });
+
+    } catch (error) {
+        console.error('Kaynak yükleme hatası:', error);
+    }
 }
 
 // --------------------------------------------------------------------------
