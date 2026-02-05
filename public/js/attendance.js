@@ -186,11 +186,9 @@ function renderAttendance(date) {
                             style="width: 60px; text-align: center;"
                             ${!record.worked ? 'disabled' : ''}>
                         <div style="display: flex; gap: 3px;">
-                            <button class="btn-icon" onclick="resetOvertime(${emp.id})" title="Sıfırla" ${!record.worked ? 'disabled' : ''} style="color: #ef4444; font-weight: bold;">0</button>
-                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 1)" title="+1 Saat" ${!record.worked ? 'disabled' : ''}>+1</button>
-                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 2)" title="+2 Saat" ${!record.worked ? 'disabled' : ''}>+2</button>
-                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 3)" title="+3 Saat" ${!record.worked ? 'disabled' : ''}>+3</button>
-                            <button class="btn-icon" onclick="setFullDayOvertime(${emp.id})" title="Tam Gün Mesai (8 saat)" ${!record.worked ? 'disabled' : ''} style="background: #e0f2fe; border: 1px solid #0ea5e9; color: #0284c7; font-weight: bold; font-size: 0.8rem; width: auto; padding: 0 8px;">Tam</button>
+                            <button class="btn-icon" onclick="resetOvertime(${emp.id})" title="Sıfırla" ${!record.worked ? 'disabled' : ''} style="color: #ef4444; font-weight: bold; width: 32px; height: 32px; border: 1px solid #fee2e2; background: #fef2f2;">↻</button>
+                            <button class="btn-icon" onclick="addOvertime(${emp.id}, -1)" title="Azalt" ${!record.worked ? 'disabled' : ''} style="font-weight: bold; width: 32px; height: 32px; border: 1px solid #e5e7eb;">−</button>
+                            <button class="btn-icon" onclick="addOvertime(${emp.id}, 1)" title="Artır" ${!record.worked ? 'disabled' : ''} style="font-weight: bold; width: 32px; height: 32px; border: 1px solid #e5e7eb;">+</button>
                         </div>
                     </div>
                 </td>
@@ -421,7 +419,8 @@ function toggleWorked(empId) {
 function addOvertime(empId, hours) {
     const input = document.getElementById(`hours_${empId}`);
     const currentValue = parseFloat(input.value) || 0;
-    const newValue = currentValue + hours;
+    let newValue = currentValue + hours;
+    if (newValue < 0) newValue = 0;
     input.value = newValue;
 }
 
