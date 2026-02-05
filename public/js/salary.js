@@ -180,13 +180,15 @@ async function loadBalances() {
                 <td><small>${formatDate(emp.start_date)}</small></td>
                 <td>${emp.total_worked_days}</td>
                 <td>${formatCurrency(emp.total_accrued)}</td>
-                <td style="width: 100px;">
-                    <input type="number" 
-                        class="form-control form-control-sm" 
-                        style="width: 90px; text-align: right; padding: 2px 5px; font-size: 13px; border: 1px solid #ddd;" 
-                        value="${(emp.total_reimbursement || 0).toFixed(2)}"
-                        data-original-value="${emp.total_reimbursement || 0}"
-                        onchange="handleSmartReimbursement(${emp.id}, this)">
+                <td style="width: 120px;">
+                    <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
+                        <input type="number" 
+                            style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 14px; background: transparent;" 
+                            value="${(emp.total_reimbursement || 0).toFixed(2)}"
+                            data-original-value="${emp.total_reimbursement || 0}"
+                            onchange="handleSmartReimbursement(${emp.id}, this)">
+                        <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
+                    </div>
                 </td>
                 <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
                 <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
