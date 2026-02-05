@@ -14,7 +14,7 @@ app.set('trust proxy', 1);
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 dakika
-    max: 100 // IP başına 100 istek
+    max: 1000 // IP başına 1000 istek (Geliştirme/Test aşaması için artırıldı)
 });
 
 // Middleware
