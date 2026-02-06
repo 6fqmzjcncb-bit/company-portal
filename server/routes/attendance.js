@@ -43,7 +43,10 @@ router.get('/', requireAuth, async (req, res) => {
 // Özet Tablosu (Toplam Çalışma Günleri)
 router.get('/summary', requireAuth, async (req, res) => {
     try {
+        console.log('GET /summary endpoint called');
         const { start_date, end_date } = req.query;
+        console.log('Query params:', { start_date, end_date });
+
         let whereClause = { worked: true };
 
         if (start_date && end_date) {
@@ -59,8 +62,10 @@ router.get('/summary', requireAuth, async (req, res) => {
                 [Op.between]: [firstDay, lastDay]
             };
         }
+        console.log('Where clause:', whereClause);
 
         // Get aggregation
+        console.log('Running aggregation query...');
         const summary = await Attendance.findAll({
             attributes: [
                 'employee_id',
@@ -70,10 +75,13 @@ router.get('/summary', requireAuth, async (req, res) => {
             where: whereClause,
             group: ['employee_id']
         });
+        console.log('Aggregation result count:', summary.length);
 
         // We need employee details as well. Since group by might interfere with include in some SQL dialects or Sequelize versions if not careful,
         // let's just fetch active employees and map the data.
+        console.log('Fetching active employees...');
         const employees = await Employee.findAll({ where: { is_active: true } });
+        console.log('Active employees count:', employees.length);
 
         const result = employees.map(emp => {
             const stats = summary.find(s => s.employee_id === emp.id);
@@ -86,10 +94,11 @@ router.get('/summary', requireAuth, async (req, res) => {
             };
         });
 
+        console.log('Sending result to client');
         res.json(result);
     } catch (error) {
-        console.error('Özet tablosu hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        console.error('Özet tablosu hatası FATAL:', error);
+        res.status(500).json({ error: 'Sunucu hatası: ' + error.message });
     }
 });
 
