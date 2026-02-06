@@ -126,29 +126,37 @@
             }
         }
 
-        async function addUser() {
-            const username = prompt('Kullanıcı adı:');
-            if (!username) return;
+        function addUser() {
+            document.getElementById('userForm').reset();
+            document.getElementById('userModal').style.display = 'flex';
+        }
 
-            const password = prompt('Şifre:');
-            if (!password) return;
+        async function submitUserForm(e) {
+            e.preventDefault();
 
-            const full_name = prompt('Tam adı:');
-            if (!full_name) return;
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const full_name = document.getElementById('newFullName').value;
+            const role = document.getElementById('newRole').value;
 
-            const role = confirm('Yönetici mi? (İptal = Personel)') ? 'admin' : 'staff';
+            try {
+                const response = await fetch('/api/admin/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, full_name, role })
+                });
 
-            const response = await fetch('/api/admin/users', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, full_name, role })
-            });
-
-            if (response.ok) {
-                alert('Kullanıcı oluşturuldu');
-                loadUsers();
-            } else {
-                alert('Hata oluştu');
+                if (response.ok) {
+                    closeModal('userModal');
+                    loadUsers();
+                    alert('Kullanıcı başarıyla oluşturuldu');
+                } else {
+                    const res = await response.json();
+                    alert('Hata: ' + (res.error || 'Bilinmeyen hata'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Bağlantı hatası!');
             }
         }
 
@@ -302,6 +310,12 @@
                         alert('Bir hata oluştu: ' + error.message);
                     }
                 });
+            }
+
+            // User Form
+            const userForm = document.getElementById('userForm');
+            if (userForm) {
+                userForm.addEventListener('submit', submitUserForm);
             }
 
             // Link Employee Form
@@ -462,6 +476,48 @@
                             <button type="button" class="btn btn-secondary"
                                 onclick="closeModal('accountModal')">İptal</button>
                             <button type="submit" class="btn btn-primary">Hesabı Oluştur</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add User Modal -->
+        <div id="userModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Yeni Kullanıcı Ekle</h2>
+                    <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <div class="form-group">
+                            <label>Kullanıcı Adı</label>
+                            <input type="text" id="newUsername" required placeholder="Giriş için kullanılacak">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Şifre</label>
+                            <input type="password" id="newPassword" required placeholder="En az 6 karakter">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ad Soyad</label>
+                            <input type="text" id="newFullName" required placeholder="Görünecek isim">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <select id="newRole">
+                                <option value="staff">Personel</option>
+                                <option value="admin">Yönetici</option>
+                            </select>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('userModal')">İptal</button>
+                            <button type="submit" class="btn btn-primary">Kullanıcıyı Oluştur</button>
                         </div>
                     </form>
                 </div>

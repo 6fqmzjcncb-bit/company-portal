@@ -200,6 +200,34 @@
     </div>
 
     <!-- Modals -->
+    <!-- ADD PRODUCT MODAL -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">✨ Yeni Ürün Ekle</h2>
+                <button class="modal-close" onclick="closeModals()">×</button>
+            </div>
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label class="form-label">Ürün Adı</label>
+                    <input type="text" id="newProdName" class="form-input" required placeholder="Örn: Çimento">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Barkod (İsteğe bağlı)</label>
+                    <input type="text" id="newProdBarcode" class="form-input" placeholder="Barkod okutun veya yazın">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Başlangıç Stok</label>
+                    <input type="number" id="newProdStock" class="form-input" value="0" min="0">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Ürünü Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- STOCK IN MODAL -->
     <div id="stockInModal" class="modal">
         <div class="modal-content">

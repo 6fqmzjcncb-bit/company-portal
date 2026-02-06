@@ -247,6 +247,36 @@
         </div>
     </div>
 
+    <!-- Bölme Modalı (Split) -->
+    <div id="splitItemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">🔪 Kalemi Böl</h2>
+                <button class="modal-close" onclick="closeSplitModal()">×</button>
+            </div>
+            <form id="splitItemForm">
+                <input type="hidden" id="splitItemId">
+                <input type="hidden" id="splitItemMax">
+
+                <div class="alert alert-info" style="margin-bottom: 20px;">
+                    Bu kalemden kaç adedini ayırmak istiyorsunuz?
+                    <br><strong id="splitItemMaxLabel"></strong>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Ayırılacak Miktar</label>
+                    <input type="number" id="splitQuantity" class="form-input" min="1" required>
+                    <small class="text-muted">Bu miktar ayrı bir satır olarak eklenecek, kalandan düşülecektir.</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSplitModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Böl ve Ayır</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Kaynak Autocomplete Listesi -->
     <datalist id="sourceList">
         <!-- JavaScript ile doldurulacak -->

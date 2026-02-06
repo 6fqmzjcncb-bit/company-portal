@@ -145,28 +145,11 @@ function renderProductDropdowns() {
 }
 
 async function addProduct() {
-    const name = prompt('Ürün adı:');
-    if (!name) return;
-
-    const barcode = prompt('Barkod (opsiyonel):') || null;
-    const stock = parseInt(prompt('Başlangıç stok miktarı:', '0')) || 0;
-
-    try {
-        const response = await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, barcode, current_stock: stock })
-        });
-        if (response.ok) {
-            loadProducts(); // Reloads list and dropdowns
-        } else {
-            alert('Ürün eklenirken hata oluştu');
-        }
-    } catch (error) {
-        console.error(error);
-        alert('Hata: ' + error.message);
-    }
+    document.getElementById('addProductForm').reset();
+    document.getElementById('addProductModal').style.display = 'flex';
 }
+
+// Logic handled by event listener below
 
 // =======================
 // STOCK MOVEMENTS LOGIC
@@ -297,9 +280,36 @@ function showOutModal() {
 function closeModals() {
     document.getElementById('stockInModal').style.display = 'none';
     document.getElementById('stockOutModal').style.display = 'none';
+    document.getElementById('addProductModal').style.display = 'none';
 }
 
 // Listeners
+document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('newProdName').value;
+    const barcode = document.getElementById('newProdBarcode').value || null;
+    const stock = parseInt(document.getElementById('newProdStock').value) || 0;
+
+    try {
+        const response = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, barcode, current_stock: stock })
+        });
+
+        if (response.ok) {
+            alert('Ürün başarıyla eklendi');
+            closeModals();
+            loadProducts();
+        } else {
+            const err = await response.json();
+            alert('Hata: ' + (err.error || 'Ürün eklenemedi'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Hata: ' + error.message);
+    }
+});
 document.getElementById('stockInForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     await handleTransaction('/api/stock-movements/in', {

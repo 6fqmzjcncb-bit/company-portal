@@ -934,36 +934,59 @@ async function splitItem(itemId) {
 
 // Split incomplete item (Quantity based)
 async function splitIncompleteItem(itemId, currentQuantity) {
-    const qtyStr = prompt(`Bu kalemden kaç adet ayırmak istiyorsunuz?\n(Mevcut Miktar: ${currentQuantity})`);
-    if (qtyStr === null) return; // Cancelled
-
-    const splitQty = parseInt(qtyStr);
-
-    if (!splitQty || isNaN(splitQty) || splitQty <= 0 || splitQty >= currentQuantity) {
-        alert('Geçersiz miktar! 1 ile ' + (currentQuantity - 1) + ' arasında bir sayı giriniz.');
-        return;
-    }
-
-    try {
-        const response = await fetch(`/api/jobs/items/${itemId}/split`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ split_quantity: splitQty })
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'İşlem başarısız');
-        }
-
-        const result = await response.json();
-        showAlert(result.message || 'Kalem bölündü', 'success');
-        await loadJobDetail();
-
-    } catch (error) {
-        alert('Hata: ' + error.message);
-    }
+    document.getElementById('splitItemId').value = itemId;
+    document.getElementById('splitItemMax').value = currentQuantity;
+    document.getElementById('splitItemMaxLabel').textContent = `(Mevcut Miktar: ${currentQuantity})`;
+    document.getElementById('splitQuantity').value = '';
+    document.getElementById('splitQuantity').max = currentQuantity - 1;
+    document.getElementById('splitItemModal').style.display = 'flex';
+    document.getElementById('splitQuantity').focus();
 }
+
+function closeSplitModal() {
+    document.getElementById('splitItemModal').style.display = 'none';
+}
+
+// Split Form Submit
+document.addEventListener('DOMContentLoaded', () => {
+    const splitForm = document.getElementById('splitItemForm');
+    if (splitForm) {
+        splitForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const itemId = document.getElementById('splitItemId').value;
+            const currentQuantity = parseInt(document.getElementById('splitItemMax').value);
+            const qtyStr = document.getElementById('splitQuantity').value;
+            const splitQty = parseInt(qtyStr);
+
+            if (!splitQty || isNaN(splitQty) || splitQty <= 0 || splitQty >= currentQuantity) {
+                alert('Geçersiz miktar! 1 ile ' + (currentQuantity - 1) + ' arasında bir sayı giriniz.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/jobs/items/${itemId}/split`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ split_quantity: splitQty })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'İşlem başarısız');
+                }
+
+                const result = await response.json();
+                showAlert(result.message || 'Kalem bölündü', 'success');
+                closeSplitModal();
+                await loadJobDetail();
+
+            } catch (error) {
+                alert('Hata: ' + error.message);
+            }
+        });
+    }
+});
 
 
 // ===========================
