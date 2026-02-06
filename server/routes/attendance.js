@@ -3,6 +3,7 @@ const router = express.Router();
 const { Attendance, Employee } = require('../models');
 const { requireAuth } = require('../middleware/auth');
 const { Op } = require('sequelize');
+const { sequelize } = require('../config/database');
 
 // Tarihe göre çalışma kayıtları
 router.get('/', requireAuth, async (req, res) => {
