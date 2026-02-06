@@ -42,12 +42,26 @@ app.get('/health', (req, res) => {
 app.use(limiter);
 
 // Session yapılandırması
+// Session Configuration (Sequelize Store)
+const SequelizeStore = require('connect-session-sequelize')(session.Store);
+const { sequelize } = require('./config/database');
+
+const sessionStore = new SequelizeStore({
+    db: sequelize,
+    checkExpirationInterval: 15 * 60 * 1000, // 15 mins
+    expiration: 24 * 60 * 60 * 1000  // 24 hours
+});
+
+// Create session table
+sessionStore.sync();
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'default-secret-change-this',
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 saat
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production'
     }

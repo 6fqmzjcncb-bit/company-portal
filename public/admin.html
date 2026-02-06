@@ -11,6 +11,30 @@
     <title>Yönetim Paneli - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css?v=2.5">
     <script>
+        // FAILSAFE: Global Error Handler
+        window.onerror = function (msg, url, line) {
+            alert(`Sistem Hatası:\n${msg}\nSatır: ${line}`);
+            document.querySelectorAll('tbody').forEach(el => {
+                el.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center; padding:20px;">
+                    ⚠️ KRİTİK HATA: ${msg}
+                </td></tr>`;
+            });
+            return false;
+        };
+
+        // FAILSAFE: Loading Watchdog (10s)
+        setTimeout(() => {
+            if (document.body.innerHTML.includes('loader')) {
+                console.warn('⚠️ Loading stuck detected by watchdog');
+                document.querySelectorAll('.loader').forEach(loader => {
+                    const parent = loader.parentElement;
+                    if (parent) {
+                        parent.innerHTML = '<div style="color:red">⚠️ Yanıt alınamadı (Watchdog). Lütfen sayfayı yenileyin.</div>';
+                    }
+                });
+            }
+        }, 10000);
+
         // Force reload if version mismatch (Simple check)
         if (!window.location.hash.includes('v2.5')) {
             // Optional: could force reload logic here, but meta tags should suffice
