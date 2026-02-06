@@ -105,72 +105,28 @@ router.put('/users/:id/link-employee', requireAdmin, async (req, res) => {
     }
 });
 
-// Tüm personeli kullanıcıya dönüştür
-router.post('/users/sync-from-employees', requireAdmin, async (req, res) => {
+// Kullanıcı şifresini güncelle (Admin reset)
+router.put('/users/:id/password', requireAdmin, async (req, res) => {
     try {
-        const employees = await Employee.findAll({
-            where: {
-                is_active: true,
-                user_id: null // Sadece kullanıcısı olmayanlar
-            }
-        });
+        const { id } = req.params;
+        const { password } = req.body;
 
-        let createdCount = 0;
-        let errors = [];
-
-        for (const emp of employees) {
-            try {
-                // Username generation: "Ahmet Demir" -> "ahmet.demir"
-                let baseUsername = emp.full_name
-                    .toLowerCase()
-                    .replace(/ğ/g, 'g')
-                    .replace(/ü/g, 'u')
-                    .replace(/ş/g, 's')
-                    .replace(/ı/g, 'i')
-                    .replace(/ö/g, 'o')
-                    .replace(/ç/g, 'c')
-                    .replace(/[^a-z0-9]/g, '.')
-                    .replace(/\.+/g, '.')
-                    .replace(/^\.|\.+$/g, '');
-
-                let username = baseUsername;
-                let counter = 1;
-
-                // Ensure unique username
-                while (await User.findOne({ where: { username } })) {
-                    username = `${baseUsername}${counter}`;
-                    counter++;
-                }
-
-                // Default password
-                const password = await bcrypt.hash('123456', 10);
-
-                const user = await User.create({
-                    username,
-                    password,
-                    full_name: emp.full_name,
-                    role: 'staff'
-                });
-
-                // Link employee to user
-                await emp.update({ user_id: user.id });
-                createdCount++;
-
-            } catch (err) {
-                console.error(`Error creating user for ${emp.full_name}:`, err);
-                errors.push(`${emp.full_name}: ${err.message}`);
-            }
+        if (!password || password.length < 6) {
+            return res.status(400).json({ error: 'Şifre en az 6 karakter olmalıdır' });
         }
 
-        res.json({
-            success: true,
-            message: `${createdCount} kullanıcı oluşturuldu.`,
-            details: errors.length > 0 ? errors : null
-        });
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await user.update({ password: hashedPassword });
+
+        res.json({ message: 'Şifre başarıyla güncellendi' });
     } catch (error) {
-        console.error('Sync users error:', error);
-        res.status(500).json({ error: 'İşlem sırasında hata oluştu' });
+        console.error('Password reset error:', error);
+        res.status(500).json({ error: 'Şifre güncellenemedi' });
     }
 });
 
