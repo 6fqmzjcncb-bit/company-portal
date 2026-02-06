@@ -458,7 +458,11 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block mt-4">Hesabı Oluştur</button>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('accountModal')">İptal</button>
+                            <button type="submit" class="btn btn-primary">Hesabı Oluştur</button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -491,7 +495,11 @@
                             <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
                                 başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
                         </div>
-                        <button type="submit" class="btn btn-primary btn-block mt-4">Kaydet ve Eşleştir</button>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('linkEmployeeModal')">Vazgeç</button>
+                            <button type="submit" class="btn btn-primary">Kaydet ve Eşleştir</button>
+                        </div>
                     </form>
                 </div>
             </div>
