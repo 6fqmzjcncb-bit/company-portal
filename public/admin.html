@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="tr">
-<!-- DEBUG: FORCE VISUAL CHANGE v2.6 -->
+<!-- DEBUG: FORCE VISUAL CHANGE v2.7 -->
 
 <head>
     <meta charset="UTF-8">
@@ -35,16 +35,9 @@
             }
         }, 10000);
 
-        // Force reload if version mismatch (Simple check)
-        if (!window.location.hash.includes('v2.5')) {
-            // Optional: could force reload logic here, but meta tags should suffice
-        }
-
         // Utility: Timeout wrapper for fetch
         const fetchWithTimeout = async (resource, options = {}) => {
             const { timeout = 8000 } = options;
-
-            // CACHE BUSTING: Append timestamp to every request
             let url = resource;
             if (url.includes('?')) {
                 url += `&_t=${Date.now()}`;
@@ -74,45 +67,33 @@
         };
 
         async function checkAuth() {
-            const cachedUser = localStorage.getItem('user_cache');
-            if (cachedUser) {
-                try {
-                    const user = JSON.parse(cachedUser);
-                    if (user.role === 'admin') updateUserInterface(user);
-                } catch (e) { console.error(e); }
-            }
-
+            console.log('🔒 Checking Auth...');
             try {
                 const response = await fetch('/api/auth/me');
                 if (!response.ok) {
-                    localStorage.removeItem('user_cache');
                     window.location.href = '/index.html';
                     return;
                 }
                 const user = await response.json();
+                console.log('👤 User:', user);
+
                 if (user.role !== 'admin') {
                     window.location.href = '/dashboard.html';
                     return;
                 }
 
-                localStorage.setItem('user_cache', JSON.stringify(user));
-                updateUserInterface(user);
+                document.getElementById('userName').textContent = user.full_name;
+                document.getElementById('userRole').textContent = '👑 Yönetici';
             } catch (error) {
-                if (!cachedUser) window.location.href = '/index.html';
+                console.error('Auth check failed:', error);
+                window.location.href = '/index.html';
             }
-        }
-
-        function updateUserInterface(user) {
-            document.getElementById('userName').textContent = user.full_name;
-            document.getElementById('userRole').textContent = '👑 Yönetici';
         }
 
         async function logout() {
             await fetch('/api/auth/logout', { method: 'POST' });
             window.location.href = '/index.html';
         }
-
-
 
         async function loadUsers() {
             const container = document.getElementById('usersContainer');
@@ -178,11 +159,8 @@
             }
 
             try {
-                console.log('📡 Fetching accounts...');
                 const response = await fetchWithTimeout('/api/payment-accounts');
-
                 if (!response.ok) throw new Error(`Sunucu Hatası: ${response.status}`);
-
                 const accounts = await response.json();
 
                 if (accounts.length === 0) {
@@ -200,7 +178,6 @@
                         </td>
                     </tr>
                 `).join('');
-                console.log('✅ Accounts loaded.');
             } catch (error) {
                 console.error('Hesap yükleme hatası:', error);
                 const msg = error.name === 'AbortError' ? 'Zaman aşımı (Sunucu yanıt vermedi)' : error.message;
@@ -209,14 +186,73 @@
             }
         }
 
-        // Modal Functions
+        // --- Link Employee Functions ---
+        let allEmployees = [];
+
+        async function loadEmployeesForSelect() {
+            try {
+                const response = await fetch('/api/employees');
+                if (!response.ok) return;
+                allEmployees = await response.json();
+
+                // Populate Select
+                const select = document.getElementById('linkEmployeeSelect');
+                select.innerHTML = '<option value="">-- Bağlantıyı Kaldır --</option>' +
+                    allEmployees.map(emp => `<option value="${emp.id}">${emp.full_name} (${emp.role === 'manager' ? 'Yönetici' : 'Personel'})</option>`).join('');
+
+            } catch (error) {
+                console.error('Personel yükleme hatası:', error);
+            }
+        }
+
+        async function openLinkModal(userId, username, currentEmpId) {
+            document.getElementById('linkUserId').value = userId;
+            document.getElementById('linkUserName').value = username;
+
+            await loadEmployeesForSelect();
+
+            const select = document.getElementById('linkEmployeeSelect');
+            if (currentEmpId) {
+                select.value = currentEmpId;
+            } else {
+                select.value = "";
+            }
+
+            document.getElementById('linkEmployeeModal').style.display = 'flex';
+        }
+
+        async function saveLink() {
+            const userId = document.getElementById('linkUserId').value;
+            const empId = document.getElementById('linkEmployeeSelect').value;
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/link-employee`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ employee_id: empId || null })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    closeModal('linkEmployeeModal');
+                    loadUsers();
+                    alert('Bağlantı güncellendi');
+                } else {
+                    alert('Hata: ' + result.error);
+                }
+            } catch (error) {
+                console.error(error);
+                alert('İşlem başarısız');
+            }
+        }
+
+        // Modal Utilities
         function openAccountModal() {
             document.getElementById('accountForm').reset();
-            // Reset emoji selection
             document.getElementById('accIcon').value = '🏦';
             document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector('.emoji-option').classList.add('selected'); // Select first
-
+            document.querySelector('.emoji-option').classList.add('selected');
             document.getElementById('accountModal').style.display = 'flex';
         }
 
@@ -230,13 +266,19 @@
             element.classList.add('selected');
         }
 
+        // --- Initialization ---
         window.addEventListener('DOMContentLoaded', () => {
-            // Add Account Form Submit
+            console.log('🚀 Admin Page v2.7 Loaded');
+
+            checkAuth();
+            loadPaymentAccounts();
+            loadUsers();
+
+            // Account Form
             const accountForm = document.getElementById('accountForm');
             if (accountForm) {
                 accountForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-
                     const name = document.getElementById('accName').value;
                     const type = document.getElementById('accType').value;
                     const icon = document.getElementById('accIcon').value;
@@ -251,6 +293,7 @@
                         if (response.ok) {
                             closeModal('accountModal');
                             loadPaymentAccounts();
+                            alert('Hesap eklendi');
                         } else {
                             alert('Hata oluştu!');
                         }
@@ -258,23 +301,18 @@
                         console.error('Form submit error:', error);
                         alert('Bir hata oluştu: ' + error.message);
                     }
-                    checkAuth();
-                    loadPaymentAccounts();
-                    loadUsers();
-
-                    // Link Employee Form Submit
-                    const linkForm = document.getElementById('linkEmployeeForm');
-                    if (linkForm) {
-                        linkForm.addEventListener('submit', async (e) => {
-                            alert('Bağlantı güncellendi');
-                        } else {
-                            alert('Hata: ' + result.error);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert('İşlem başarısız');
-                }
+                });
             }
+
+            // Link Employee Form
+            const linkForm = document.getElementById('linkEmployeeForm');
+            if (linkForm) {
+                linkForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await saveLink();
+                });
+            }
+        });
     </script>
 </head>
 
