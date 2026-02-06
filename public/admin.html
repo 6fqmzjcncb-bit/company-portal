@@ -227,35 +227,37 @@
             element.classList.add('selected');
         }
 
-        // Add Account Form Submit
-        document.getElementById('accountForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById('accName').value;
-            const type = document.getElementById('accType').value;
-            const icon = document.getElementById('accIcon').value;
-
-            const response = await fetch('/api/payment-accounts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, type, icon })
-            });
-
-            if (response.ok) {
-                closeModal('accountModal');
-                loadPaymentAccounts();
-            } else {
-                alert('Hata oluştu!');
-            }
-        });
-
-        async function deleteAccount(id) {
-            if (!confirm('Emin misiniz?')) return;
-            await fetch('/api/payment-accounts/' + id, { method: 'DELETE' });
-            loadPaymentAccounts();
-        }
-
         window.addEventListener('DOMContentLoaded', () => {
+            // Add Account Form Submit
+            const accountForm = document.getElementById('accountForm');
+            if (accountForm) {
+                accountForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const name = document.getElementById('accName').value;
+                    const type = document.getElementById('accType').value;
+                    const icon = document.getElementById('accIcon').value;
+
+                    try {
+                        const response = await fetch('/api/payment-accounts', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, type, icon })
+                        });
+
+                        if (response.ok) {
+                            closeModal('accountModal');
+                            loadPaymentAccounts();
+                        } else {
+                            alert('Hata oluştu!');
+                        }
+                    } catch (error) {
+                        console.error('Form submit error:', error);
+                        alert('Bir hata oluştu: ' + error.message);
+                    }
+                });
+            }
+
             checkAuth();
             loadStock();
             loadPaymentAccounts();
