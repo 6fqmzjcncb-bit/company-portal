@@ -19,12 +19,27 @@
         // Utility: Timeout wrapper for fetch
         const fetchWithTimeout = async (resource, options = {}) => {
             const { timeout = 8000 } = options;
+
+            // CACHE BUSTING: Append timestamp to every request
+            let url = resource;
+            if (url.includes('?')) {
+                url += `&_t=${Date.now()}`;
+            } else {
+                url += `?_t=${Date.now()}`;
+            }
+
             const controller = new AbortController();
             const id = setTimeout(() => controller.abort(), timeout);
             try {
-                const response = await fetch(resource, {
+                const response = await fetch(url, {
                     ...options,
-                    signal: controller.signal
+                    signal: controller.signal,
+                    cache: 'no-store',
+                    headers: {
+                        ...options.headers,
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
                 });
                 clearTimeout(id);
                 return response;

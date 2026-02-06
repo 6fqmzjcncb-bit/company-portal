@@ -8,7 +8,11 @@
     "setup": "node server/setup.js",
     "dev": "nodemon server/server.js"
   },
-  "keywords": ["portal", "stock", "job-management"],
+  "keywords": [
+    "portal",
+    "stock",
+    "job-management"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -18,7 +22,8 @@
     "sequelize": "^6.35.2",
     "sqlite3": "^5.1.7",
     "dotenv": "^16.3.1",
-    "express-rate-limit": "^7.1.5"
+    "express-rate-limit": "^7.1.5",
+    "connect-session-sequelize": "^7.1.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
