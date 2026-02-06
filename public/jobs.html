@@ -94,25 +94,44 @@
             }).join('');
         }
 
-        async function createNewJob() {
-            const title = prompt('İş listesi başlığı:');
-            if (!title) return;
+        function createNewJob() {
+            document.getElementById('createJobForm').reset();
+            const modal = document.getElementById('createJobModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
 
-            const response = await fetch('/api/jobs', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title })
-            });
-
-            if (response.ok) {
-                const job = await response.json();
-                window.location.href = `/job-detail.html?id=${job.id}`;
-            }
+        function closeJobModal() {
+            const modal = document.getElementById('createJobModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             loadJobs();
+
+            document.getElementById('createJobForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const title = document.getElementById('jobTitle').value;
+
+                try {
+                    const response = await fetch('/api/jobs', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ title })
+                    });
+
+                    if (response.ok) {
+                        const job = await response.json();
+                        window.location.href = `/job-detail.html?id=${job.id}`;
+                    } else {
+                        alert('Hata oluştu');
+                    }
+                } catch (error) {
+                    console.error(error);
+                }
+            });
         });
     </script>
 </head>
@@ -166,6 +185,27 @@
                 <div class="loader"></div>
             </div>
         </main>
+    </div>
+
+    <!-- CREATE JOB MODAL -->
+    <div id="createJobModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📋 Yeni İş Listesi</h2>
+                <button class="modal-close" onclick="closeJobModal()">×</button>
+            </div>
+            <form id="createJobForm">
+                <div class="form-group">
+                    <label class="form-label">Liste Başlığı</label>
+                    <input type="text" id="jobTitle" class="form-input" required
+                        placeholder="Örn: Beylikdüzü Şantiyesi">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeJobModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Oluştur</button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 

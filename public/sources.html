@@ -77,25 +77,59 @@
       `).join('');
         }
 
-        async function addSource() {
-            const name = prompt('Kaynak adı:');
-            if (!name) return;
+        function addSource() {
+            document.getElementById('addSourceForm').reset();
+            // Sync color picker default
+            document.getElementById('sourceColorPicker').value = '#d4edda';
+            document.getElementById('sourceColor').value = '#d4edda';
 
-            const color = prompt('Renk kodu (örn: #d4edda):', '#d4edda');
-            const type = confirm('İç depo mu? (İptal = Dış tedarikçi)') ? 'internal' : 'external';
+            const modal = document.getElementById('addSourceModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
 
-            const response = await fetch('/api/sources', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, color_code: color, type })
-            });
-
-            if (response.ok) loadSources();
+        function closeSourceModal() {
+            const modal = document.getElementById('addSourceModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 300);
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             checkAuth();
             loadSources();
+
+            // Color picker sync
+            const picker = document.getElementById('sourceColorPicker');
+            const text = document.getElementById('sourceColor');
+            picker.addEventListener('input', (e) => text.value = e.target.value);
+            text.addEventListener('input', (e) => picker.value = e.target.value);
+
+            // Form Submit
+            document.getElementById('addSourceForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const name = document.getElementById('sourceName').value;
+                const color_code = document.getElementById('sourceColor').value;
+                const type = document.getElementById('sourceType').value;
+
+                try {
+                    const response = await fetch('/api/sources', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, color_code, type })
+                    });
+
+                    if (response.ok) {
+                        closeSourceModal();
+                        loadSources();
+                    } else {
+                        alert('Hata oluştu');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Bağlantı hatası');
+                }
+            });
         });
     </script>
 </head>
@@ -150,6 +184,42 @@
                 <div class="loader"></div>
             </div>
         </main>
+    </div>
+
+    <!-- NEW SOURCE MODAL -->
+    <div id="addSourceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📦 Yeni Kaynak Ekle</h2>
+                <button class="modal-close" onclick="closeSourceModal()">×</button>
+            </div>
+            <form id="addSourceForm">
+                <div class="form-group">
+                    <label class="form-label">Kaynak Adı</label>
+                    <input type="text" id="sourceName" class="form-input" required placeholder="Örn: Merkez Depo">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Renk Kodu</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="color" id="sourceColorPicker" value="#d4edda"
+                            style="width: 50px; height: 40px; padding: 0; border: none; background: none;">
+                        <input type="text" id="sourceColor" class="form-input" value="#d4edda" required
+                            placeholder="#d4edda">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tür</label>
+                    <select id="sourceType" class="form-select">
+                        <option value="external">Dış Tedarikçi</option>
+                        <option value="internal">İç Depo</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSourceModal()">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 
