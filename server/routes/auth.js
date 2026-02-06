@@ -25,6 +25,11 @@ router.post('/login', async (req, res) => {
             return res.status(401).json({ error: 'Kullanıcı adı veya şifre hatalı' });
         }
 
+        // Hesap aktiflik kontrolü
+        if (user.is_active === false) {
+            return res.status(403).json({ error: 'Hesabınız erişime kapatılmıştır. Yöneticinizle görüşün.' });
+        }
+
         // Session oluştur
         req.session.userId = user.id;
         req.session.userRole = user.role;

@@ -130,4 +130,77 @@ router.put('/users/:id/password', requireAdmin, async (req, res) => {
     }
 });
 
+// Kullanıcı erişimini aç/kapat (Toggle Access)
+router.put('/users/:id/toggle-access', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_active } = req.body; // Expecting boolean
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        // Prevent disabling self?
+        if (user.id === req.session.userId) {
+            return res.status(400).json({ error: 'Kendi hesabınızı pasife alamazsınız' });
+        }
+
+        await user.update({ is_active });
+
+        res.json({
+            message: `Kullanıcı erişimi ${is_active ? 'açıldı' : 'kapatıldı'}`,
+            user: { id: user.id, is_active: user.is_active }
+        });
+    } catch (error) {
+        console.error('Toggle access error:', error);
+        res.status(500).json({ error: 'İşlem başarısız' });
+    }
+});
+
+// Temporary Sync Fix Route
+router.get('/debug/sync-users-fix', async (req, res) => {
+    try {
+        // Ensure schema
+        await User.sync({ alter: true });
+
+        const employees = await Employee.findAll({
+            where: { is_active: true }
+        });
+
+        let count = 0;
+        for (const emp of employees) {
+            if (emp.user_id) {
+                const user = await User.findByPk(emp.user_id);
+                if (user) continue; // Already has valid user
+            }
+
+            // Create User
+            let baseUsername = emp.full_name.toLowerCase()
+                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+                .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/[^a-z0-9]/g, '.').replace(/\.+/g, '.').replace(/^\.|\.+$/g, '');
+
+            let username = baseUsername;
+            let counter = 1;
+            while (await User.findOne({ where: { username } })) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+            }
+
+            const password = await bcrypt.hash('123456', 10);
+            const user = await User.create({
+                username, password, full_name: emp.full_name, role: 'staff', is_active: true
+            });
+
+            await emp.update({ user_id: user.id });
+            count++;
+        }
+        res.json({ message: `Synced ${count} users` });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;

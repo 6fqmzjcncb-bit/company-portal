@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/server.js",
     "setup": "node server/setup.js",
-    "dev": "nodemon server/server.js"
+    "dev": "nodemon server/server.js",
+    "sync-users": "node scripts/sync_users.js"
   },
   "keywords": [
     "portal",
