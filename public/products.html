@@ -4,71 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ürünler - Şirket Portalı</title>
+    <title>Ürünler ve Stok - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
-    <script>
-        let currentUser = null;
-
-        async function checkAuth() {
-            try {
-                const response = await fetch('/api/auth/me');
-                if (!response.ok) window.location.href = '/index.html';
-                currentUser = await response.json();
-                document.getElementById('userName').textContent = currentUser.full_name;
-                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-                if (currentUser.role === 'admin') {
-                    document.getElementById('adminLink').style.display = 'block';
-                    document.getElementById('addBtn').style.display = 'block';
-                }
-            } catch (error) { window.location.href = '/index.html'; }
+    <link rel="stylesheet" href="/css/modal.css">
+    <!-- Inline CSS for Tabs -->
+    <style>
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--gray-300);
+            padding-bottom: 0px;
         }
 
-        async function logout() {
-            await fetch('/api/auth/logout', { method: 'POST' });
-            window.location.href = '/index.html';
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--gray-500);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
         }
 
-        async function loadProducts() {
-            const response = await fetch('/api/products');
-            const products = await response.json();
-            const container = document.getElementById('productsContainer');
+        .tab-btn:hover {
+            color: var(--primary-color);
+        }
 
-            if (products.length === 0) {
-                container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Henüz ürün yok</td></tr>';
-                return;
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
             }
 
-            container.innerHTML = products.map(product => `
-        <tr>
-          <td><strong>${product.name}</strong></td>
-          <td>${product.barcode || '-'}</td>
-          <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
-          <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>
-        </tr>
-      `).join('');
+            to {
+                opacity: 1;
+            }
         }
-
-        async function addProduct() {
-            const name = prompt('Ürün adı:');
-            if (!name) return;
-
-            const barcode = prompt('Barkod (opsiyonel):') || null;
-            const stock = parseInt(prompt('Başlangıç stok miktarı:', '0')) || 0;
-
-            const response = await fetch('/api/products', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, barcode, current_stock: stock })
-            });
-
-            if (response.ok) loadProducts();
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            checkAuth();
-            loadProducts();
-        });
-    </script>
+    </style>
 </head>
 
 <body>
@@ -88,7 +73,6 @@
                         Ürünler
                     </a>
                 </li>
-
                 <li class="nav-item">
                     <a href="/attendance.html" class="nav-link">
                         <span class="nav-icon">📅</span>
@@ -101,12 +85,6 @@
                         Maaş Yönetimi
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a href="/stock-movements.html" class="nav-link">
-                        <span class="nav-icon">📊</span>
-                        Stok Hareketi
-                    </a>
-                </li>
                 <li class="nav-item" id="adminLink" style="display: none;"><a href="/admin.html" class="nav-link"><span
                             class="nav-icon">⚙️</span>Yönetim</a></li>
             </ul>
@@ -116,36 +94,199 @@
                 <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
             </div>
         </aside>
+
         <main class="main-content">
             <div class="page-header">
-                <h1 class="page-title">Ürünler</h1>
-                <button id="addBtn" class="btn btn-primary" onclick="addProduct()" style="display:none;">+ Yeni
-                    Ürün</button>
+                <h1 class="page-title">Ürün ve Stok Yönetimi</h1>
+                <div>
+                    <button id="addBtn" class="btn btn-primary" onclick="addProduct()"
+                        style="display:none; margin-right: 10px;">+ Ürün Ekle</button>
+                    <!-- Stock Buttons -->
+                    <button class="btn btn-success" onclick="showInModal()">📥 Stok Giriş</button>
+                    <button class="btn btn-danger" onclick="showOutModal()">📤 Stok Çıkış</button>
+                </div>
             </div>
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Ürün Adı</th>
-                            <th>Barkod</th>
-                            <th>Stok</th>
-                            <th>Eklenme Tarihi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsContainer">
-                        <tr>
-                            <td colspan="4" class="text-center">
-                                <div class="loader"></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- TABS -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="tab-products">📋 Ürün Listesi</button>
+                <button class="tab-btn" data-tab="tab-movements">📊 Stok Hareketleri</button>
             </div>
-            <div class="alert alert-warning mt-3">
-                ℹ️ Stok miktarları sadece yöneticiler tarafından görülebilir.
+
+            <!-- TAB 1: Products List -->
+            <div id="tab-products" class="tab-content" style="display: block;">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ürün Adı</th>
+                                <th>Barkod</th>
+                                <th>Stok</th>
+                                <th>Eklenme Tarihi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsContainer">
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    ℹ️ Stok miktarları sadece yöneticiler tarafından görülebilir.
+                </div>
+            </div>
+
+            <!-- TAB 2: Stock Movements -->
+            <div id="tab-movements" class="tab-content">
+                <!-- Filters -->
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
+                            <div class="col" style="flex: 1; min-width: 200px;">
+                                <label class="form-label">Ürün</label>
+                                <select id="filterProduct" class="form-select">
+                                    <option value="">Tümü</option>
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                            <div class="col" style="flex: 1; min-width: 150px;">
+                                <label class="form-label">İşlem Tipi</label>
+                                <select id="filterType" class="form-select">
+                                    <option value="">Tümü</option>
+                                    <option value="IN">Stok Girişi</option>
+                                    <option value="OUT">Stok Çıkışı</option>
+                                </select>
+                            </div>
+                            <div class="col" style="flex: 1; min-width: 150px;">
+                                <label class="form-label">Başlangıç</label>
+                                <input type="date" id="filterStartDate" class="form-input">
+                            </div>
+                            <div class="col" style="flex: 1; min-width: 150px;">
+                                <label class="form-label">Bitiş</label>
+                                <input type="date" id="filterEndDate" class="form-input">
+                            </div>
+                            <div class="col">
+                                <button class="btn btn-primary" onclick="loadMovements()">Filtrele</button>
+                                <button class="btn btn-secondary" onclick="clearFilters()">Temizle</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>İşlem</th>
+                                <th>Ürün</th>
+                                <th>Miktar</th>
+                                <th>Kişi</th>
+                                <th>Konum</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movementList">
+                            <!-- Filled by JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </main>
     </div>
+
+    <!-- Modals -->
+    <!-- STOCK IN MODAL -->
+    <div id="stockInModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📥 Stok Girişi Yap</h2>
+                <button class="modal-close" onclick="closeModals()">×</button>
+            </div>
+            <form id="stockInForm">
+                <div class="form-group">
+                    <label class="form-label">Ürün Seçin</label>
+                    <select id="inProduct" class="form-select" required>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Miktar</label>
+                    <input type="number" id="inQuantity" class="form-input" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Getiren / Teslim Eden</label>
+                    <input type="text" id="inBroughtBy" class="form-input" placeholder="İsim soyisim" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Kaynak (Nereden Geldi?)</label>
+                    <input type="text" id="inSource" class="form-input" placeholder="Tedarikçi veya konum">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notlar</label>
+                    <textarea id="inNotes" class="form-input" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                    <button type="submit" class="btn btn-success">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STOCK OUT MODAL -->
+    <div id="stockOutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📤 Stok Çıkışı Yap</h2>
+                <button class="modal-close" onclick="closeModals()">×</button>
+            </div>
+            <form id="stockOutForm">
+                <div class="form-group">
+                    <label class="form-label">Ürün Seçin</label>
+                    <select id="outProduct" class="form-select" required>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Miktar</label>
+                    <input type="number" id="outQuantity" class="form-input" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Alan Kişi</label>
+                    <input type="text" id="outTakenBy" class="form-input" placeholder="İsim soyisim" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gideceği Yer</label>
+                    <input type="text" id="outDestination" class="form-input" placeholder="Proje veya konum">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sebep</label>
+                    <select id="outReason" class="form-select">
+                        <option value="JOB">İş Kullanımı</option>
+                        <option value="SALE">Satış</option>
+                        <option value="WASTE">Fire/Zayi</option>
+                        <option value="OTHER">Diğer</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notlar</label>
+                    <textarea id="outNotes" class="form-input" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                    <button type="submit" class="btn btn-danger">Çıkış Yap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main JS -->
+    <script src="/js/products.js?v=3.0"></script>
 </body>
 
 </html>
