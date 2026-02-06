@@ -60,8 +60,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function loadSummary() {
-    const tbody = document.getElementById('summaryList');
-    if (!tbody) return;
+    const container = document.getElementById('summaryGrid');
+    if (!container) {
+        console.warn('summaryGrid NOT FOUND - Loader will spin forever.');
+        return;
+    }
 
     // Use selected date's month for summary context
     const dateInput = document.getElementById('selectedDate').value;
@@ -75,29 +78,44 @@ async function loadSummary() {
 
     try {
         const response = await fetch(`/api/attendance/summary?start_date=${start_date}&end_date=${end_date}`);
+        if (!response.ok) throw new Error('Sunucu yanıt vermedi');
+
         const data = await response.json();
-
-        if (data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Kayıt bulunamadı</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = data.map(item => `
-            <tr>
-                <td><strong>${item.full_name}</strong></td>
-                <td>${item.role === 'manager' ? 'Yönetici' : item.role === 'supervisor' ? 'Ustabaşı' : 'İşçi'}</td>
-                <td class="text-center"><strong>${item.total_days}</strong> Gün</td>
-                <td class="text-center">${item.total_overtime > 0 ? `<span class="badge badge-warning">${item.total_overtime} Saat</span>` : '-'}</td>
-            </tr>
-        `).join('');
 
         // Update Title context
         const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-        document.querySelector('.card.mt-4 .card-header h2').textContent = `📊 Aylık Çalışma Özeti (${monthNames[month - 1]} ${year})`;
+        const titleEl = document.getElementById('summaryTitle');
+        if (titleEl) titleEl.textContent = `📊 Aylık Çalışma Özeti (${monthNames[month - 1]} ${year})`;
+
+        if (data.length === 0) {
+            container.innerHTML = '<p class="text-muted text-center col-span-4">Kayıt bulunamadı</p>';
+            return;
+        }
+
+        container.innerHTML = data.map(item => {
+            const icon = item.role === 'manager' ? '👑' : item.role === 'supervisor' ? '👷' : '👤';
+            const roleName = item.role === 'manager' ? 'Yönetici' : item.role === 'supervisor' ? 'Ustabaşı' : 'Personel';
+
+            return `
+            <div class="card" style="display: flex; flex-direction: row; align-items: center; padding: 16px; gap: 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <div style="font-size: 2rem; background: #f3f4f6; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                    ${icon}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.05rem; color: #111827;">${item.full_name}</div>
+                    <div style="font-size: 0.85rem; color: #6b7280; margin-bottom: 4px;">${roleName}</div>
+                    <div style="font-size: 0.9rem; color: #374151;">
+                        <strong>${item.total_days} Gün</strong> Çalıştı
+                        ${item.total_overtime > 0 ? `<span class="text-warning" style="font-size: 0.8rem; margin-left: 6px;">(+${item.total_overtime}s Mesai)</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
 
     } catch (error) {
         console.error('Özet yükleme hatası:', error);
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Hata oluştu</td></tr>';
+        container.innerHTML = '<p class="text-danger text-center col-span-4">Veri yüklenemedi</p>';
     }
 }
 
@@ -175,7 +193,8 @@ function changeDate(offset) {
     const day = String(currentDate.getDate()).padStart(2, '0');
 
     dateInput.value = `${year}-${month}-${day}`;
-    dateInput.value = `${year}-${month}-${day}`;
+    // Intentional double assignment from original code (left as is or fixed? Let's fix clean)
+    // dateInput.value = `${year}-${month}-${day}`; 
     loadAttendance();
     loadSummary(); // Refresh summary for the new date's month
 }
