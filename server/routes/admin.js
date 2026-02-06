@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const { User, Product } = require('../models');
+const { User, Product, Employee } = require('../models');
 const { requireAdmin } = require('../middleware/auth');
 
 // Tüm stok durumunu görüntüle (sadece admin)
@@ -53,12 +53,55 @@ router.get('/users', requireAdmin, async (req, res) => {
     try {
         const users = await User.findAll({
             attributes: ['id', 'username', 'full_name', 'role', 'created_at'],
+            include: [{
+                model: Employee,
+                as: 'employee',
+                attributes: ['id', 'full_name']
+            }],
             order: [['created_at', 'DESC']]
         });
         res.json(users);
     } catch (error) {
         console.error('Users fetch error:', error);
         res.status(500).json({ error: 'Kullanıcılar getirilemedi' });
+    }
+});
+
+// Kullanıcıyı bir personele bağla
+router.put('/users/:id/link-employee', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { employee_id } = req.body; // Linking to this employee ID (or null to unlink)
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        // Önce eski bağlantıyı kopar (Varsa)
+        await Employee.update({ user_id: null }, { where: { user_id: id } });
+
+        if (employee_id) {
+            // Başka bir kullanıcıya bağlı mı kontrol et
+            const existingLink = await Employee.findOne({
+                where: {
+                    id: employee_id,
+                    user_id: { [require('sequelize').Op.ne]: null }
+                }
+            });
+
+            if (existingLink) {
+                return res.status(400).json({ error: 'Bu personel zaten başka bir kullanıcıya bağlı!' });
+            }
+
+            // Yeni bağlantıyı kur
+            await Employee.update({ user_id: id }, { where: { id: employee_id } });
+        }
+
+        res.json({ success: true, message: 'Kullanıcı-Personel bağlantısı güncellendi' });
+    } catch (error) {
+        console.error('Link employee error:', error);
+        res.status(500).json({ error: 'Bağlantı güncellenemedi' });
     }
 });
 
