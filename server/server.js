@@ -44,7 +44,8 @@ app.use(limiter);
 // Session yapılandırması
 // Session Configuration (Sequelize Store)
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
-const { sequelize } = require('./config/database');
+const { sequelize, User, Employee } = require('./config/database');
+const bcrypt = require('bcrypt');
 
 const sessionStore = new SequelizeStore({
     db: sequelize,
@@ -135,12 +136,52 @@ const initializeDatabase = async () => {
         // force: false -> Tablo varsa silmez
         // alter: false -> Tablo yapısını değiştirmeye çalışmaz (Güvenli mod)
         // alter: true -> Tablo yapısını günceller (Schema update)
+        // alter: true -> Tablo yapısını günceller (Schema update)
         await sequelize.sync({ force: false, alter: true });
         console.log('✓ Tablolar senkronize edildi.');
+
+        // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
+        await syncMissingUsers();
 
     } catch (error) {
         console.error('❌ Veritabanı başlatma hatası:', error.message);
         // Sunucu çalışmaya devam eder, ama DB istekleri hata verebilir.
+    }
+};
+
+const syncMissingUsers = async () => {
+    try {
+        console.log('🔄 Kullanıcı senkronizasyonu kontrol ediliyor...');
+        const employees = await Employee.findAll({ where: { is_active: true } });
+
+        for (const emp of employees) {
+            if (emp.user_id) {
+                const existingUser = await User.findByPk(emp.user_id);
+                if (existingUser) continue;
+            }
+
+            let baseUsername = emp.full_name.toLowerCase()
+                .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's')
+                .replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+                .replace(/[^a-z0-9]/g, '.').replace(/\.+/g, '.').replace(/^\.|\.+$/g, '');
+
+            let username = baseUsername;
+            let counter = 1;
+            while (await User.findOne({ where: { username } })) {
+                username = `${baseUsername}${counter}`;
+                counter++;
+            }
+
+            const password = await bcrypt.hash('123456', 10);
+            const user = await User.create({
+                username, password, full_name: emp.full_name, role: 'staff', is_active: true
+            });
+
+            await emp.update({ user_id: user.id });
+            console.log(`✨ Kullanıcı oluşturuldu: ${username} (${emp.full_name})`);
+        }
+    } catch (error) {
+        console.error('Sync users error:', error);
     }
 };
 
