@@ -23,12 +23,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('userName').textContent = currentUser.full_name;
     document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
 
+    if (currentUser.role === 'admin') {
+        const adminLink = document.getElementById('adminLink');
+        if (adminLink) adminLink.style.display = 'block';
+    }
+
     // Set default date for transaction
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('transDate').value = today;
 
     await loadData();
 });
+
+async function logout() {
+    try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/index.html';
+    } catch (error) {
+        window.location.href = '/index.html';
+    }
+}
 
 async function loadData() {
     await loadBalances();
