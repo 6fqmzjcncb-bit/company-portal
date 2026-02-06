@@ -29,9 +29,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     await loadProducts();
-    await loadJobLists();
+    // await loadJobLists(); // REMOVED: Function does not exist and caused crash
     await loadMovements();
 });
+
+// FAILSAFE: Watchdog for Stock Movements
+setTimeout(() => {
+    const tbody = document.getElementById('movementList');
+    if (tbody && tbody.innerHTML.includes('loader')) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">⚠️ Yanıt alınamadı (Watchdog). Lütfen sayfayı yenileyin.</td></tr>';
+    }
+}, 10000);
 
 async function logout() {
     try {

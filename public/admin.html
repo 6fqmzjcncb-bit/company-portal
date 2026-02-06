@@ -91,7 +91,8 @@
 
         async function loadStock() {
             try {
-                const response = await fetch('/api/products/stock');
+                // Fix: Endpoint is /api/products, not /api/products/stock
+                const response = await fetch('/api/products');
                 if (!response.ok) throw new Error('Stok verisi alınamadı');
 
                 const products = await response.json();
