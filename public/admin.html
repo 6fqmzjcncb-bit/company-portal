@@ -113,10 +113,15 @@
                     <td>${user.username}</td>
                     <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
                     <td>${linkedEmp}</td>
+                    <td>
+                        <label class="switch">
+                            <input type="checkbox" onchange="toggleAccess(${user.id}, this.checked)" ${user.is_active !== false ? 'checked' : ''} ${user.role === 'admin' ? 'disabled' : ''}>
+                            <span class="slider round"></span>
+                        </label>
+                    </td>
                     <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
                     <td>
                         <button class="btn btn-sm btn-outline-warning" onclick="openPasswordModal(${user.id}, '${user.username}')">🔑 Şifre</button>
-                        <button class="btn btn-sm btn-outline-primary" onclick="openLinkModal(${user.id}, '${user.username}', '${empId}')">🔗 Eşleştir</button>
                     </td>
                     </tr>
                 `;
