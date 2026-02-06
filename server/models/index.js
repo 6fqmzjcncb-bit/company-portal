@@ -12,6 +12,17 @@ const JobItemDeletion = require('./JobItemDeletion');
 const PaymentAccount = require('./PaymentAccount');
 
 // İlişkileri tanımla
+// User - Employee ilişkisi (1-1)
+User.hasOne(Employee, {
+    foreignKey: 'user_id',
+    as: 'employee'
+});
+
+Employee.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+});
+
 // JobList ilişkileri
 JobList.belongsTo(User, {
     foreignKey: 'created_by_user_id',

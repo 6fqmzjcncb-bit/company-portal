@@ -134,7 +134,8 @@ const initializeDatabase = async () => {
         // Tabloları oluştur (Sync)
         // force: false -> Tablo varsa silmez
         // alter: false -> Tablo yapısını değiştirmeye çalışmaz (Güvenli mod)
-        await sequelize.sync({ force: false, alter: false });
+        // alter: true -> Tablo yapısını günceller (Schema update)
+        await sequelize.sync({ force: false, alter: true });
         console.log('✓ Tablolar senkronize edildi.');
 
     } catch (error) {

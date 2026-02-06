@@ -15,6 +15,12 @@ const Employee = sequelize.define('Employee', {
         type: DataTypes.STRING(20),
         allowNull: true
     },
+    user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        unique: true,
+        comment: 'Bağlı kullanıcı ID'
+    },
     role: {
         type: DataTypes.ENUM('worker', 'supervisor', 'manager'),
         defaultValue: 'worker'
