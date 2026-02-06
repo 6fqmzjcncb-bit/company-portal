@@ -43,10 +43,7 @@ router.get('/', requireAuth, async (req, res) => {
 // Özet Tablosu (Toplam Çalışma Günleri)
 router.get('/summary', requireAuth, async (req, res) => {
     try {
-        console.log('GET /summary endpoint called');
         const { start_date, end_date } = req.query;
-        console.log('Query params:', { start_date, end_date });
-
         let whereClause = { worked: true };
 
         if (start_date && end_date) {
@@ -54,50 +51,47 @@ router.get('/summary', requireAuth, async (req, res) => {
                 [Op.between]: [start_date, end_date]
             };
         } else {
-            // Default to current month if no dates provided
             const now = new Date();
             const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of month
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
             whereClause.date = {
                 [Op.between]: [firstDay, lastDay]
             };
         }
-        console.log('Where clause:', whereClause);
 
-        // Get aggregation
-        console.log('Running aggregation query...');
-        const summary = await Attendance.findAll({
-            attributes: [
-                'employee_id',
-                [sequelize.fn('COUNT', sequelize.col('id')), 'total_days'],
-                [sequelize.fn('SUM', sequelize.col('hours_worked')), 'total_overtime']
-            ],
+        // Fetch RAW records instead of using GROUP BY (safer)
+        const attendances = await Attendance.findAll({
             where: whereClause,
-            group: ['employee_id']
+            attributes: ['employee_id', 'hours_worked']
         });
-        console.log('Aggregation result count:', summary.length);
 
-        // We need employee details as well. Since group by might interfere with include in some SQL dialects or Sequelize versions if not careful,
-        // let's just fetch active employees and map the data.
-        console.log('Fetching active employees...');
+        // Fetch active employees
         const employees = await Employee.findAll({ where: { is_active: true } });
-        console.log('Active employees count:', employees.length);
+
+        // Aggregate in Memory
+        const summaryMap = {};
+        attendances.forEach(record => {
+            if (!summaryMap[record.employee_id]) {
+                summaryMap[record.employee_id] = { days: 0, overtime: 0 };
+            }
+            summaryMap[record.employee_id].days += 1;
+            summaryMap[record.employee_id].overtime += parseFloat(record.hours_worked || 0);
+        });
 
         const result = employees.map(emp => {
-            const stats = summary.find(s => s.employee_id === emp.id);
+            const stats = summaryMap[emp.id] || { days: 0, overtime: 0 };
             return {
                 employee_id: emp.id,
                 full_name: emp.full_name,
                 role: emp.role,
-                total_days: stats ? parseInt(stats.getDataValue('total_days')) : 0,
-                total_overtime: stats ? parseFloat(stats.getDataValue('total_overtime') || 0) : 0
+                total_days: stats.days,
+                total_overtime: Number(stats.overtime.toFixed(2)) // Round to 2 decimals
             };
         });
 
-        console.log('Sending result to client');
         res.json(result);
     } catch (error) {
-        console.error('Özet tablosu hatası FATAL:', error);
+        console.error('Özet tablosu hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası: ' + error.message });
     }
 });
