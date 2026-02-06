@@ -4,9 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Yönetim Paneli - Şirket Portalı</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/style.css?v=2.5">
     <script>
+        // Force reload if version mismatch (Simple check)
+        if (!window.location.hash.includes('v2.5')) {
+            // Optional: could force reload logic here, but meta tags should suffice
+        }
+
         // Utility: Timeout wrapper for fetch
         const fetchWithTimeout = async (resource, options = {}) => {
             const { timeout = 8000 } = options;
