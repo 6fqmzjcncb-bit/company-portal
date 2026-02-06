@@ -13,30 +13,14 @@
     <div class="app-container">
         <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">🏢</div>
-                <h1 class="sidebar-title">Şirket Portalı</h1>
-            </div>
-
+            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
             <ul class="nav-menu">
-                <li class="nav-item">
-                    <a href="/dashboard.html" class="nav-link">
-                        <span class="nav-icon">📊</span>
-                        Ana Sayfa
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/jobs.html" class="nav-link">
-                        <span class="nav-icon">📋</span>
-                        İş Listeleri
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/sources.html" class="nav-link">
-                        <span class="nav-icon">📦</span>
-                        Kaynaklar
-                    </a>
-                </li>
+                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                        Sayfa</a></li>
+                <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
+                        Listeleri</a></li>
+                <li class="nav-item"><a href="/sources.html" class="nav-link"><span
+                            class="nav-icon">📦</span>Kaynaklar</a></li>
                 <li class="nav-item">
                     <a href="/products.html" class="nav-link">
                         <span class="nav-icon">🔧</span>
@@ -55,23 +39,13 @@
                         Maaş Yönetimi
                     </a>
                 </li>
-                <li class="nav-item" id="adminLink" style="display: none;">
-                    <a href="/admin.html" class="nav-link">
-                        <span class="nav-icon">⚙️</span>
-                        Yönetim
-                    </a>
-                </li>
+                <li class="nav-item" id="adminLink" style="display: none;"><a href="/admin.html" class="nav-link"><span
+                            class="nav-icon">⚙️</span>Yönetim</a></li>
             </ul>
-
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <div class="user-avatar">👤</div>
-                    <div class="user-details">
-                        <div class="user-name" id="userName">Yükleniyor...</div>
-                        <div class="user-role" id="userRole"></div>
-                    </div>
-                </div>
-                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+            <div class="user-info">
+                <div class="user-name" id="userName">...</div>
+                <div class="user-role" id="userRole"></div>
+                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
             </div>
         </aside>
 
