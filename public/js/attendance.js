@@ -144,7 +144,7 @@ async function loadEmployees() {
         employees = allEmployees.filter(e => e.is_active);
     } catch (error) {
         console.error('Personel yükleme hatası:', error);
-        alert('Personel listesi yüklenemedi');
+        showAlert('Personel listesi yüklenemedi', 'error');
     }
 }
 
@@ -152,7 +152,7 @@ async function loadEmployees() {
 async function loadAttendance() {
     const date = document.getElementById('selectedDate').value;
     if (!date) {
-        alert('Lütfen tarih seçin');
+        showAlert('Lütfen tarih seçin', 'warning');
         return;
     }
 
@@ -175,7 +175,7 @@ async function loadAttendance() {
         renderAttendance(date);
     } catch (error) {
         console.error('Hata:', error);
-        alert('Veri yüklenirken hata oluştu');
+        showAlert('Veri yüklenirken hata oluştu', 'error');
     }
 }
 
@@ -570,12 +570,12 @@ async function saveAllAttendance() {
 
         if (!response.ok) throw new Error('Kayıt başarısız');
 
-        alert('Tüm kayıtlar başarıyla kaydedildi!');
+        showAlert('Tüm kayıtlar başarıyla kaydedildi!', 'success');
         loadAttendance();
         loadSummary();
     } catch (error) {
         console.error('Hata:', error);
-        alert('Kayıt sırasında hata oluştu');
+        showAlert('Kayıt sırasında hata oluştu', 'error');
     }
 }
 

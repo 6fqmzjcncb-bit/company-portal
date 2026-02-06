@@ -147,7 +147,7 @@ function editEmployee(id) {
         document.getElementById('notes').value = fullEmp.notes || '';
 
         document.getElementById('employeeModal').style.display = 'flex';
-    }).catch(err => alert('Personel detayı yüklenemedi'));
+    }).catch(err => showAlert('Personel detayı yüklenemedi'));
 }
 
 async function handleEmployeeSubmit(e) {
@@ -179,9 +179,9 @@ async function handleEmployeeSubmit(e) {
 
         closeModal('employeeModal');
         await loadData(); // Reload table
-        alert('Personel kaydedildi');
+        showAlert('Personel kaydedildi');
     } catch (error) {
-        alert('Hata: ' + error.message);
+        showAlert('Hata: ' + error.message);
     }
 }
 
@@ -193,7 +193,7 @@ async function deleteEmployee(id) {
         if (!response.ok) throw new Error('Silinemedi');
         await loadData();
     } catch (error) {
-        alert('Silme işlemi başarısız');
+        showAlert('Silme işlemi başarısız');
     }
 }
 
@@ -415,12 +415,12 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
 
         if (!response.ok) throw new Error('Kaydedilemedi');
 
-        alert('İşlem başarıyla kaydedildi');
+        showAlert('İşlem başarıyla kaydedildi');
         closeModal();
         loadData(); // Refresh all tables
 
     } catch (error) {
-        alert('Hata: ' + error.message);
+        showAlert('Hata: ' + error.message);
     }
 });
 
@@ -503,7 +503,7 @@ async function handleSmartReimbursement(empId, input) {
         setTimeout(() => loadBalances(), 500); // Refresh to be safe
 
     } catch (error) {
-        alert('Hata: ' + error.message);
+        showAlert('Hata: ' + error.message);
         input.value = oldVal.toFixed(2); // Revert
         input.disabled = false;
         input.style.borderColor = 'red';

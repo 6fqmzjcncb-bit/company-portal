@@ -13,7 +13,7 @@
     <script>
         // FAILSAFE: Global Error Handler
         window.onerror = function (msg, url, line) {
-            alert(`Sistem Hatası:\n${msg}\nSatır: ${line}`);
+            showAlert(`Sistem Hatası:\n${msg}\nSatır: ${line}`);
             document.querySelectorAll('tbody').forEach(el => {
                 el.innerHTML = `<tr><td colspan="5" style="color:red; text-align:center; padding:20px;">
                     ⚠️ KRİTİK HATA: ${msg}
@@ -151,14 +151,14 @@
                 if (response.ok) {
                     closeModal('userModal');
                     loadUsers();
-                    alert('Kullanıcı başarıyla oluşturuldu');
+                    showAlert('Kullanıcı başarıyla oluşturuldu');
                 } else {
                     const res = await response.json();
-                    alert('Hata: ' + (res.error || 'Bilinmeyen hata'));
+                    showAlert('Hata: ' + (res.error || 'Bilinmeyen hata'));
                 }
             } catch (error) {
                 console.error(error);
-                alert('Bağlantı hatası!');
+                showAlert('Bağlantı hatası!');
             }
         }
 
@@ -247,13 +247,13 @@
                 if (response.ok) {
                     closeModal('linkEmployeeModal');
                     loadUsers();
-                    alert('Bağlantı güncellendi');
+                    showAlert('Bağlantı güncellendi');
                 } else {
-                    alert('Hata: ' + result.error);
+                    showAlert('Hata: ' + result.error);
                 }
             } catch (error) {
                 console.error(error);
-                alert('İşlem başarısız');
+                showAlert('İşlem başarısız');
             }
         }
 
@@ -303,13 +303,13 @@
                         if (response.ok) {
                             closeModal('accountModal');
                             loadPaymentAccounts();
-                            alert('Hesap eklendi');
+                            showAlert('Hesap eklendi');
                         } else {
-                            alert('Hata oluştu!');
+                            showAlert('Hata oluştu!');
                         }
                     } catch (error) {
                         console.error('Form submit error:', error);
-                        alert('Bir hata oluştu: ' + error.message);
+                        showAlert('Bir hata oluştu: ' + error.message);
                     }
                 });
             }
@@ -563,6 +563,7 @@
             </div>
         </div>
     </div>
+    <script src="/js/utils.js?v=1.0"></script>
 </body>
 
 </html>

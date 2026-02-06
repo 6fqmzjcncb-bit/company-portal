@@ -8,7 +8,7 @@ const urlParams = new URLSearchParams(window.location.search);
 jobId = urlParams.get('id');
 
 if (!jobId) {
-    alert('İş listesi ID bulunamadı');
+    showAlert('İş listesi ID bulunamadı');
     window.location.href = '/jobs.html';
 }
 
@@ -934,7 +934,7 @@ async function splitItem(itemId) {
         await loadJobDetail();
 
     } catch (error) {
-        alert('Hata: ' + error.message);
+        showAlert('Hata: ' + error.message);
     }
 }
 
@@ -972,7 +972,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const splitQty = parseInt(qtyStr);
 
             if (!splitQty || isNaN(splitQty) || splitQty <= 0 || splitQty >= currentQuantity) {
-                alert('Geçersiz miktar! 1 ile ' + (currentQuantity - 1) + ' arasında bir sayı giriniz.');
+                showAlert('Geçersiz miktar! 1 ile ' + (currentQuantity - 1) + ' arasında bir sayı giriniz.');
                 return;
             }
 
@@ -994,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await loadJobDetail();
 
             } catch (error) {
-                alert('Hata: ' + error.message);
+                showAlert('Hata: ' + error.message);
             }
         });
     }
