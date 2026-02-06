@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Debug Page v1</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .log {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>System Diagnostic Tool</h1>
+    <div id="logs"></div>
+
+    <script>
+        function log(msg, type = 'info') {
+            const el = document.createElement('div');
+            el.className = 'log';
+            el.innerHTML = `[${new Date().toLocaleTimeString()}] <strong>${type.toUpperCase()}:</strong> ${msg}`;
+            if (type === 'error') el.style.borderLeft = '5px solid red';
+            if (type === 'success') el.style.borderLeft = '5px solid green';
+            document.getElementById('logs').appendChild(el);
+        }
+
+        async function runTests() {
+            log('Starting Tests...', 'info');
+
+            // 1. Test Health
+            try {
+                log('Testing /health...', 'info');
+                const t0 = performance.now();
+                const res = await fetch('/health', { cache: "no-store" });
+                const t1 = performance.now();
+                const data = await res.json();
+                log(`Health OK (${Math.round(t1 - t0)}ms): ${JSON.stringify(data)}`, 'success');
+            } catch (e) {
+                log(`Health FAILED: ${e.message}`, 'error');
+            }
+
+            // 2. Test Auth
+            try {
+                log('Testing /api/auth/me...', 'info');
+                const res = await fetch('/api/auth/me', { cache: "no-store" });
+                if (res.ok) {
+                    const user = await res.json();
+                    log(`Auth OK: Logged in as ${user.username} (${user.role})`, 'success');
+                } else {
+                    log(`Auth: Not logged in (Status ${res.status})`, 'warning');
+                }
+            } catch (e) {
+                log(`Auth Check FAILED: ${e.message}`, 'error');
+            }
+
+            // 3. Test Database Read (Payment Accounts)
+            try {
+                log('Testing /api/payment-accounts (DB Read)...', 'info');
+                const t0 = performance.now();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+                const res = await fetch('/api/payment-accounts', {
+                    cache: "no-store",
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                const t1 = performance.now();
+                if (res.ok) {
+                    const data = await res.json();
+                    log(`DB Read OK (${Math.round(t1 - t0)}ms): Found ${data.length} accounts`, 'success');
+                } else {
+                    log(`DB Read Failed: Status ${res.status}`, 'error');
+                }
+            } catch (e) {
+                log(`DB Read ERROR: ${e.message}`, 'error');
+            }
+        }
+
+        runTests();
+    </script>
+</body>
+
+</html>
