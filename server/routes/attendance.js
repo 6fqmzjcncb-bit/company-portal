@@ -24,6 +24,14 @@ router.get('/', requireAuth, async (req, res) => {
             whereClause.employee_id = employee_id;
         }
 
+        // Access Control: Enforce own data for non-admins
+        if (req.session.userRole !== 'admin') {
+            if (!req.session.employeeId) {
+                return res.json([]); // No linked employee, no data
+            }
+            whereClause.employee_id = req.session.employeeId;
+        }
+
         const attendances = await Attendance.findAll({
             where: whereClause,
             include: [{
@@ -66,7 +74,17 @@ router.get('/summary', requireAuth, async (req, res) => {
         });
 
         // Fetch active employees
-        const employees = await Employee.findAll({ where: { is_active: true } });
+        let employeeWhere = { is_active: true };
+
+        // Access Control: Filter employees for summary
+        if (req.session.userRole !== 'admin') {
+            if (!req.session.employeeId) {
+                return res.json([]);
+            }
+            employeeWhere.id = req.session.employeeId;
+        }
+
+        const employees = await Employee.findAll({ where: employeeWhere });
 
         // Aggregate in Memory
         const summaryMap = {};

@@ -6,7 +6,21 @@ const { requireAuth } = require('../middleware/auth');
 // Tüm personeli listele
 router.get('/', requireAuth, async (req, res) => {
     try {
+        let whereClause = {};
+
+        // Access Control: If not admin, only show own record
+        if (req.session.userRole !== 'admin') {
+            if (req.session.employeeId) {
+                whereClause.id = req.session.employeeId;
+            } else {
+                // If staff but no linked employee, show nothing? or all? 
+                // Security-wise, show nothing.
+                return res.json([]);
+            }
+        }
+
         const employees = await Employee.findAll({
+            where: whereClause,
             order: [['is_active', 'DESC'], ['full_name', 'ASC']]
         });
         res.json(employees);
