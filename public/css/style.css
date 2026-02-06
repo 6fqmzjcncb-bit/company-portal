@@ -585,7 +585,7 @@ tr:hover {
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(5px);
-  opacity: 0;
+  /* opacity: 0; Removed to fix JS toggle visibility */
   transition: opacity 0.3s ease;
 }
 

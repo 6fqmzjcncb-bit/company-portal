@@ -803,11 +803,17 @@ function openEditItemModal(itemId, productName, sourceId, quantity) {
     document.getElementById('editProductName').value = productName;
     document.getElementById('editSource').value = sourceId;
     document.getElementById('editQuantity').value = quantity;
-    document.getElementById('editItemModal').style.display = 'flex';
+    document.getElementById('editQuantity').value = quantity;
+
+    const modal = document.getElementById('editItemModal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
 }
 
 function closeEditItemModal() {
-    document.getElementById('editItemModal').style.display = 'none';
+    const modal = document.getElementById('editItemModal');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 300);
 }
 
 // Edit form submit
@@ -939,12 +945,18 @@ async function splitIncompleteItem(itemId, currentQuantity) {
     document.getElementById('splitItemMaxLabel').textContent = `(Mevcut Miktar: ${currentQuantity})`;
     document.getElementById('splitQuantity').value = '';
     document.getElementById('splitQuantity').max = currentQuantity - 1;
-    document.getElementById('splitItemModal').style.display = 'flex';
+
+    const modal = document.getElementById('splitItemModal');
+    modal.style.display = 'flex';
+    setTimeout(() => modal.classList.add('active'), 10);
+
     document.getElementById('splitQuantity').focus();
 }
 
 function closeSplitModal() {
-    document.getElementById('splitItemModal').style.display = 'none';
+    const modal = document.getElementById('splitItemModal');
+    modal.classList.remove('active');
+    setTimeout(() => modal.style.display = 'none', 300);
 }
 
 // Split Form Submit

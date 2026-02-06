@@ -128,7 +128,9 @@
 
         function addUser() {
             document.getElementById('userForm').reset();
-            document.getElementById('userModal').style.display = 'flex';
+            const modal = document.getElementById('userModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
         }
 
         async function submitUserForm(e) {
