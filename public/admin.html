@@ -260,9 +260,6 @@
         // Modal Utilities
         function openAccountModal() {
             document.getElementById('accountForm').reset();
-            document.getElementById('accIcon').value = '🏦';
-            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector('.emoji-option').classList.add('selected');
             document.getElementById('accountModal').style.display = 'flex';
         }
 
@@ -270,11 +267,7 @@
             document.getElementById(id).style.display = 'none';
         }
 
-        function selectEmoji(element, emoji) {
-            document.getElementById('accIcon').value = emoji;
-            document.querySelectorAll('.emoji-option').forEach(el => el.classList.remove('selected'));
-            element.classList.add('selected');
-        }
+
 
         // --- Initialization ---
         window.addEventListener('DOMContentLoaded', () => {
@@ -291,7 +284,12 @@
                     e.preventDefault();
                     const name = document.getElementById('accName').value;
                     const type = document.getElementById('accType').value;
-                    const icon = document.getElementById('accIcon').value;
+
+                    // Auto-assign icon
+                    let icon = '💰';
+                    if (type === 'bank') icon = '🏦';
+                    else if (type === 'credit_card') icon = '💳';
+                    else if (type === 'cash') icon = '💵';
 
                     try {
                         const response = await fetch('/api/payment-accounts', {
@@ -455,24 +453,7 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>İkon Seçimi</label>
-                            <input type="hidden" id="accIcon" value="🏦">
-                            <div class="emoji-grid">
-                                <div class="emoji-option selected" onclick="selectEmoji(this, '🏦')">🏦</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '💳')">💳</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '💵')">💵</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '💰')">💰</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '🏧')">🏧</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '🪙')">🪙</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '🧾')">🧾</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '📉')">📉</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '📊')">📊</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '💼')">💼</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '👜')">👜</div>
-                                <div class="emoji-option" onclick="selectEmoji(this, '🔐')">🔐</div>
-                            </div>
-                        </div>
+
 
                         <div class="modal-actions">
                             <button type="button" class="btn btn-secondary"
