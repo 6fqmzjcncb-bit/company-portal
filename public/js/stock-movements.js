@@ -44,10 +44,31 @@ async function logout() {
 
 let products = [];
 
+// Utility: Timeout wrapper for fetch
+const fetchWithTimeout = async (resource, options = {}) => {
+    const { timeout = 8000 } = options;
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        throw error;
+    }
+};
+
 // Load products
 async function loadProducts() {
     try {
-        const response = await fetch('/api/products');
+        console.log('📡 Fetching products...');
+        const response = await fetchWithTimeout('/api/products');
+        if (!response.ok) throw new Error('Sunucu hatası');
+
         products = await response.json();
 
         // Populate product selects
@@ -58,13 +79,18 @@ async function loadProducts() {
         document.getElementById('inProduct').innerHTML = '<option value="">Seçiniz...</option>' + productOptions;
         document.getElementById('outProduct').innerHTML = '<option value="">Seçiniz...</option>' + productOptions;
         document.getElementById('filterProduct').innerHTML = '<option value="">Tümü</option>' + productOptions;
+        console.log('✅ Products loaded');
     } catch (error) {
         console.error('Ürün listesi hatası:', error);
+        // Don't block UI mostly, but log it
     }
 }
 
 // Load movements
 async function loadMovements() {
+    const tbody = document.getElementById('movementList');
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center"><div class="loader"></div><br><small>Hareketler aranıyor...</small></td></tr>';
+
     try {
         const productId = document.getElementById('filterProduct').value;
         const type = document.getElementById('filterType').value;
@@ -77,13 +103,19 @@ async function loadMovements() {
         if (startDate) url += `start_date=${startDate}&`;
         if (endDate) url += `end_date=${endDate}&`;
 
-        const response = await fetch(url);
+        console.log('📡 Fetching movements:', url);
+        const response = await fetchWithTimeout(url);
+
+        if (!response.ok) throw new Error(`Sunucu Hatası: ${response.status}`);
+
         const movements = await response.json();
         renderMovements(movements);
+        console.log('✅ Movements loaded');
     } catch (error) {
         console.error('Hareket listesi hatası:', error);
-        document.getElementById('movementList').innerHTML =
-            '<tr><td colspan="7" class="text-center">Yükleme hatası</td></tr>';
+        const msg = error.name === 'AbortError' ? 'Zaman aşımı (Sunucu yanıt vermedi)' : error.message;
+        tbody.innerHTML =
+            `<tr><td colspan="7" class="text-center text-danger">⚠️ Hata: ${msg} <br> <button class="btn btn-sm btn-outline-secondary mt-2" onclick="loadMovements()">Tekrar Dene</button></td></tr>`;
     }
 }
 
