@@ -122,17 +122,26 @@
 
                 const users = await response.json();
 
-                container.innerHTML = users.map(user => `
+                container.innerHTML = users.map(user => {
+                    const linkedEmp = user.employee ? `<span class="badge badge-success">👤 ${user.employee.full_name}</span>` : '<span class="text-muted">-</span>';
+                    const empId = user.employee ? user.employee.id : '';
+
+                    return `
                     <tr>
                     <td><strong>${user.full_name}</strong></td>
                     <td>${user.username}</td>
                     <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
+                    <td>${linkedEmp}</td>
                     <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary" onclick="openLinkModal(${user.id}, '${user.username}', '${empId}')">🔗 Eşleştir</button>
+                    </td>
                     </tr>
-                `).join('');
+                `;
+                }).join('');
             } catch (error) {
                 console.error('Kullanıcı yükleme hatası:', error);
-                container.innerHTML = `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
+                container.innerHTML = `<tr><td colspan="6" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
             }
         }
 
@@ -249,14 +258,82 @@
                         console.error('Form submit error:', error);
                         alert('Bir hata oluştu: ' + error.message);
                     }
-                });
-            }
+                    checkAuth();
+                    loadPaymentAccounts();
+                    loadUsers();
 
-            checkAuth();
-            // loadStock(); // Removed as per user request
-            loadPaymentAccounts();
-            loadUsers();
-        });
+                    // Link Employee Form Submit
+                    const linkForm = document.getElementById('linkEmployeeForm');
+                    if (linkForm) {
+                        linkForm.addEventListener('submit', async (e) => {
+                            e.preventDefault();
+                            await saveLink();
+                        });
+                    }
+                });
+
+                // --- Link Employee Functions ---
+                let allEmployees = [];
+
+                async function loadEmployeesForSelect() {
+                    try {
+                        const response = await fetch('/api/employees');
+                        if (!response.ok) return;
+                        allEmployees = await response.json();
+
+                        // Populate Select
+                        const select = document.getElementById('linkEmployeeSelect');
+                        select.innerHTML = '<option value="">-- Bağlantıyı Kaldır --</option>' +
+                            allEmployees.map(emp => `<option value="${emp.id}">${emp.full_name} (${emp.role === 'manager' ? 'Yönetici' : 'Personel'})</option>`).join('');
+
+                    } catch (error) {
+                        console.error('Personel yükleme hatası:', error);
+                    }
+                }
+
+                async function openLinkModal(userId, username, currentEmpId) {
+                    document.getElementById('linkUserId').value = userId;
+                    document.getElementById('linkUserName').value = username;
+
+                    // Load fresh list
+                    await loadEmployeesForSelect();
+
+                    const select = document.getElementById('linkEmployeeSelect');
+                    if (currentEmpId) {
+                        select.value = currentEmpId;
+                    } else {
+                        select.value = "";
+                    }
+
+                    document.getElementById('linkEmployeeModal').style.display = 'flex';
+                }
+
+                async function saveLink() {
+                    const userId = document.getElementById('linkUserId').value;
+                    const empId = document.getElementById('linkEmployeeSelect').value;
+
+                    try {
+                        const response = await fetch(`/api/admin/users/${userId}/link-employee`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ employee_id: empId || null })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            closeModal('linkEmployeeModal');
+                            loadUsers();
+                            alert('Bağlantı güncellendi');
+                        } else {
+                            alert('Hata: ' + result.error);
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert('İşlem başarısız');
+                    }
+                }
+
     </script>
 </head>
 
@@ -343,7 +420,9 @@
                                 <th>Ad Soyad</th>
                                 <th>Kullanıcı Adı</th>
                                 <th>Rol</th>
+                                <th>Bağlı Personel</th>
                                 <th>Kayıt Tarihi</th>
+                                <th>İşlem</th>
                             </tr>
                         </thead>
                         <tbody id="usersContainer">
@@ -401,6 +480,39 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block mt-4">Hesabı Oluştur</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Link Employee Modal -->
+        <div id="linkEmployeeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Kullanıcı - Personel Eşleşmesi</h2>
+                    <button class="modal-close" onclick="closeModal('linkEmployeeModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3 text-muted">Bu kullanıcıyı bir personel ile eşleştirin. Böylece personel sadece kendi
+                        verilerini görür.</p>
+                    <form id="linkEmployeeForm">
+                        <input type="hidden" id="linkUserId">
+                        <div class="form-group">
+                            <label>Kullanıcı</label>
+                            <input type="text" id="linkUserName" class="form-control" disabled
+                                style="background: #f3f4f6;">
+                        </div>
+                        <div class="form-group">
+                            <label>Bağlanacak Personel</label>
+                            <select id="linkEmployeeSelect" class="form-control">
+                                <option value="">Seçiniz...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
+                                başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block mt-4">Kaydet ve Eşleştir</button>
                     </form>
                 </div>
             </div>
