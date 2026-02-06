@@ -3,30 +3,59 @@ let currentUser = null;
 let allEmployees = [];
 
 async function checkAuth() {
+    // 1. Try to load from cache immediately
+    const cachedUser = localStorage.getItem('user_cache');
+    if (cachedUser) {
+        try {
+            const user = JSON.parse(cachedUser);
+            updateUserInterface(user);
+            currentUser = user; // Set global for other functions
+        } catch (e) {
+            console.error('Cache parse error', e);
+        }
+    }
+
     try {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {
+            localStorage.removeItem('user_cache');
             window.location.href = '/index.html';
             return null;
         }
-        return await response.json();
+        const user = await response.json();
+
+        // 2. Update cache and UI
+        localStorage.setItem('user_cache', JSON.stringify(user));
+        updateUserInterface(user);
+        currentUser = user; // Update global
+
+        return user;
     } catch (error) {
-        window.location.href = '/index.html';
-        return null;
+        if (!cachedUser) {
+            window.location.href = '/index.html';
+        }
+        return currentUser; // Return cached if available on error (offline mode?)
+    }
+}
+
+function updateUserInterface(user) {
+    if (!user) return;
+
+    const nameEl = document.getElementById('userName');
+    const roleEl = document.getElementById('userRole');
+    const adminLink = document.getElementById('adminLink');
+
+    if (nameEl) nameEl.textContent = user.full_name;
+    if (roleEl) roleEl.textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+
+    if (user.role === 'admin' && adminLink) {
+        adminLink.style.display = 'block';
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth();
+    await checkAuth();
     if (!currentUser) return;
-
-    document.getElementById('userName').textContent = currentUser.full_name;
-    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-
-    if (currentUser.role === 'admin') {
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) adminLink.style.display = 'block';
-    }
 
     // Set default date for transaction
     const today = new Date().toISOString().split('T')[0];
@@ -37,6 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function logout() {
     try {
+        localStorage.removeItem('user_cache');
         await fetch('/api/auth/logout', { method: 'POST' });
         window.location.href = '/index.html';
     } catch (error) {

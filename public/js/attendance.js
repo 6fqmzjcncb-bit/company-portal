@@ -2,31 +2,49 @@
 let currentUser = null;
 
 async function checkAuth() {
+    const cachedUser = localStorage.getItem('user_cache');
+    if (cachedUser) {
+        try {
+            const user = JSON.parse(cachedUser);
+            updateUserInterface(user);
+            currentUser = user;
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     try {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {
+            localStorage.removeItem('user_cache');
             window.location.href = '/index.html';
             return null;
         }
-        return await response.json();
+        const user = await response.json();
+        localStorage.setItem('user_cache', JSON.stringify(user));
+        updateUserInterface(user);
+        return user;
     } catch (error) {
-        window.location.href = '/index.html';
-        return null;
+        if (!cachedUser) window.location.href = '/index.html';
+        return currentUser;
+    }
+}
+
+function updateUserInterface(user) {
+    if (!user) return;
+    document.getElementById('userName').textContent = user.full_name;
+    document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+
+    if (user.role === 'admin') {
+        const adminLink = document.getElementById('adminLink');
+        if (adminLink) adminLink.style.display = 'block';
     }
 }
 
 // User info display and initialization
 document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth();
+    await checkAuth(); // Sets currentUser
     if (!currentUser) return;
-
-    document.getElementById('userName').textContent = currentUser.full_name;
-    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-
-    if (currentUser.role === 'admin') {
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) adminLink.style.display = 'block';
-    }
 
     // Set today's date (Local time to avoid UTC mismatch)
     const now = new Date();
@@ -42,6 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function logout() {
     try {
+        localStorage.removeItem('user_cache');
         await fetch('/api/auth/logout', { method: 'POST' });
         window.location.href = '/index.html';
     } catch (error) {

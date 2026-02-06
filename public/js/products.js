@@ -15,44 +15,56 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentUser = await checkAuth();
     if (!currentUser) return;
 
-    // Permissions
-    if (currentUser.role === 'admin') {
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) adminLink.style.display = 'block';
-        const addBtn = document.getElementById('addBtn');
-        if (addBtn) addBtn.style.display = 'block';
-    }
-
     // Tabs
     setupTabs();
 
     // Load Data
     await loadProducts();
-
-    // Initial Tab Load (Movements are loaded when tab is clicked to save bandwidth, or load now?)
-    // Let's load movements now if we want, or wait. Let's wait for tab click or just load if standard.
-    // Better: Load only products first. content.
 });
 
 async function checkAuth() {
+    const cachedUser = localStorage.getItem('user_cache');
+    if (cachedUser) {
+        try {
+            const user = JSON.parse(cachedUser);
+            updateUserInterface(user);
+            currentUser = user;
+        } catch (e) { console.error(e); }
+    }
+
     try {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {
+            localStorage.removeItem('user_cache');
             window.location.href = '/index.html';
             return null;
         }
         const user = await response.json();
-        document.getElementById('userName').textContent = user.full_name;
-        document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+        localStorage.setItem('user_cache', JSON.stringify(user));
+        updateUserInterface(user);
         return user;
     } catch (error) {
-        window.location.href = '/index.html';
-        return null;
+        if (!cachedUser) window.location.href = '/index.html';
+        return currentUser;
+    }
+}
+
+function updateUserInterface(user) {
+    if (!user) return;
+    document.getElementById('userName').textContent = user.full_name;
+    document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+
+    if (user.role === 'admin') {
+        const adminLink = document.getElementById('adminLink');
+        if (adminLink) adminLink.style.display = 'block';
+        const addBtn = document.getElementById('addBtn');
+        if (addBtn) addBtn.style.display = 'block';
     }
 }
 
 async function logout() {
     try {
+        localStorage.removeItem('user_cache');
         await fetch('/api/auth/logout', { method: 'POST' });
         window.location.href = '/index.html';
     } catch (error) {

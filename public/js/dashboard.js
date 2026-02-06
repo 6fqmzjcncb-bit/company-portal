@@ -1,21 +1,63 @@
-// Auth kontrol
+// Auth & UI Cache
 async function checkAuth() {
+    // 1. Try to load from cache immediately to prevent flicker
+    const cachedUser = localStorage.getItem('user_cache');
+    if (cachedUser) {
+        try {
+            const user = JSON.parse(cachedUser);
+            updateUserInterface(user);
+        } catch (e) {
+            console.error('Cache parse error', e);
+        }
+    }
+
     try {
         const response = await fetch('/api/auth/me');
         if (!response.ok) {
+            localStorage.removeItem('user_cache'); // Clear invalid cache
             window.location.href = '/index.html';
             return null;
         }
-        return await response.json();
+        const user = await response.json();
+
+        // 2. Update cache and UI with fresh data
+        localStorage.setItem('user_cache', JSON.stringify(user));
+        updateUserInterface(user);
+
+        return user;
     } catch (error) {
-        window.location.href = '/index.html';
+        // If network error, maybe rely on cache? 
+        // For security, if we can't verify, we might redirect, but for flicker fix, we let it be if cached.
+        // But if it's a 401 it would be caught above. Network error implies offline?
+        // Let's redirect to be safe if no cache, or if cache exists maybe let them stay?
+        // Standard behavior: Redirect on error.
+        if (!cachedUser) {
+            window.location.href = '/index.html';
+        }
         return null;
+    }
+}
+
+function updateUserInterface(user) {
+    if (!user) return;
+
+    const nameEl = document.getElementById('userName');
+    const roleEl = document.getElementById('userRole');
+    const adminLink = document.getElementById('adminLink');
+
+    if (nameEl) nameEl.textContent = user.full_name;
+    if (roleEl) roleEl.textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+
+    // Admin linkini göster
+    if (user.role === 'admin' && adminLink) {
+        adminLink.style.display = 'block';
     }
 }
 
 // Logout
 async function logout() {
     try {
+        localStorage.removeItem('user_cache'); // Clear cache
         await fetch('/api/auth/logout', { method: 'POST' });
         window.location.href = '/index.html';
     } catch (error) {
@@ -26,17 +68,7 @@ async function logout() {
 
 // Kullanıcı bilgilerini yükle
 async function loadUserInfo() {
-    const user = await checkAuth();
-    if (!user) return;
-
-    document.getElementById('userName').textContent = user.full_name;
-    document.getElementById('userRole').textContent =
-        user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-
-    // Admin linkini göster
-    if (user.role === 'admin') {
-        document.getElementById('adminLink').style.display = 'block';
-    }
+    await checkAuth();
 }
 
 // İstatistikleri yükle
