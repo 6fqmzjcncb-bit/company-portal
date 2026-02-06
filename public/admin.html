@@ -258,139 +258,137 @@
             }
         }
 
-        async function saveLink() {
-            // ... (existing saveLink code) ...
-            // Toggle User Access
-            async function toggleAccess(userId, isActive) {
-                try {
-                    const response = await fetch(`/api/admin/users/${userId}/toggle-access`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ is_active: isActive })
-                    });
+        // Toggle User Access
+        async function toggleAccess(userId, isActive) {
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/toggle-access`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ is_active: isActive })
+                });
 
-                    const result = await response.json();
+                const result = await response.json();
 
-                    if (response.ok) {
-                        showAlert(result.message, isActive ? 'success' : 'warning');
-                    } else {
-                        showAlert('Hata: ' + result.error, 'error');
-                        // Revert checkbox if failed
-                        loadUsers();
-                    }
-                } catch (error) {
-                    console.error(error);
-                    showAlert('Bağlantı hatası', 'error');
+                if (response.ok) {
+                    showAlert(result.message, isActive ? 'success' : 'warning');
+                } else {
+                    showAlert('Hata: ' + result.error, 'error');
+                    // Revert checkbox if failed
                     loadUsers();
                 }
-            }
-
-            async function resetPassword() {
-                const userId = document.getElementById('resetUserId').value;
-                const newPass = document.getElementById('resetPassword').value;
-
-                if (newPass.length < 6) {
-                    showAlert('Şifre en az 6 karakter olmalı');
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`/api/admin/users/${userId}/password`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ password: newPass })
-                    });
-
-                    if (response.ok) {
-                        closeModal('passwordModal');
-                        showAlert('Şifre güncellendi');
-                    } else {
-                        const res = await response.json();
-                        showAlert('Hata: ' + (res.error || 'İşlem başarısız'));
-                    }
-                } catch (error) {
-                    console.error(error);
-                    showAlert('Bağlantı hatası');
-                }
-            }
-
-            function openPasswordModal(id, username) {
-                document.getElementById('resetUserId').value = id;
-                document.getElementById('resetUserName').value = username;
-                document.getElementById('resetPassword').value = '';
-                document.getElementById('passwordModal').style.display = 'flex';
-            }
-
-            // Modal Utilities
-            function openAccountModal() {
-                document.getElementById('accountForm').reset();
-                document.getElementById('accountModal').style.display = 'flex';
-            }
-
-            function closeModal(id) {
-                document.getElementById(id).style.display = 'none';
-            }
-
-
-
-            // --- Initialization ---
-            window.addEventListener('DOMContentLoaded', () => {
-                console.log('🚀 Admin Page v2.7 Loaded');
-
-                checkAuth();
-                loadPaymentAccounts();
+            } catch (error) {
+                console.error(error);
+                showAlert('Bağlantı hatası', 'error');
                 loadUsers();
+            }
+        }
 
-                // Account Form
-                const accountForm = document.getElementById('accountForm');
-                if (accountForm) {
-                    accountForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const name = document.getElementById('accName').value;
-                        const type = document.getElementById('accType').value;
+        async function resetPassword() {
+            const userId = document.getElementById('resetUserId').value;
+            const newPass = document.getElementById('resetPassword').value;
 
-                        // Auto-assign icon
-                        let icon = '💰';
-                        if (type === 'bank') icon = '🏦';
-                        else if (type === 'credit_card') icon = '💳';
-                        else if (type === 'cash') icon = '💵';
+            if (newPass.length < 6) {
+                showAlert('Şifre en az 6 karakter olmalı');
+                return;
+            }
 
-                        try {
-                            const response = await fetch('/api/payment-accounts', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ name, type, icon })
-                            });
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: newPass })
+                });
 
-                            if (response.ok) {
-                                closeModal('accountModal');
-                                loadPaymentAccounts();
-                                showAlert('Hesap eklendi');
-                            } else {
-                                showAlert('Hata oluştu!');
-                            }
-                        } catch (error) {
-                            console.error('Form submit error:', error);
-                            showAlert('Bir hata oluştu: ' + error.message);
+                if (response.ok) {
+                    closeModal('passwordModal');
+                    showAlert('Şifre güncellendi');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + (res.error || 'İşlem başarısız'));
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Bağlantı hatası');
+            }
+        }
+
+        function openPasswordModal(id, username) {
+            document.getElementById('resetUserId').value = id;
+            document.getElementById('resetUserName').value = username;
+            document.getElementById('resetPassword').value = '';
+            document.getElementById('passwordModal').style.display = 'flex';
+        }
+
+        // Modal Utilities
+        function openAccountModal() {
+            document.getElementById('accountForm').reset();
+            document.getElementById('accountModal').style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+
+
+        // --- Initialization ---
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Admin Page v2.7 Loaded');
+
+            checkAuth();
+            loadPaymentAccounts();
+            loadUsers();
+
+            // Account Form
+            const accountForm = document.getElementById('accountForm');
+            if (accountForm) {
+                accountForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('accName').value;
+                    const type = document.getElementById('accType').value;
+
+                    // Auto-assign icon
+                    let icon = '💰';
+                    if (type === 'bank') icon = '🏦';
+                    else if (type === 'credit_card') icon = '💳';
+                    else if (type === 'cash') icon = '💵';
+
+                    try {
+                        const response = await fetch('/api/payment-accounts', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name, type, icon })
+                        });
+
+                        if (response.ok) {
+                            closeModal('accountModal');
+                            loadPaymentAccounts();
+                            showAlert('Hesap eklendi');
+                        } else {
+                            showAlert('Hata oluştu!');
                         }
-                    });
-                }
+                    } catch (error) {
+                        console.error('Form submit error:', error);
+                        showAlert('Bir hata oluştu: ' + error.message);
+                    }
+                });
+            }
 
-                // User Form
-                const userForm = document.getElementById('userForm');
-                if (userForm) {
-                    userForm.addEventListener('submit', submitUserForm);
-                }
+            // User Form
+            const userForm = document.getElementById('userForm');
+            if (userForm) {
+                userForm.addEventListener('submit', submitUserForm);
+            }
 
-                // Link Employee Form
-                const linkForm = document.getElementById('linkEmployeeForm');
-                if (linkForm) {
-                    linkForm.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        await saveLink();
-                    });
-                }
-            });
+            // Link Employee Form
+            const linkForm = document.getElementById('linkEmployeeForm');
+            if (linkForm) {
+                linkForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await saveLink();
+                });
+            }
+        });
     </script>
 </head>
 
