@@ -89,37 +89,7 @@
             window.location.href = '/index.html';
         }
 
-        async function loadStock() {
-            try {
-                // Fix: Endpoint is /api/products, not /api/products/stock
-                const response = await fetch('/api/products');
-                if (!response.ok) throw new Error('Stok verisi alınamadı');
 
-                const products = await response.json();
-                const container = document.getElementById('stockContainer');
-
-                if (products.length === 0) {
-                    container.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Ürün bulunamadı</td></tr>';
-                    return;
-                }
-
-                container.innerHTML = products.map(product => `
-                    <tr>
-                        <td><strong>${product.name}</strong></td>
-                        <td>${product.barcode || '-'}</td>
-                        <td>
-                            <span class="badge ${product.current_stock > 10 ? 'badge-success' : product.current_stock > 0 ? 'badge-warning' : 'badge-error'}">
-                            ${product.current_stock} adet
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('Stok yükleme hatası:', error);
-                document.getElementById('stockContainer').innerHTML =
-                    `<tr><td colspan="3" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
-            }
-        }
 
         async function loadUsers() {
             const container = document.getElementById('usersContainer');
@@ -260,7 +230,7 @@
             }
 
             checkAuth();
-            loadStock();
+            // loadStock(); // Removed as per user request
             loadPaymentAccounts();
             loadUsers();
         });
@@ -320,27 +290,7 @@
         <main class="main-content">
             <h1 class="page-title mb-4">Yönetim Paneli</h1>
 
-            <div class="card mb-4">
-                <div class="card-header">📦 Stok Durumu</div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Ürün</th>
-                                <th>Barkod</th>
-                                <th>Mevcut Stok</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockContainer">
-                            <tr>
-                                <td colspan="3" class="text-center">
-                                    <div class="loader"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
 
             <div class="card mb-4">
                 <div class="card-header">
