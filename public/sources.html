@@ -10,17 +10,41 @@
         let currentUser = null;
 
         async function checkAuth() {
+            const cachedUser = localStorage.getItem('user_cache');
+            if (cachedUser) {
+                try {
+                    const user = JSON.parse(cachedUser);
+                    updateUserInterface(user);
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+
             try {
                 const response = await fetch('/api/auth/me');
-                if (!response.ok) window.location.href = '/index.html';
-                currentUser = await response.json();
-                document.getElementById('userName').textContent = currentUser.full_name;
-                document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-                if (currentUser.role === 'admin') {
-                    document.getElementById('adminLink').style.display = 'block';
-                    document.getElementById('addBtn').style.display = 'block';
+                if (!response.ok) {
+                    localStorage.removeItem('user_cache');
+                    window.location.href = '/index.html';
+                    return null;
                 }
-            } catch (error) { window.location.href = '/index.html'; }
+                const user = await response.json();
+                localStorage.setItem('user_cache', JSON.stringify(user));
+                updateUserInterface(user);
+                return user;
+            } catch (error) {
+                if (!cachedUser) window.location.href = '/index.html';
+            }
+        }
+
+        function updateUserInterface(user) {
+            document.getElementById('userName').textContent = user.full_name;
+            document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+            if (user.role === 'admin') {
+                const adminLink = document.getElementById('adminLink');
+                if (adminLink) adminLink.style.display = 'block';
+                const addBtn = document.getElementById('addBtn');
+                if (addBtn) addBtn.style.display = 'block';
+            }
         }
 
         async function logout() {

@@ -74,14 +74,37 @@
         };
 
         async function checkAuth() {
+            const cachedUser = localStorage.getItem('user_cache');
+            if (cachedUser) {
+                try {
+                    const user = JSON.parse(cachedUser);
+                    if (user.role === 'admin') updateUserInterface(user);
+                } catch (e) { console.error(e); }
+            }
+
             try {
                 const response = await fetch('/api/auth/me');
-                if (!response.ok) window.location.href = '/index.html';
+                if (!response.ok) {
+                    localStorage.removeItem('user_cache');
+                    window.location.href = '/index.html';
+                    return;
+                }
                 const user = await response.json();
-                if (user.role !== 'admin') window.location.href = '/dashboard.html';
-                document.getElementById('userName').textContent = user.full_name;
-                document.getElementById('userRole').textContent = '👑 Yönetici';
-            } catch (error) { window.location.href = '/index.html'; }
+                if (user.role !== 'admin') {
+                    window.location.href = '/dashboard.html';
+                    return;
+                }
+
+                localStorage.setItem('user_cache', JSON.stringify(user));
+                updateUserInterface(user);
+            } catch (error) {
+                if (!cachedUser) window.location.href = '/index.html';
+            }
+        }
+
+        function updateUserInterface(user) {
+            document.getElementById('userName').textContent = user.full_name;
+            document.getElementById('userRole').textContent = '👑 Yönetici';
         }
 
         async function logout() {
