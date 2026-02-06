@@ -56,7 +56,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     await loadEmployees();
     await loadAttendance();
+    await loadSummary();
 });
+
+async function loadSummary() {
+    const tbody = document.getElementById('summaryList');
+    if (!tbody) return;
+
+    // Use selected date's month for summary context
+    const dateInput = document.getElementById('selectedDate').value;
+    const date = new Date(dateInput);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    // First and Last day of the selected month
+    const start_date = new Date(year, month - 1, 1).toISOString().split('T')[0];
+    const end_date = new Date(year, month, 0).toISOString().split('T')[0];
+
+    try {
+        const response = await fetch(`/api/attendance/summary?start_date=${start_date}&end_date=${end_date}`);
+        const data = await response.json();
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center">Kayıt bulunamadı</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = data.map(item => `
+            <tr>
+                <td><strong>${item.full_name}</strong></td>
+                <td>${item.role === 'manager' ? 'Yönetici' : item.role === 'supervisor' ? 'Ustabaşı' : 'İşçi'}</td>
+                <td class="text-center"><strong>${item.total_days}</strong> Gün</td>
+                <td class="text-center">${item.total_overtime > 0 ? `<span class="badge badge-warning">${item.total_overtime} Saat</span>` : '-'}</td>
+            </tr>
+        `).join('');
+
+        // Update Title context
+        const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        document.querySelector('.card.mt-4 .card-header h2').textContent = `📊 Aylık Çalışma Özeti (${monthNames[month - 1]} ${year})`;
+
+    } catch (error) {
+        console.error('Özet yükleme hatası:', error);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Hata oluştu</td></tr>';
+    }
+}
 
 async function logout() {
     try {
@@ -132,7 +175,9 @@ function changeDate(offset) {
     const day = String(currentDate.getDate()).padStart(2, '0');
 
     dateInput.value = `${year}-${month}-${day}`;
+    dateInput.value = `${year}-${month}-${day}`;
     loadAttendance();
+    loadSummary(); // Refresh summary for the new date's month
 }
 
 // Render attendance table
@@ -508,6 +553,7 @@ async function saveAllAttendance() {
 
         alert('Tüm kayıtlar başarıyla kaydedildi!');
         loadAttendance();
+        loadSummary();
     } catch (error) {
         console.error('Hata:', error);
         alert('Kayıt sırasında hata oluştu');
