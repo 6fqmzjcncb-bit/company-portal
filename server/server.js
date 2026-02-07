@@ -94,49 +94,38 @@ const { Role } = require('./models'); // Import Role for migration
 
 const syncRolesAndPermissions = async () => {
     try {
-        console.log('🛡️ Rol ve Yetki sistemi kontrol ediliyor...');
+        console.log('🛡️ Rol ve Yetki sistemi senkronize ediliyor...');
+        const { Role, PaymentAccount, User } = require('./models');
 
-        const count = await Role.count();
-        if (count === 0) {
-            console.log('⚠️ Hiç rol bulunamadı, varsayılan roller oluşturuluyor...');
+        // 1. Define all roles to ensure (System + Demo)
+        const allRoles = [
+            // System Roles
+            { name: 'Yönetici', permissions: ['all'], is_system: true },
+            { name: 'Personel', permissions: ['view_dashboard', 'view_tasks'], is_system: true },
+            // Demo Roles
+            { name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
+            { name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
+            { name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
+        ];
 
-            // 1. Create Default Roles
-            const adminRole = await Role.create({
-                name: 'Yönetici',
-                permissions: ['all'],
-                is_system: true
+        // 2. Create/Update Roles
+        const roleMap = {};
+        for (const r of allRoles) {
+            const [role] = await Role.findOrCreate({
+                where: { name: r.name },
+                defaults: r
             });
-
-            const staffRole = await Role.create({
-                name: 'Personel',
-                permissions: ['view_dashboard', 'view_tasks'],
-                is_system: true
-            });
-
-            // 2. Migrate Existing Users
-            const users = await User.findAll();
-            for (const user of users) {
-                if (!user.role_id) {
-                    if (user.role === 'admin') {
-                        await user.update({ role_id: adminRole.id });
-                    } else {
-                        await user.update({ role_id: staffRole.id });
-                    }
-                }
+            // Update permissions if they changed (optional, but good for enforcement)
+            if (JSON.stringify(role.permissions) !== JSON.stringify(r.permissions)) {
+                role.permissions = r.permissions;
+                role.is_system = r.is_system;
+                await role.save();
             }
-            console.log(`✅ ${users.length} kullanıcı yeni rol sistemine taşındı.`);
+            roleMap[r.name] = role;
+            console.log(`✅ Rol hazır: ${role.name}`);
         }
-    } catch (error) {
-        console.error('Role sync error:', error);
-    }
-};
 
-const seedDemoData = async () => {
-    try {
-        const { PaymentAccount } = require('./models');
-        console.log('🌱 Demo verileri kontrol ediliyor...');
-
-        // --- Payment Accounts ---
+        // 3. Ensure Demo Payment Accounts
         const accounts = [
             { name: 'Merkez Kasa', type: 'cash', icon: '💵' },
             { name: 'Ziraat Bankası', type: 'bank', icon: '🏦' },
@@ -149,32 +138,34 @@ const seedDemoData = async () => {
                 defaults: a
             });
         }
+        console.log('✅ Ödeme hesapları hazır.');
 
-        // --- Additional Roles ---
-        const roles = [
-            { name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
-            { name: 'Saha Ekibi', permissions: ['view_tasks'], is_system: false }, // Fixed permission name
-            { name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
-        ];
-
-        for (const r of roles) {
-            await Role.findOrCreate({
-                where: { name: r.name },
-                defaults: r
-            });
+        // 4. Migrate Existing Users (Fix "Eski" roles)
+        const users = await User.findAll({ where: { role_id: null } });
+        for (const user of users) {
+            if (user.role === 'admin' && roleMap['Yönetici']) {
+                await user.update({ role_id: roleMap['Yönetici'].id });
+            } else if (roleMap['Personel']) {
+                await user.update({ role_id: roleMap['Personel'].id });
+            }
+        }
+        if (users.length > 0) {
+            console.log(`✅ ${users.length} kullanıcı yeni rol sistemine güncellendi.`);
         }
 
-        console.log('✅ Demo verileri (Hesaplar ve Ek Roller) hazır.');
-
     } catch (error) {
-        console.error('Seed error:', error);
+        console.error('Role/Seed sync error:', error);
     }
+};
+
+const seedDemoData = async () => {
+    // Deprecated: Logic moved to syncRolesAndPermissions for reliability
 };
 
 // Manual Seed Endpoint
 app.get('/seed-demo-data', async (req, res) => {
     try {
-        await seedDemoData();
+        await syncRolesAndPermissions();
         const { Role, PaymentAccount } = require('./models');
         const roles = await Role.findAll();
         const accounts = await PaymentAccount.findAll();
