@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Kurulumu & Onarım</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f4f4f5;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #111827;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #logs {
+            background: #1f2937;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin-top: 15px;
+            min-height: 100px;
+        }
+
+        .error {
+            color: #ef4444 !important;
+        }
+
+        .info {
+            color: #3b82f6 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🛠️ Sistem Kurulum Yardımcısı</h1>
+
+    <div class="card">
+        <h3>1. Demo Verilerini Yükle</h3>
+        <p>Eksik olan Roller (Muhasebe, Saha vb.) ve Ödeme Hesaplarını (Kasa, Banka) veritabanına zorla yazar.</p>
+        <button onclick="runSeed()" id="btnSeed">Verileri Yükle / Onar</button>
+        <div id="logs">Bekleniyor...</div>
+    </div>
+
+    <div class="card">
+        <h3>2. Kontrol Et</h3>
+        <p>İşlem bittiğinde sonuçları görmek için Yönetim Paneline gidin.</p>
+        <a href="/" style="text-decoration: none;">
+            <button style="background: #10b981;">Ana Sayfaya Dön</button>
+        </a>
+    </div>
+
+    <script>
+        async function runSeed() {
+            const btn = document.getElementById('btnSeed');
+            const logs = document.getElementById('logs');
+            btn.disabled = true;
+            logs.innerText = '⏳ İşlem başlatılıyor...\n';
+
+            try {
+                const response = await fetch('/setup/force-seed');
+                const data = await response.json();
+
+                if (response.ok) {
+                    logs.innerHTML = '<span class="info">✅ İşlem Başarılı!</span>\n\n';
+                    if (data.logs && data.logs.length > 0) {
+                        data.logs.forEach(log => {
+                            logs.innerHTML += log + '\n';
+                        });
+                    } else {
+                        logs.innerHTML += 'Sunucudan detaylı log dönmedi ama işlem başarılı görünüyor.';
+                    }
+                } else {
+                    logs.innerHTML = '<span class="error">❌ Sunucu Hatası:</span>\n' + (data.error || 'Bilinmeyen hata');
+                }
+            } catch (error) {
+                logs.innerHTML = '<span class="error">❌ Bağlantı Hatası:</span>\n' + error.message;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>
