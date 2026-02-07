@@ -366,6 +366,37 @@
         </div>
     </div>
 
+    <!-- Re-hire Modal -->
+    <div id="rehireModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">İşe Geri Alım</h3>
+                <button class="modal-close" onclick="closeModal('rehireModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-4 text-gray-600">Bu personeli hangi ücretle işe geri almak istiyorsunuz?</p>
+
+                <input type="hidden" id="rehireEmpId">
+
+                <div class="form-group">
+                    <label>Yeni Günlük Ücret (₺)</label>
+                    <input type="number" id="rehireDailyWage" class="form-control" placeholder="Örn: 1500">
+                </div>
+
+                <div class="form-group">
+                    <label>Yeni Aylık Maaş (₺)</label>
+                    <input type="number" id="rehireMonthlySalary" class="form-control" placeholder="Örn: 45000">
+                    <small class="text-muted">Biri veya ikisi doldurulabilir.</small>
+                </div>
+
+                <div class="form-actions mt-4">
+                    <button class="btn btn-secondary" onclick="closeModal('rehireModal')">İptal</button>
+                    <button class="btn btn-primary" onclick="submitRehire()">İşe Geri Al</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Custom Confirmation Modal -->
     <div id="confirmModal" class="modal">
         <div class="modal-content" style="max-width: 400px; text-align: center;">

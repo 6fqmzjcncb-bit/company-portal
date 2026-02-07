@@ -548,31 +548,49 @@ async function deleteEmployee(id) {
     );
 }
 
-async function reactivateEmployee(id) {
-    showConfirmModal(
-        'İşe Geri Al',
-        'Bu personeli tekrar işe almak (Aktifleştirmek) istediğinize emin misiniz?',
-        async () => {
-            try {
-                const response = await fetch(`/api/employees/${id}/reactivate`, {
-                    method: 'POST'
-                });
+// Replaces reactivateEmployee with Modal open
+function reactivateEmployee(id) {
+    document.getElementById('rehireEmpId').value = id;
+    document.getElementById('rehireDailyWage').value = '';
+    document.getElementById('rehireMonthlySalary').value = '';
+    document.getElementById('rehireModal').style.display = 'flex';
+}
 
-                if (!response.ok) throw new Error('İşlem başarısız');
+async function submitRehire() {
+    const id = document.getElementById('rehireEmpId').value;
+    const dailyWage = document.getElementById('rehireDailyWage').value;
+    const monthlySalary = document.getElementById('rehireMonthlySalary').value;
 
-                showToast('Başarılı', 'Personel tekrar aktif edildi.', 'success');
-                closeModal('employeeModal'); // If open
-                await loadData(); // Reload main list
-                // Optionally reload archive list if modal is open
-                if (document.getElementById('archivedEmployeesModal').style.display === 'flex') {
-                    loadArchivedEmployees();
-                }
-            } catch (error) {
-                console.error(error);
-                showToast('Hata', 'Personel aktif edilemedi.', 'error');
-            }
+    if (!dailyWage && !monthlySalary && !confirm('Ücret girmeden devam etmek istiyor musunuz? (Ücretsiz görünecek)')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/employees/${id}/reactivate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                daily_wage: dailyWage || null,
+                monthly_salary: monthlySalary || null
+            })
+        });
+
+        if (!response.ok) throw new Error('İşlem başarısız');
+
+        showToast('Başarılı', 'Personel yeni ücretle tekrar aktif edildi.', 'success');
+        closeModal('rehireModal');
+        closeModal('employeeModal'); // If open
+        await loadData(); // Reload main data
+
+        // Refresh archive modal if open
+        if (document.getElementById('archivedEmployeesModal').style.display === 'flex') {
+            loadArchivedEmployees();
         }
-    );
+
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', 'Personel aktif edilemedi.', 'error');
+    }
 }
 
 async function settleAndArchive(id, amount) {

@@ -5,6 +5,16 @@ const { Employee, Attendance, SalaryPayment, User, Role, sequelize } = require('
 const { requireAuth } = require('../middleware/auth');
 
 // Tüm personeli listele
+router.get('/force-db-sync', async (req, res) => {
+    try {
+        await sequelize.sync({ alter: true });
+        res.json({ message: 'Database synced!' });
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
+// Tüm personeli listele
 router.get('/', requireAuth, async (req, res) => {
     try {
         let whereClause = {};
