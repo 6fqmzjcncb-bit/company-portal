@@ -479,26 +479,39 @@ async function loadArchivedEmployees() {
     tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
 
     try {
+        console.log('Arşiv yükleniyor...');
         const response = await fetch('/api/salary/balance?showArchived=true');
         const all = await response.json();
-        const archived = all.filter(e => !e.is_active); // We need backend to return is_active in balance endpoint! 
-        // NOTE: /balance endpoint returns Employee fields. Check if is_active is included.
-        // Employee.findAll gets all fields by default, so yes it should be there.
-        // Let's verify... `balances.push({ id, full_name... })` -> Need to add is_active there.
+        console.log('Tüm personel:', all);
 
-        // Wait, look at server/routes/salary.js:
-        /*
-            balances.push({
-                id: emp.id,
-                full_name: emp.full_name,
-                ...
-                current_balance: currentBalance
-            });
-        */
-        // It does NOT explicitly push `is_active`. I need to add it to be sure.
+        // Filter: is_active should be false (or 0)
+        const archived = all.filter(e => e.is_active === false || e.is_active === 0);
+        console.log('Arşivlenenler:', archived);
+
+        if (archived.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Arşivlenmiş personel bulunamadı.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = archived.map(emp => `
+            <tr>
+                <td>
+                    <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
+                        ${emp.full_name} ✏️
+                    </div>
+                </td>
+                 <td>${emp.phone || '-'}</td>
+                 <td>${emp.total_worked_days} Gün</td>
+                 <td>${formatCurrency(emp.current_balance)}</td>
+                 <td>
+                    <button class="btn-small btn-secondary" onclick="editEmployee(${emp.id})">Yönet</button>
+                 </td>
+            </tr>
+        `).join('');
 
     } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Hata</td></tr>';
+        console.error('Arşiv yükleme hatası:', e);
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Hata: ' + e.message + '</td></tr>';
     }
 }
 // Placeholder for now - Need to update backend first to return is_active?
