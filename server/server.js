@@ -169,7 +169,27 @@ const seedDemoData = async () => {
     } catch (error) {
         console.error('Seed error:', error);
     }
+} catch (error) {
+    console.error('Seed error:', error);
+}
 };
+
+// Manual Seed Endpoint
+app.get('/seed-demo-data', async (req, res) => {
+    try {
+        await seedDemoData();
+        const { Role, PaymentAccount } = require('./models');
+        const roles = await Role.findAll();
+        const accounts = await PaymentAccount.findAll();
+        res.json({
+            message: 'Demo verileri yüklendi',
+            roles: roles.map(r => r.name),
+            accounts: accounts.map(a => a.name)
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
 // ... inside initializeDatabase ...
 // await syncRolesAndPermissions(); 
