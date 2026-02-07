@@ -18,8 +18,8 @@ router.get('/', requirePermission('view_sources'), async (req, res) => {
     }
 });
 
-// Yeni kaynak ekle (manage_stock yetkisi)
-router.post('/', requirePermission('manage_stock'), async (req, res) => {
+// Yeni kaynak ekle (view_sources yetkisi)
+router.post('/', requirePermission('view_sources'), async (req, res) => {
     try {
         const { name, color_code, type } = req.body;
 
@@ -36,8 +36,8 @@ router.post('/', requirePermission('manage_stock'), async (req, res) => {
     }
 });
 
-// Kaynak güncelle (manage_stock yetkisi)
-router.put('/:id', requirePermission('manage_stock'), async (req, res) => {
+// Kaynak güncelle (view_sources yetkisi)
+router.put('/:id', requirePermission('view_sources'), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, color_code, type } = req.body;
@@ -56,8 +56,8 @@ router.put('/:id', requirePermission('manage_stock'), async (req, res) => {
     }
 });
 
-// Kaynak sil (manage_stock yetkisi)
-router.delete('/:id', requirePermission('manage_stock'), async (req, res) => {
+// Kaynak sil (view_sources yetkisi)
+router.delete('/:id', requirePermission('view_sources'), async (req, res) => {
     try {
         const { id } = req.params;
         const source = await Source.findByPk(id);
@@ -71,6 +71,9 @@ router.delete('/:id', requirePermission('manage_stock'), async (req, res) => {
     } catch (error) {
         console.error('Source delete error:', error);
         res.status(500).json({ error: 'Kaynak silinemedi' });
+    }
+}); console.error('Source delete error:', error);
+res.status(500).json({ error: 'Kaynak silinemedi' });
     }
 });
 

@@ -67,60 +67,67 @@ router.get('/search', requireAuth, async (req, res) => {
     }
 });
 
-// Yeni ürün ekle (sadece manage_stock yetkisi olanlar)
-router.post('/', requirePermission('manage_stock'), async (req, res) => {
+// Yeni ürün ekle (Admin veya Stok Sorumlusu)
+router.post('/', requirePermission('view_products'), async (req, res) => {
+    // Personel is Read-Only
+    if (req.userRoleName === 'Personel') {
+        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
+    }
+
     try {
-        const { name, barcode, current_stock } = req.body;
-
-        const product = await Product.create({
-            name,
-            barcode: barcode || null,
-            current_stock: current_stock || 0
-        });
-
+        const { name, stock, min_stock, unit } = req.body;
+        const product = await Product.create({ name, stock, min_stock, unit });
         res.status(201).json(product);
     } catch (error) {
-        console.error('Product create error:', error);
-        res.status(500).json({ error: 'Ürün oluşturulamadı' });
+        res.status(400).json({ error: error.message });
     }
 });
 
-// Ürün güncelle (sadece manage_stock yetkisi olanlar)
-router.put('/:id', requirePermission('manage_stock'), async (req, res) => {
+// Ürün güncelle
+router.put('/:id', requirePermission('view_products'), async (req, res) => {
+    if (req.userRoleName === 'Personel') {
+        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
+    }
+
     try {
-        const { id } = req.params;
-        const { name, barcode, current_stock } = req.body;
+        const product = await Product.findByPk(req.params.id);
+        if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
 
-        const product = await Product.findByPk(id);
-
-        if (!product) {
-            return res.status(404).json({ error: 'Ürün bulunamadı' });
-        }
-
-        await product.update({ name, barcode, current_stock });
+        await product.update(req.body);
         res.json(product);
     } catch (error) {
-        console.error('Product update error:', error);
-        res.status(500).json({ error: 'Ürün güncellenemedi' });
+        res.status(400).json({ error: error.message });
     }
 });
 
-// Ürün sil (sadece manage_stock yetkisi olanlar)
-router.delete('/:id', requirePermission('manage_stock'), async (req, res) => {
-    try {
-        const { id } = req.params;
-        const product = await Product.findByPk(id);
+// Ürün sil
+router.delete('/:id', requirePermission('view_products'), async (req, res) => {
+    if (req.userRoleName === 'Personel') {
+        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
+    }
 
-        if (!product) {
-            return res.status(404).json({ error: 'Ürün bulunamadı' });
-        }
+    try {
+        const product = await Product.findByPk(req.params.id);
+        if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
 
         await product.destroy();
-        res.json({ success: true });
+        res.json({ message: 'Ürün silindi' });
     } catch (error) {
-        console.error('Product delete error:', error);
-        res.status(500).json({ error: 'Ürün silinemedi' });
+        res.status(500).json({ error: error.message });
     }
+}); const { id } = req.params;
+const product = await Product.findByPk(id);
+
+if (!product) {
+    return res.status(404).json({ error: 'Ürün bulunamadı' });
+}
+
+await product.destroy();
+res.json({ success: true });
+    } catch (error) {
+    console.error('Product delete error:', error);
+    res.status(500).json({ error: 'Ürün silinemedi' });
+}
 });
 
 module.exports = router;
