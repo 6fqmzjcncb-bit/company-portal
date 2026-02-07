@@ -248,7 +248,7 @@
                         <td>
                             <button class="btn btn-sm btn-outline-warning" onclick="openPasswordModal(${user.id}, '${user.username}')">🔑 Şifre</button>
                             <button class="btn btn-sm btn-info" onclick="openEditUserRoleModal(${user.id}, '${user.username}', ${user.role_id || 'null'})">✏️ Rol</button>
-                            ${user.id !== currentUserId ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Sil</button>` : ''}
+                            ${user.id !== currentUserId ? `<button class="btn btn-sm btn-danger" onclick="confirmDeleteUser(${user.id})">Sil</button>` : ''}
                         </td>
                         </tr>
                     `;
@@ -259,21 +259,35 @@
             }
         }
 
-        async function deleteUser(id) {
-            if (!confirm('Bu kullanıcıyı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) return;
+        let pendingDeleteId = null;
+
+        function confirmDeleteUser(id) {
+            pendingDeleteId = id;
+            document.getElementById('confirmMessage').textContent = 'Bu kullanıcıyı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!';
+            document.getElementById('confirmDataBtn').onclick = executeDeleteUser;
+
+            const modal = document.getElementById('confirmModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        async function executeDeleteUser() {
+            if (!pendingDeleteId) return;
+            closeModal('confirmModal');
 
             try {
-                const response = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                const response = await fetch(`/api/admin/users/${pendingDeleteId}`, { method: 'DELETE' });
                 if (response.ok) {
                     loadUsers();
-                    showAlert('Kullanıcı silindi');
+                    showAlert('Kullanıcı silindi', 'success');
                 } else {
                     const res = await response.json();
-                    showAlert('Hata: ' + res.error);
+                    showAlert('Hata: ' + res.error, 'error');
                 }
             } catch (err) {
-                showAlert('Silme işlemi başarısız');
+                showAlert('Silme işlemi başarısız', 'error');
             }
+            pendingDeleteId = null;
         }
 
         function addUser() {
@@ -438,9 +452,7 @@
 
                 const result = await response.json();
 
-                if (response.ok) {
-                    showAlert(result.message, isActive ? 'success' : 'warning');
-                } else {
+                if (!response.ok) {
                     showAlert('Hata: ' + result.error, 'error');
                     // Revert checkbox if failed
                     loadUsers();
@@ -892,6 +904,20 @@
                         <button type="submit" class="btn btn-primary">Kaydet</button>
                     </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Modal -->
+        <div id="confirmModal" class="modal">
+            <div class="modal-content" style="max-width: 400px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">❓</div>
+                <h2 class="modal-title" style="justify-content: center; margin-bottom: 10px;">Emin misiniz?</h2>
+                <p id="confirmMessage"
+                    style="font-size: 1.1rem; color: #4b5563; margin-bottom: 25px; line-height: 1.5;"></p>
+                <div class="modal-actions" style="justify-content: center;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('confirmModal')">Vazgeç</button>
+                    <button type="button" class="btn btn-danger" id="confirmDataBtn">Evet, Sil</button>
                 </div>
             </div>
         </div>
