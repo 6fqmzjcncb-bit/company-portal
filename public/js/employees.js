@@ -213,9 +213,16 @@ document.getElementById('employeeForm').addEventListener('submit', async (e) => 
             body: JSON.stringify(formData)
         });
 
-        if (!response.ok) throw new Error('Kayıt başarısız');
+        const result = await response.json(); // Get JSON response
 
-        alert(editingId ? 'Personel güncellendi' : 'Personel eklendi');
+        if (!response.ok) throw new Error(result.error || 'Kayıt başarısız');
+
+        if (result.createdUser) {
+            alert(`✅ Personel ve Kullanıcı Hesabı Oluşturuldu!\n\n👤 Kullanıcı Adı: ${result.createdUser.username}\n🔑 Şifre: ${result.createdUser.password}\n\nLütfen bu bilgileri personel ile paylaşın.`);
+        } else {
+            alert(editingId ? 'Personel güncellendi' : 'Personel eklendi');
+        }
+
         closeModal();
         loadEmployees();
     } catch (error) {

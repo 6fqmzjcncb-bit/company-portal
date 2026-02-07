@@ -109,7 +109,15 @@ router.post('/', requireAuth, async (req, res) => {
         await employee.update({ user_id: user.id }, { transaction: t });
 
         await t.commit();
-        res.status(201).json(employee);
+
+        // Return employee with created user info for display
+        const employeeData = employee.toJSON();
+        employeeData.createdUser = {
+            username: username,
+            password: '123456' // Show this once to the admin
+        };
+
+        res.status(201).json(employeeData);
 
     } catch (error) {
         await t.rollback();
