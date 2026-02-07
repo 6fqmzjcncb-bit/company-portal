@@ -109,14 +109,23 @@ async function loadSources() {
 // EMPLOYEE CRUD SECTION
 // --------------------------------------------------------------------------
 
-function showAddEmployeeModal() {
+async function showAddEmployeeModal() {
     document.getElementById('employeeForm').reset();
     document.getElementById('editEmpId').value = '';
     document.getElementById('empModalTitle').textContent = 'Yeni Personel Ekle';
     document.getElementById('btnDeleteEmployee').style.display = 'none'; // Hide delete for new
 
     // Load System Roles
-    loadSystemRoles();
+    await loadSystemRoles();
+
+    // Force select 'Personel' by default
+    const select = document.getElementById('systemRole');
+    for (let i = 0; i < select.options.length; i++) {
+        if (select.options[i].text.includes('Personel')) {
+            select.selectedIndex = i;
+            break;
+        }
+    }
 
     document.getElementById('employeeModal').style.display = 'flex';
 }
