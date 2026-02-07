@@ -76,6 +76,7 @@
                 }
                 const user = await response.json();
                 console.log('👤 User:', user);
+                currentUserId = user.id; // Store globally
 
                 if (user.role !== 'admin') {
                     window.location.href = '/dashboard.html';
@@ -95,6 +96,81 @@
             window.location.href = '/index.html';
         }
 
+        // --- Role Management ---
+        async function loadRoles() {
+            const container = document.getElementById('rolesContainer');
+            try {
+                const response = await fetch('/api/roles');
+                const roles = await response.json();
+
+                container.innerHTML = roles.map(role => `
+                        <tr>
+                            <td><strong>${role.name}</strong> ${role.is_system ? '<span class="badge badge-secondary" style="font-size:0.7em">Sistem</span>' : ''}</td>
+                            <td><small>${role.permissions.map(p => `<code>${p}</code>`).join(' ')}</small></td>
+                            <td>
+                                ${!role.is_system ? `<button class="btn btn-sm btn-danger" onclick="deleteRole(${role.id})">Sil</button>` : '<span class="text-muted">-</span>'}
+                            </td>
+                        </tr>
+                    `).join('');
+
+                // Update User Modal Role Select
+                const userRoleSelect = document.getElementById('newRole');
+                userRoleSelect.innerHTML = roles.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+
+            } catch (error) {
+                console.error('Role load error:', error);
+                container.innerHTML = '<tr><td colspan="3" class="text-danger">Roller yüklenemedi</td></tr>';
+            }
+        }
+
+        async function submitRoleForm(e) {
+            e.preventDefault();
+            const name = document.getElementById('roleName').value;
+            const permissions = Array.from(document.querySelectorAll('input[name="permissions"]:checked')).map(cb => cb.value);
+
+            try {
+                const response = await fetch('/api/roles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, permissions })
+                });
+
+                if (response.ok) {
+                    closeModal('roleModal');
+                    loadRoles();
+                    showAlert('Rol oluşturuldu');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + res.error);
+                }
+            } catch (err) {
+                showAlert('İşlem başarısız');
+            }
+        }
+
+        async function deleteRole(id) {
+            if (!confirm('Bu rolü silmek istediğinize emin misiniz?')) return;
+            try {
+                const response = await fetch(`/api/roles/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadRoles();
+                    showAlert('Rol silindi');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + res.error);
+                }
+            } catch (err) {
+                showAlert('Silme başarısız');
+            }
+        }
+
+        window.openRoleModal = function () {
+            document.getElementById('roleForm').reset();
+            document.getElementById('roleModal').style.display = 'flex';
+        }
+
+
+        // --- User Management ---
         async function loadUsers() {
             const container = document.getElementById('usersContainer');
             try {
@@ -105,35 +181,54 @@
 
                 container.innerHTML = users.map(user => {
                     const linkedEmp = user.employee ? `<span class="badge badge-success">👤 ${user.employee.full_name}</span>` : '<span class="text-muted">-</span>';
-                    const empId = user.employee ? user.employee.id : '';
+                    const roleName = user.userRole ? user.userRole.name : (user.role === 'admin' ? 'Yönetici (Eski)' : 'Personel (Eski)');
 
                     return `
-                    <tr>
-                    <td><strong>${user.full_name}</strong></td>
-                    <td>${user.username}</td>
-                    <td><span class="badge ${user.role === 'admin' ? 'badge-error' : 'badge-secondary'}">${user.role === 'admin' ? 'Yönetici' : 'Personel'}</span></td>
-                    <td>${linkedEmp}</td>
-                    <td>
-                        <label class="switch">
-                            <input type="checkbox" onchange="toggleAccess(${user.id}, this.checked)" ${user.is_active !== false ? 'checked' : ''} ${user.role === 'admin' ? 'disabled' : ''}>
-                            <span class="slider round"></span>
-                        </label>
-                    </td>
-                    <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-warning" onclick="openPasswordModal(${user.id}, '${user.username}')">🔑 Şifre</button>
-                    </td>
-                    </tr>
-                `;
+                        <tr>
+                        <td><strong>${user.full_name}</strong></td>
+                        <td>${user.username}</td>
+                        <td><span class="badge badge-secondary">${roleName}</span></td>
+                        <td>${linkedEmp}</td>
+                        <td>
+                            <label class="switch">
+                                <input type="checkbox" onchange="toggleAccess(${user.id}, this.checked)" ${user.is_active !== false ? 'checked' : ''} ${user.role === 'admin' ? 'disabled' : ''}>
+                                <span class="slider round"></span>
+                            </label>
+                        </td>
+                        <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" onclick="openPasswordModal(${user.id}, '${user.username}')">🔑 Şifre</button>
+                            ${user.id !== currentUserId ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Sil</button>` : ''}
+                        </td>
+                        </tr>
+                    `;
                 }).join('');
             } catch (error) {
                 console.error('Kullanıcı yükleme hatası:', error);
-                container.innerHTML = `<tr><td colspan="6" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
+                container.innerHTML = `<tr><td colspan="7" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
+            }
+        }
+
+        async function deleteUser(id) {
+            if (!confirm('Bu kullanıcıyı silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) return;
+
+            try {
+                const response = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadUsers();
+                    showAlert('Kullanıcı silindi');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + res.error);
+                }
+            } catch (err) {
+                showAlert('Silme işlemi başarısız');
             }
         }
 
         function addUser() {
             document.getElementById('userForm').reset();
+            // Roles are already loaded into #newRole by loadRoles()
             const modal = document.getElementById('userModal');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('active'), 10);
@@ -145,13 +240,13 @@
             const username = document.getElementById('newUsername').value;
             const password = document.getElementById('newPassword').value;
             const full_name = document.getElementById('newFullName').value;
-            const role = document.getElementById('newRole').value;
+            const role_id = document.getElementById('newRole').value; // Changed to role_id
 
             try {
                 const response = await fetch('/api/admin/users', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, full_name, role })
+                    body: JSON.stringify({ username, password, full_name, role_id })
                 });
 
                 if (response.ok) {
@@ -168,23 +263,44 @@
             }
         }
 
-        async function loadPaymentAccounts() {
-            const container = document.getElementById('accountsContainer');
-            if (container.innerHTML.includes('loader')) {
-                container.innerHTML = '<tr><td colspan="4" class="text-center"><div class="loader"></div><br><small>Hesaplar aranıyor...</small></td></tr>';
-            }
+        // ... (keep loadPaymentAccounts and others) ...
 
-            try {
-                const response = await fetchWithTimeout('/api/payment-accounts');
-                if (!response.ok) throw new Error(`Sunucu Hatası: ${response.status}`);
-                const accounts = await response.json();
+        // --- Initialization ---
+        let currentUserId = null; // Store for valid delete check
+        window.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Admin Page v3.0 Loaded');
 
-                if (accounts.length === 0) {
-                    container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hesap bulunamadı (Yeni ekleyin)</td></tr>';
-                    return;
+            await checkAuth();
+            // Get ID from auth check ideally, but for now we rely on server preventing self-delete
+
+            loadPaymentAccounts();
+            loadRoles().then(() => loadUsers()); // Load roles first so User Modal is populated
+
+            // ... (rest of init)
+
+            // Role Form
+            const roleForm = document.getElementById('roleForm');
+            if (roleForm) roleForm.addEventListener('submit', submitRoleForm);
+
+            // ... (rest)
+
+            async function loadPaymentAccounts() {
+                const container = document.getElementById('accountsContainer');
+                if (container.innerHTML.includes('loader')) {
+                    container.innerHTML = '<tr><td colspan="4" class="text-center"><div class="loader"></div><br><small>Hesaplar aranıyor...</small></td></tr>';
                 }
 
-                container.innerHTML = accounts.map(acc => `
+                try {
+                    const response = await fetchWithTimeout('/api/payment-accounts');
+                    if (!response.ok) throw new Error(`Sunucu Hatası: ${response.status}`);
+                    const accounts = await response.json();
+
+                    if (accounts.length === 0) {
+                        container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hesap bulunamadı (Yeni ekleyin)</td></tr>';
+                        return;
+                    }
+
+                    container.innerHTML = accounts.map(acc => `
                     <tr>
                         <td><strong>${acc.name}</strong></td>
                         <td>${acc.type === 'bank' ? 'Banka' : acc.type === 'credit_card' ? 'Kredi Kartı' : 'Nakit'}</td>
@@ -194,223 +310,223 @@
                         </td>
                     </tr>
                 `).join('');
-            } catch (error) {
-                console.error('Hesap yükleme hatası:', error);
-                const msg = error.name === 'AbortError' ? 'Zaman aşımı (Sunucu yanıt vermedi)' : error.message;
-                container.innerHTML =
-                    `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${msg} <br> <button class="btn btn-sm btn-outline-secondary mt-2" onclick="loadPaymentAccounts()">Tekrar Dene</button></td></tr>`;
+                } catch (error) {
+                    console.error('Hesap yükleme hatası:', error);
+                    const msg = error.name === 'AbortError' ? 'Zaman aşımı (Sunucu yanıt vermedi)' : error.message;
+                    container.innerHTML =
+                        `<tr><td colspan="4" class="text-center text-danger">⚠️ Hata: ${msg} <br> <button class="btn btn-sm btn-outline-secondary mt-2" onclick="loadPaymentAccounts()">Tekrar Dene</button></td></tr>`;
+                }
             }
-        }
 
-        // --- Link Employee Functions ---
-        let allEmployees = [];
+            // --- Link Employee Functions ---
+            let allEmployees = [];
 
-        async function loadEmployeesForSelect() {
-            try {
-                const response = await fetch('/api/employees');
-                if (!response.ok) return;
-                allEmployees = await response.json();
+            async function loadEmployeesForSelect() {
+                try {
+                    const response = await fetch('/api/employees');
+                    if (!response.ok) return;
+                    allEmployees = await response.json();
 
-                // Populate Select
+                    // Populate Select
+                    const select = document.getElementById('linkEmployeeSelect');
+                    select.innerHTML = '<option value="">-- Bağlantıyı Kaldır --</option>' +
+                        allEmployees.map(emp => `<option value="${emp.id}">${emp.full_name} (${emp.role === 'manager' ? 'Yönetici' : 'Personel'})</option>`).join('');
+
+                } catch (error) {
+                    console.error('Personel yükleme hatası:', error);
+                }
+            }
+
+            async function openLinkModal(userId, username, currentEmpId) {
+                document.getElementById('linkUserId').value = userId;
+                document.getElementById('linkUserName').value = username;
+
+                await loadEmployeesForSelect();
+
                 const select = document.getElementById('linkEmployeeSelect');
-                select.innerHTML = '<option value="">-- Bağlantıyı Kaldır --</option>' +
-                    allEmployees.map(emp => `<option value="${emp.id}">${emp.full_name} (${emp.role === 'manager' ? 'Yönetici' : 'Personel'})</option>`).join('');
-
-            } catch (error) {
-                console.error('Personel yükleme hatası:', error);
-            }
-        }
-
-        async function openLinkModal(userId, username, currentEmpId) {
-            document.getElementById('linkUserId').value = userId;
-            document.getElementById('linkUserName').value = username;
-
-            await loadEmployeesForSelect();
-
-            const select = document.getElementById('linkEmployeeSelect');
-            if (currentEmpId) {
-                select.value = currentEmpId;
-            } else {
-                select.value = "";
-            }
-
-            document.getElementById('linkEmployeeModal').style.display = 'flex';
-        }
-
-        async function saveLink() {
-            const userId = document.getElementById('linkUserId').value;
-            const empId = document.getElementById('linkEmployeeSelect').value;
-
-            try {
-                const response = await fetch(`/api/admin/users/${userId}/link-employee`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ employee_id: empId || null })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    closeModal('linkEmployeeModal');
-                    loadUsers();
-                    showAlert('Bağlantı güncellendi');
+                if (currentEmpId) {
+                    select.value = currentEmpId;
                 } else {
-                    showAlert('Hata: ' + result.error);
+                    select.value = "";
                 }
-            } catch (error) {
-                console.error(error);
-                showAlert('İşlem başarısız');
-            }
-        }
 
-        // Toggle User Access
-        async function toggleAccess(userId, isActive) {
-            try {
-                const response = await fetch(`/api/admin/users/${userId}/toggle-access`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ is_active: isActive })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    showAlert(result.message, isActive ? 'success' : 'warning');
-                } else {
-                    showAlert('Hata: ' + result.error, 'error');
-                    // Revert checkbox if failed
-                    loadUsers();
-                }
-            } catch (error) {
-                console.error(error);
-                showAlert('Bağlantı hatası', 'error');
-                loadUsers();
-            }
-        }
-
-        async function resetPassword() {
-            const userId = document.getElementById('resetUserId').value;
-            const newPass = document.getElementById('resetPassword').value;
-
-            if (newPass.length < 6) {
-                showAlert('Şifre en az 6 karakter olmalı');
-                return;
+                document.getElementById('linkEmployeeModal').style.display = 'flex';
             }
 
-            try {
-                const response = await fetch(`/api/admin/users/${userId}/password`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password: newPass })
-                });
+            async function saveLink() {
+                const userId = document.getElementById('linkUserId').value;
+                const empId = document.getElementById('linkEmployeeSelect').value;
 
-                if (response.ok) {
-                    closeModal('passwordModal');
-                    showAlert('Şifre güncellendi');
-                } else {
-                    const res = await response.json();
-                    showAlert('Hata: ' + (res.error || 'İşlem başarısız'));
-                }
-            } catch (error) {
-                console.error(error);
-                showAlert('Bağlantı hatası');
-            }
-        }
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}/link-employee`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ employee_id: empId || null })
+                    });
 
-        function openPasswordModal(id, username) {
-            document.getElementById('resetUserId').value = id;
-            document.getElementById('resetUserName').value = username;
-            document.getElementById('resetPassword').value = '';
-            document.getElementById('passwordModal').style.display = 'flex';
-        }
+                    const result = await response.json();
 
-        async function debugSyncUsers() {
-            if (!confirm('Eksik kullanıcıları otomatik oluşturmak istiyor musunuz?')) return;
-            try {
-                const response = await fetch('/api/admin/debug/sync-users-fix');
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    loadUsers();
-                } else {
-                    alert('Hata: ' + result.error);
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Bağlantı hatası');
-            }
-        }
-
-        // Modal Utilities
-        function openAccountModal() {
-            document.getElementById('accountForm').reset();
-            document.getElementById('accountModal').style.display = 'flex';
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
-
-
-        // --- Initialization ---
-        window.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Admin Page v2.7 Loaded');
-
-            checkAuth();
-            loadPaymentAccounts();
-            loadUsers();
-
-            // Account Form
-            const accountForm = document.getElementById('accountForm');
-            if (accountForm) {
-                accountForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const name = document.getElementById('accName').value;
-                    const type = document.getElementById('accType').value;
-
-                    // Auto-assign icon
-                    let icon = '💰';
-                    if (type === 'bank') icon = '🏦';
-                    else if (type === 'credit_card') icon = '💳';
-                    else if (type === 'cash') icon = '💵';
-
-                    try {
-                        const response = await fetch('/api/payment-accounts', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name, type, icon })
-                        });
-
-                        if (response.ok) {
-                            closeModal('accountModal');
-                            loadPaymentAccounts();
-                            showAlert('Hesap eklendi');
-                        } else {
-                            showAlert('Hata oluştu!');
-                        }
-                    } catch (error) {
-                        console.error('Form submit error:', error);
-                        showAlert('Bir hata oluştu: ' + error.message);
+                    if (response.ok) {
+                        closeModal('linkEmployeeModal');
+                        loadUsers();
+                        showAlert('Bağlantı güncellendi');
+                    } else {
+                        showAlert('Hata: ' + result.error);
                     }
-                });
+                } catch (error) {
+                    console.error(error);
+                    showAlert('İşlem başarısız');
+                }
             }
 
-            // User Form
-            const userForm = document.getElementById('userForm');
-            if (userForm) {
-                userForm.addEventListener('submit', submitUserForm);
+            // Toggle User Access
+            async function toggleAccess(userId, isActive) {
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}/toggle-access`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ is_active: isActive })
+                    });
+
+                    const result = await response.json();
+
+                    if (response.ok) {
+                        showAlert(result.message, isActive ? 'success' : 'warning');
+                    } else {
+                        showAlert('Hata: ' + result.error, 'error');
+                        // Revert checkbox if failed
+                        loadUsers();
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showAlert('Bağlantı hatası', 'error');
+                    loadUsers();
+                }
             }
 
-            // Link Employee Form
-            const linkForm = document.getElementById('linkEmployeeForm');
-            if (linkForm) {
-                linkForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    await saveLink();
-                });
+            async function resetPassword() {
+                const userId = document.getElementById('resetUserId').value;
+                const newPass = document.getElementById('resetPassword').value;
+
+                if (newPass.length < 6) {
+                    showAlert('Şifre en az 6 karakter olmalı');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/admin/users/${userId}/password`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password: newPass })
+                    });
+
+                    if (response.ok) {
+                        closeModal('passwordModal');
+                        showAlert('Şifre güncellendi');
+                    } else {
+                        const res = await response.json();
+                        showAlert('Hata: ' + (res.error || 'İşlem başarısız'));
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showAlert('Bağlantı hatası');
+                }
             }
-        });
+
+            function openPasswordModal(id, username) {
+                document.getElementById('resetUserId').value = id;
+                document.getElementById('resetUserName').value = username;
+                document.getElementById('resetPassword').value = '';
+                document.getElementById('passwordModal').style.display = 'flex';
+            }
+
+            async function debugSyncUsers() {
+                if (!confirm('Eksik kullanıcıları otomatik oluşturmak istiyor musunuz?')) return;
+                try {
+                    const response = await fetch('/api/admin/debug/sync-users-fix');
+                    const result = await response.json();
+                    if (response.ok) {
+                        alert(result.message);
+                        loadUsers();
+                    } else {
+                        alert('Hata: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Bağlantı hatası');
+                }
+            }
+
+            // Modal Utilities
+            function openAccountModal() {
+                document.getElementById('accountForm').reset();
+                document.getElementById('accountModal').style.display = 'flex';
+            }
+
+            function closeModal(id) {
+                document.getElementById(id).style.display = 'none';
+            }
+
+
+
+            // --- Initialization ---
+            window.addEventListener('DOMContentLoaded', () => {
+                console.log('🚀 Admin Page v2.7 Loaded');
+
+                checkAuth();
+                loadPaymentAccounts();
+                loadUsers();
+
+                // Account Form
+                const accountForm = document.getElementById('accountForm');
+                if (accountForm) {
+                    accountForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const name = document.getElementById('accName').value;
+                        const type = document.getElementById('accType').value;
+
+                        // Auto-assign icon
+                        let icon = '💰';
+                        if (type === 'bank') icon = '🏦';
+                        else if (type === 'credit_card') icon = '💳';
+                        else if (type === 'cash') icon = '💵';
+
+                        try {
+                            const response = await fetch('/api/payment-accounts', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ name, type, icon })
+                            });
+
+                            if (response.ok) {
+                                closeModal('accountModal');
+                                loadPaymentAccounts();
+                                showAlert('Hesap eklendi');
+                            } else {
+                                showAlert('Hata oluştu!');
+                            }
+                        } catch (error) {
+                            console.error('Form submit error:', error);
+                            showAlert('Bir hata oluştu: ' + error.message);
+                        }
+                    });
+                }
+
+                // User Form
+                const userForm = document.getElementById('userForm');
+                if (userForm) {
+                    userForm.addEventListener('submit', submitUserForm);
+                }
+
+                // Link Employee Form
+                const linkForm = document.getElementById('linkEmployeeForm');
+                if (linkForm) {
+                    linkForm.addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        await saveLink();
+                    });
+                }
+            });
     </script>
 </head>
 
@@ -485,6 +601,32 @@
                 </div>
             </div>
 
+            <!-- Roles Management Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <span>🛡️ Rol Yönetimi ve Yetkiler</span>
+                    <button class="btn btn-secondary btn-sm" onclick="openRoleModal()">+ Yeni Rol</button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rol Adı</th>
+                                <th>Yetkiler</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesContainer">
+                            <tr>
+                                <td colspan="3" class="text-center">
+                                    <div class="loader"></div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card">
                 <div class="card-header">
                     <span>👥 Kullanıcılar</span>
@@ -505,7 +647,7 @@
                         </thead>
                         <tbody id="usersContainer">
                             <tr>
-                                <td colspan="4" class="text-center">
+                                <td colspan="7" class="text-center">
                                     <div class="loader"></div>
                                 </td>
                             </tr>
@@ -586,6 +728,46 @@
                             <button type="button" class="btn btn-secondary"
                                 onclick="closeModal('userModal')">İptal</button>
                             <button type="submit" class="btn btn-primary">Kullanıcıyı Oluştur</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role Add Modal -->
+        <div id="roleModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Yeni Rol Ekle</h2>
+                    <button class="modal-close" onclick="closeModal('roleModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="roleForm">
+                        <div class="form-group">
+                            <label>Rol Adı</label>
+                            <input type="text" id="roleName" required placeholder="Örn: Muhasebe">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Yetkiler</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <label><input type="checkbox" name="permissions" value="view_dashboard"> Ana
+                                    Sayfa</label>
+                                <label><input type="checkbox" name="permissions" value="view_jobs"> İş Listeleri</label>
+                                <label><input type="checkbox" name="permissions" value="manage_stock">
+                                    Stok/Ürünler</label>
+                                <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
+                                    Yönetimi</label>
+                                <label><input type="checkbox" name="permissions" value="view_report"> Raporlar</label>
+                                <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
+                                    Yönetimi (Admin)</label>
+                            </div>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('roleModal')">İptal</button>
+                            <button type="submit" class="btn btn-primary">Rolü Oluştur</button>
                         </div>
                     </form>
                 </div>
