@@ -1,18 +1,23 @@
-// Auth check
-let currentUser = null;
+/* 
+// EMPLOYEES.JS - TEMPORARILY DISABLED TO FIX SAVE BUTTON ISSUE
+// ... (previous content commented out)
+*/
 
-async function checkAuth() {
-    try {
-        const response = await fetch('/api/auth/me');
-        if (!response.ok) {
-            window.location.href = '/index.html';
-            return null;
-        }
-        return await response.json();
-    } catch (error) {
+console.log('employees.js loaded (disabled)');
+
+// Only keep essential helpers if needed elsewhere, but for now disable all to isolate.
+
+try {
+    const response = await fetch('/api/auth/me');
+    if (!response.ok) {
         window.location.href = '/index.html';
         return null;
     }
+    return await response.json();
+} catch (error) {
+    window.location.href = '/index.html';
+    return null;
+}
 }
 
 // User info display
