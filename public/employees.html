@@ -169,14 +169,101 @@
 
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
-                        <button type="button" class="btn btn-primary" onclick="submitEmployeeForm()">Kaydet</button>
+                        <button type="button" class="btn btn-primary" onclick="forceSaveEmployee()">Kaydet</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="/js/employees.js?v=4"></script>
+    <script src="/js/employees.js?v=5"></script>
+    <script>
+        // Emergency Inline Script to bypass cache issues
+        async function forceSaveEmployee() {
+            console.log('Force Save called');
+            const submitBtn = document.querySelector('#employeeForm button.btn-primary');
+            const originalText = submitBtn ? submitBtn.innerText : 'Kaydet';
+
+            // Validation
+            const fullNameInput = document.getElementById('fullName');
+            const roleInput = document.getElementById('role');
+
+            if (!fullNameInput || !roleInput) {
+                alert('Hata: Form elemanları bulunamadı!');
+                return;
+            }
+
+            if (!fullNameInput.value || !roleInput.value) {
+                alert('Lütfen Ad Soyad ve Rol alanlarını doldurun.');
+                return;
+            }
+
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerText = 'İşleniyor...';
+            }
+
+            const formData = {
+                full_name: fullNameInput.value,
+                phone: document.getElementById('phone').value || null,
+                role: roleInput.value,
+                daily_wage: document.getElementById('dailyWage').value || null,
+                monthly_salary: document.getElementById('monthlySalary').value || null,
+                hire_date: document.getElementById('hireDate').value || null,
+                notes: document.getElementById('notes').value || null,
+                is_active: true
+            };
+
+            // Get editingId from global scope or hidden input if available
+            // Assuming editingId is a global variable from employees.js. 
+            // If employees.js didn't load, this might fail. 
+            // Let's rely on the hidden input if possible, or check window.editingId
+            const hiddenId = document.getElementById('employeeId').value;
+            const isEditing = hiddenId && hiddenId !== '';
+
+            const url = isEditing ? `/api/employees/${hiddenId}` : '/api/employees';
+            const method = isEditing ? 'PUT' : 'POST';
+
+            try {
+                const response = await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                let result;
+                try {
+                    result = await response.json();
+                } catch (e) {
+                    throw new Error('Sunucudan geçersiz yanıt');
+                }
+
+                if (!response.ok) throw new Error(result.error || 'Kayıt başarısız');
+
+                if (result.createdUser) {
+                    alert(`✅ Personel ve Kullanıcı Hesabı Oluşturuldu!\n\n👤 Kullanıcı Adı: ${result.createdUser.username}\n🔑 Şifre: ${result.createdUser.password}\n\nLütfen bu bilgileri personel ile paylaşın.`);
+                } else {
+                    alert(isEditing ? 'Personel güncellendi' : 'Personel eklendi');
+                }
+
+                // Try to close modal and reload
+                if (window.closeModal) window.closeModal();
+                else document.getElementById('employeeModal').style.display = 'none';
+
+                if (window.loadEmployees) window.loadEmployees();
+                else location.reload();
+
+            } catch (error) {
+                console.error(error);
+                alert('Hata: ' + error.message);
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalText;
+                }
+            }
+        }
+    </script>
 </body>
 
 </html>
