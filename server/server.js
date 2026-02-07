@@ -44,7 +44,8 @@ app.use(limiter);
 // Session yapılandırması
 // Session Configuration (Sequelize Store)
 const SequelizeStore = require('connect-session-sequelize')(session.Store);
-const { sequelize, User, Employee } = require('./config/database');
+const { sequelize } = require('./config/database');
+const { User, Employee } = require('./models');
 const bcrypt = require('bcrypt');
 
 const sessionStore = new SequelizeStore({
