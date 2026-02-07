@@ -10,9 +10,21 @@ const StockMovement = require('./StockMovement');
 const SalaryPayment = require('./SalaryPayment');
 const JobView = require('./JobView');
 const JobItemDeletion = require('./JobItemDeletion');
+const Role = require('./Role'); // Import Role
 const PaymentAccount = require('./PaymentAccount');
 
 // İlişkileri tanımla
+// Role - User (1-N)
+Role.hasMany(User, {
+    foreignKey: 'role_id',
+    as: 'users'
+});
+
+User.belongsTo(Role, {
+    foreignKey: 'role_id',
+    as: 'userRole' // 'role' is already taken by the field name
+});
+
 // User - Employee ilişkisi (1-1)
 User.hasOne(Employee, {
     foreignKey: 'user_id',
@@ -144,5 +156,6 @@ module.exports = {
     JobView,
     JobItemDeletion,
     PaymentAccount,
+    Role,
     sequelize // Export sequelize instance
 };

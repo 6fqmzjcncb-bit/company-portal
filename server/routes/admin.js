@@ -17,10 +17,39 @@ router.get('/stock', requireAdmin, async (req, res) => {
     }
 });
 
+// Kullanıcı sil (sadece admin)
+router.delete('/users/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        if (user.id === req.session.userId) {
+            return res.status(400).json({ error: 'Kendinizi silemezsiniz' });
+        }
+
+        // Eğer kullanıcı bir personele bağlıysa, personelin user_id'sini null yap
+        if (user.role === 'admin') {
+            // Admin silinirken ekstra kontrol gerekebilir ama şimdilik izin veriyoruz
+        }
+
+        await Employee.update({ user_id: null }, { where: { user_id: id } });
+        await user.destroy();
+
+        res.json({ message: 'Kullanıcı silindi' });
+    } catch (error) {
+        console.error('User delete error:', error);
+        res.status(500).json({ error: 'Kullanıcı silinemedi' });
+    }
+});
+
 // Yeni kullanıcı ekle (sadece admin)
 router.post('/users', requireAdmin, async (req, res) => {
     try {
-        const { username, password, full_name, role } = req.body;
+        const { username, password, full_name, role_id } = req.body; // use role_id
 
         // Şifreyi hashle
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,19 +58,11 @@ router.post('/users', requireAdmin, async (req, res) => {
             username,
             password: hashedPassword,
             full_name,
-            role: role || 'staff'
+            role_id: role_id,
+            role: 'staff' // Deprecated enum fallback (default)
         });
 
-        // Şifreyi response'dan çıkar
-        const userResponse = {
-            id: user.id,
-            username: user.username,
-            full_name: user.full_name,
-            role: user.role,
-            created_at: user.created_at
-        };
-
-        res.status(201).json(userResponse);
+        res.status(201).json(user);
     } catch (error) {
         console.error('User create error:', error);
         res.status(500).json({ error: 'Kullanıcı oluşturulamadı' });
@@ -51,13 +72,21 @@ router.post('/users', requireAdmin, async (req, res) => {
 // Tüm kullanıcıları listele (sadece admin)
 router.get('/users', requireAdmin, async (req, res) => {
     try {
+        const { Role } = require('../models');
         const users = await User.findAll({
-            attributes: ['id', 'username', 'full_name', 'role', 'created_at'],
-            include: [{
-                model: Employee,
-                as: 'employee',
-                attributes: ['id', 'full_name']
-            }],
+            attributes: ['id', 'username', 'full_name', 'role', 'role_id', 'created_at', 'is_active'],
+            include: [
+                {
+                    model: Employee,
+                    as: 'employee',
+                    attributes: ['id', 'full_name']
+                },
+                {
+                    model: Role,
+                    as: 'userRole',
+                    attributes: ['id', 'name']
+                }
+            ],
             order: [['created_at', 'DESC']]
         });
         res.json(users);

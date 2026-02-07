@@ -20,6 +20,15 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(100),
         allowNull: false
     },
+    role_id: {
+        type: DataTypes.INTEGER,
+        allowNull: true, // Will be populated by migration
+        references: {
+            model: 'roles',
+            key: 'id'
+        }
+    },
+    // Legacy role field (kept for backward compatibility during migration)
     role: {
         type: DataTypes.ENUM('admin', 'staff'),
         defaultValue: 'staff',

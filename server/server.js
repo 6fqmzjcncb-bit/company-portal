@@ -83,7 +83,57 @@ app.use('/api/employees', require('./routes/employees'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/stock-movements', require('./routes/stock-movements'));
 app.use('/api/salary', require('./routes/salary'));
+app.use('/api/roles', require('./routes/roles')); // New Roles Route
 app.use('/api/payment-accounts', require('./routes/payment-accounts'));
+
+// ... (rest of routes)
+
+const { Role } = require('./models'); // Import Role for migration
+
+// ... (existing code)
+
+const syncRolesAndPermissions = async () => {
+    try {
+        console.log('🛡️ Rol ve Yetki sistemi kontrol ediliyor...');
+
+        const count = await Role.count();
+        if (count === 0) {
+            console.log('⚠️ Hiç rol bulunamadı, varsayılan roller oluşturuluyor...');
+
+            // 1. Create Default Roles
+            const adminRole = await Role.create({
+                name: 'Yönetici',
+                permissions: ['all'],
+                is_system: true
+            });
+
+            const staffRole = await Role.create({
+                name: 'Personel',
+                permissions: ['view_dashboard', 'view_tasks'],
+                is_system: true
+            });
+
+            // 2. Migrate Existing Users
+            const users = await User.findAll();
+            for (const user of users) {
+                if (!user.role_id) {
+                    if (user.role === 'admin') {
+                        await user.update({ role_id: adminRole.id });
+                    } else {
+                        await user.update({ role_id: staffRole.id });
+                    }
+                }
+            }
+            console.log(`✅ ${users.length} kullanıcı yeni rol sistemine taşındı.`);
+        }
+    } catch (error) {
+        console.error('Role sync error:', error);
+    }
+};
+
+// ... inside initializeDatabase ...
+// await syncRolesAndPermissions(); 
+
 
 // Ana sayfa yönlendirmesi
 app.get('/', (req, res) => {
@@ -142,6 +192,7 @@ const initializeDatabase = async () => {
         console.log('✓ Tablolar senkronize edildi.');
 
         // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
+        await syncRolesAndPermissions(); // Migrate Roles FIRST
         await syncMissingUsers();
 
     } catch (error) {
