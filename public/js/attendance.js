@@ -54,6 +54,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const today = `${year}-${month}-${day}`;
     document.getElementById('selectedDate').value = today;
 
+    // Event Listeners for Date Navigation
+    document.getElementById('prevDayBtn').addEventListener('click', () => changeDate(-1));
+    document.getElementById('nextDayBtn').addEventListener('click', () => changeDate(1));
+
     await loadEmployees();
     await loadAttendance();
     await loadSummary();
@@ -61,20 +65,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadSummary() {
     const container = document.getElementById('summaryGrid');
-    if (!container) {
-        console.warn('summaryGrid NOT FOUND - Loader will spin forever.');
-        return;
-    }
+    if (!container) return;
 
     // Use selected date's month for summary context
     const dateInput = document.getElementById('selectedDate').value;
-    const date = new Date(dateInput);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    // Safe parsing for context
+    const dateParts = dateInput.split('-');
+    const year = parseInt(dateParts[0]);
+    const month = parseInt(dateParts[1]);
 
-    // First and Last day of the selected month
-    const start_date = new Date(year, month - 1, 1).toISOString().split('T')[0];
-    const end_date = new Date(year, month, 0).toISOString().split('T')[0];
+    // First and Last day
+    const start_date = `${year}-${String(month).padStart(2, '0')}-01`;
+    // Last day trick: Day 0 of next month
+    const lastDay = new Date(year, month, 0).getDate();
+    const end_date = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
 
     try {
         const response = await fetch(`/api/attendance/summary?start_date=${start_date}&end_date=${end_date}`);
@@ -88,7 +92,7 @@ async function loadSummary() {
         if (titleEl) titleEl.textContent = `📊 Aylık Çalışma Özeti (${monthNames[month - 1]} ${year})`;
 
         if (data.length === 0) {
-            container.innerHTML = '<p class="text-muted text-center col-span-4">Kayıt bulunamadı</p>';
+            container.innerHTML = '<p class="text-muted text-center col-span-4" style="grid-column: span 4;">Kayıt bulunamadı</p>';
             return;
         }
 
@@ -132,7 +136,6 @@ async function logout() {
 let employees = [];
 let attendanceRecords = {};
 
-// Load attendance for selected date
 // Load employees once
 async function loadEmployees() {
     try {
@@ -179,12 +182,15 @@ async function loadAttendance() {
     }
 }
 
-// Change date by offset (days)
+// Change date by offset (days) - TIMEZONE SAFE
 function changeDate(offset) {
     const dateInput = document.getElementById('selectedDate');
     if (!dateInput.value) return;
 
-    const currentDate = new Date(dateInput.value);
+    // Use noon to avoid DST/Timezone midnight edge cases
+    const parts = dateInput.value.split('-');
+    const currentDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+
     currentDate.setDate(currentDate.getDate() + offset);
 
     // Format YYYY-MM-DD
@@ -193,10 +199,8 @@ function changeDate(offset) {
     const day = String(currentDate.getDate()).padStart(2, '0');
 
     dateInput.value = `${year}-${month}-${day}`;
-    // Intentional double assignment from original code (left as is or fixed? Let's fix clean)
-    // dateInput.value = `${year}-${month}-${day}`; 
     loadAttendance();
-    loadSummary(); // Refresh summary for the new date's month
+    loadSummary();
 }
 
 // Render attendance table
