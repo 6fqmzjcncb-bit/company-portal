@@ -61,12 +61,8 @@
                 <div class="card-header">
                     <h2>Personel Bakiyeleri ve İşlemler</h2>
                     <div style="display: flex; gap: 10px; align-items: center;">
-                        <label
-                            style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; user-select: none;">
-                            <input type="checkbox" id="showArchived" onchange="loadBalances()"
-                                style="margin-right: 5px;">
-                            Eski Çalışanları Göster
-                        </label>
+                        <button class="btn btn-secondary" onclick="openArchivedModal()">📜 Arşiv (Eski
+                            Çalışanlar)</button>
                         <button class="btn btn-primary" onclick="showTransactionModal()">➕ Yeni İşlem</button>
                     </div>
                 </div>
@@ -88,7 +84,7 @@
                             </thead>
                             <tbody id="balanceTable">
                                 <tr>
-                                    <td colspan="7" class="text-center">Yükleniyor...</td>
+                                    <td colspan="9" class="text-center">Yükleniyor...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -313,6 +309,34 @@
 
                 <button class="btn btn-primary btn-block" style="width: 100%;"
                     onclick="closeModal('credentialModal')">Tamam, Anlaşıldı</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archived Employees Modal -->
+    <div id="archivedEmployeesModal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>Arşivlenmiş (Eski) Personeller</h2>
+                <button class="modal-close" onclick="closeModal('archivedEmployeesModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Personel</th>
+                                <th>Telefon</th>
+                                <th>Çalışılan Gün</th>
+                                <th>Son Bakiye</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="archivedEmployeesList">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

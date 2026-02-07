@@ -135,6 +135,8 @@ router.get('/balance', requireAuth, async (req, res) => {
             balances.push({
                 id: emp.id,
                 full_name: emp.full_name,
+                is_active: emp.is_active, // Added for frontend filtering
+                phone: emp.phone, // Added for modal display
                 daily_wage: emp.daily_wage,
                 start_date: emp.start_date,
                 total_worked_days: totalWorkedDays,

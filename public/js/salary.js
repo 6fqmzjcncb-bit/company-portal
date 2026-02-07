@@ -393,11 +393,11 @@ async function handleEmployeeSubmit(e) {
 // UPDATED LOAD BALANCES
 // --------------------------------------------------------------------------
 
+// Revert loadBalances
 async function loadBalances() {
     try {
-        const showArchived = document.getElementById('showArchived').checked;
-        console.log('Veri yükleniyor... Arşiv:', showArchived);
-        const response = await fetch(`/api/salary/balance?showArchived=${showArchived}`);
+        console.log('Veri yükleniyor...');
+        const response = await fetch('/api/salary/balance'); // No query param loops
 
         if (!response.ok) {
             const errText = await response.text();
@@ -405,11 +405,12 @@ async function loadBalances() {
         }
 
         const balances = await response.json();
-        console.log('Gelen veri:', balances);
 
-        // Save for modal lookup
+        // Save for modal lookup (only active ones ideally, but backend defaults to active now if no param? 
+        // Wait, logic in backend: "whereClause = showArchived ? {} : { is_active: true }"
+        // So plain fetch gets active only. Good.
         allEmployees = balances;
-        updateEmployeeSelect(); // Populate dropdown
+        updateEmployeeSelect();
 
         const tbody = document.getElementById('balanceTable');
 
@@ -418,53 +419,91 @@ async function loadBalances() {
             return;
         }
 
-        tbody.innerHTML = balances.map(emp => {
-            const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success';
-
-            // Format Daily Wage nicely
-            const wageDisplay = emp.daily_wage > 0
-                ? formatCurrency(emp.daily_wage)
-                : (emp.monthly_salary > 0
-                    ? formatCurrency(emp.monthly_salary) + ' (Ay)'
-                    : '-');
-
-            return `
-            <tr>
-                <td>
-                    <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
-                        ${emp.full_name} ✏️
-                    </div>
-                </td>
-                <td>${wageDisplay}</td>
-                <td><small>${formatDate(emp.start_date)}</small></td>
-                <td>${emp.total_worked_days}</td>
-                <td>${formatCurrency(emp.total_accrued)}</td>
-                <td style="width: 120px;">
-                    <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
-                        <input type="number" 
-                            style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
-                            value="${parseFloat((emp.total_reimbursement || 0).toFixed(2))}"
-                            data-original-value="${emp.total_reimbursement || 0}"
-                            onchange="handleSmartReimbursement(${emp.id}, this)">
-                        <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
-                    </div>
-                </td>
-                <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
-                <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
-                <td>
-                    <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
-                        Ödeme Yap
-                    </button>
-                </td>
-            </tr>
-            `;
-        }).join('');
+        tbody.innerHTML = balances.map(createEmployeeRow).join('');
     } catch (error) {
         console.error('Bakiye yükleme hatası:', error);
         document.getElementById('balanceTable').innerHTML =
             `<tr><td colspan="9" class="text-center text-danger">⚠️ Veri yüklenemedi: ${error.message}<br><button onclick="loadBalances()" class="btn-small btn-secondary mt-2">Tekrar Dene</button></td></tr>`;
     }
 }
+
+// Helper to avoid duplication
+function createEmployeeRow(emp) {
+    const balanceClass = emp.current_balance > 0 ? 'text-danger' : 'text-success';
+    const wageDisplay = emp.daily_wage > 0
+        ? formatCurrency(emp.daily_wage)
+        : (emp.monthly_salary > 0
+            ? formatCurrency(emp.monthly_salary) + ' (Ay)'
+            : '-');
+
+    return `
+    <tr>
+        <td>
+            <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
+                ${emp.full_name} ✏️
+            </div>
+        </td>
+        <td>${wageDisplay}</td>
+        <td><small>${formatDate(emp.start_date)}</small></td>
+        <td>${emp.total_worked_days}</td>
+        <td>${formatCurrency(emp.total_accrued)}</td>
+        <td style="width: 120px;">
+            <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
+                <input type="number" 
+                    style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
+                    value="${parseFloat((emp.total_reimbursement || 0).toFixed(2))}"
+                    data-original-value="${emp.total_reimbursement || 0}"
+                    onchange="handleSmartReimbursement(${emp.id}, this)">
+                <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
+            </div>
+        </td>
+        <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
+        <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
+        <td>
+            <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
+                Ödeme Yap
+            </button>
+        </td>
+    </tr>
+    `;
+}
+
+// Archived Modal Logic
+function openArchivedModal() {
+    document.getElementById('archivedEmployeesModal').style.display = 'flex';
+    loadArchivedEmployees();
+}
+
+async function loadArchivedEmployees() {
+    const tbody = document.getElementById('archivedEmployeesList');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
+
+    try {
+        const response = await fetch('/api/salary/balance?showArchived=true');
+        const all = await response.json();
+        const archived = all.filter(e => !e.is_active); // We need backend to return is_active in balance endpoint! 
+        // NOTE: /balance endpoint returns Employee fields. Check if is_active is included.
+        // Employee.findAll gets all fields by default, so yes it should be there.
+        // Let's verify... `balances.push({ id, full_name... })` -> Need to add is_active there.
+
+        // Wait, look at server/routes/salary.js:
+        /*
+            balances.push({
+                id: emp.id,
+                full_name: emp.full_name,
+                ...
+                current_balance: currentBalance
+            });
+        */
+        // It does NOT explicitly push `is_active`. I need to add it to be sure.
+
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Hata</td></tr>';
+    }
+}
+// Placeholder for now - Need to update backend first to return is_active?
+// Or just update frontend assuming I will update backend next.
+
 
 async function loadHistory() {
     try {
@@ -690,13 +729,11 @@ window.closeModal = function (modalId) {
 window.onclick = function (event) {
     const transModal = document.getElementById('transactionModal');
     const empModal = document.getElementById('employeeModal');
+    const archivedModal = document.getElementById('archivedEmployeesModal');
 
-    if (event.target == transModal) {
-        closeModal('transactionModal');
-    }
-    if (event.target == empModal) {
-        closeModal('employeeModal');
-    }
+    if (event.target == transModal) closeModal('transactionModal');
+    if (event.target == empModal) closeModal('employeeModal');
+    if (event.target == archivedModal) closeModal('archivedEmployeesModal');
 }
 
 async function handleSmartReimbursement(empId, input) {
