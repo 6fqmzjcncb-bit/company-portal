@@ -64,7 +64,16 @@ router.get('/calculate', requireAuth, async (req, res) => {
 // GET /balance - Tüm personel bakiyelerini getir
 router.get('/balance', requireAuth, async (req, res) => {
     try {
-        const employees = await Employee.findAll({ where: { is_active: true } });
+        const showArchived = req.query.showArchived === 'true';
+        const whereClause = showArchived ? {} : { is_active: true }; // If archived requested, show all (active & inactive), else only active
+
+        // Or if specific requirement is to ONLY show archived when toggled?
+        // Usually "Show Archived" means include them. Or toggle between "Active Only" and "All" or "Archived Only".
+        // Let's assume toggle means "Include Archived" (Show All). 
+        // Wait, user said "Archive view". Usually better to show just archived or mixed.
+        // Let's make it: if showArchived=true, show ALL. If false, show ACTIVE.
+
+        const employees = await Employee.findAll({ where: whereClause });
 
         const balances = [];
         for (const emp of employees) {

@@ -175,8 +175,43 @@ function editEmployee(id) {
         document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
         document.getElementById('notes').value = fullEmp.notes || '';
 
+        document.getElementById('notes').value = fullEmp.notes || '';
+
+        // Button Logic: Fire vs Re-hire
+        const btnDelete = document.getElementById('btnDeleteEmployee');
+        if (fullEmp.is_active) {
+            btnDelete.innerText = 'İşten Çıkar';
+            btnDelete.className = 'btn btn-danger';
+            btnDelete.onclick = () => deleteEmployee(id);
+            btnDelete.style.display = 'block';
+        } else {
+            btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
+            btnDelete.className = 'btn btn-success';
+            btnDelete.onclick = () => reactivateEmployee(id);
+            btnDelete.style.display = 'block';
+        }
+
         document.getElementById('employeeModal').style.display = 'flex';
     }).catch(err => showAlert('Personel detayı yüklenemedi'));
+}
+
+async function reactivateEmployee(id) {
+    if (!confirm('Bu personeli tekrar işe almak istediğinize emin misiniz?')) return;
+
+    try {
+        const response = await fetch(`/api/employees/${id}/reactivate`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) throw new Error('İşlem başarısız');
+
+        showToast('Başarılı', 'Personel tekrar aktif edildi.', 'success');
+        closeModal('employeeModal');
+        await loadData();
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', 'Personel aktif edilemedi.', 'error');
+    }
 }
 
 // Event Listener for Employee Form
@@ -360,8 +395,9 @@ async function handleEmployeeSubmit(e) {
 
 async function loadBalances() {
     try {
-        console.log('Veri yükleniyor...');
-        const response = await fetch('/api/salary/balance');
+        const showArchived = document.getElementById('showArchived').checked;
+        console.log('Veri yükleniyor... Arşiv:', showArchived);
+        const response = await fetch(`/api/salary/balance?showArchived=${showArchived}`);
 
         if (!response.ok) {
             const errText = await response.text();

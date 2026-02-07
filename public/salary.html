@@ -60,7 +60,15 @@
             <div class="card">
                 <div class="card-header">
                     <h2>Personel Bakiyeleri ve İşlemler</h2>
-                    <button class="btn btn-primary" onclick="showTransactionModal()">➕ Yeni İşlem</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label
+                            style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; user-select: none;">
+                            <input type="checkbox" id="showArchived" onchange="loadBalances()"
+                                style="margin-right: 5px;">
+                            Eski Çalışanları Göster
+                        </label>
+                        <button class="btn btn-primary" onclick="showTransactionModal()">➕ Yeni İşlem</button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-container">

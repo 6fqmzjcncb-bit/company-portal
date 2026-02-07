@@ -185,9 +185,42 @@ router.delete('/:id', requireAuth, async (req, res) => {
         }
 
         await employee.update({ is_active: false });
-        res.json({ message: 'Personel pasif hale getirildi' });
+
+        if (employee.user_id) {
+            const user = await User.findByPk(employee.user_id);
+            if (user) {
+                await user.update({ is_active: false });
+            }
+        }
+
+        res.json({ message: 'Personel pasif hale getirildi ve erişimi kapatıldı' });
     } catch (error) {
         console.error('Personel silme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
+
+// Personel tekrar aktif et (Re-hire)
+router.post('/:id/reactivate', requireAuth, async (req, res) => {
+    try {
+        const employee = await Employee.findByPk(req.params.id);
+
+        if (!employee) {
+            return res.status(404).json({ error: 'Personel bulunamadı' });
+        }
+
+        await employee.update({ is_active: true });
+
+        if (employee.user_id) {
+            const user = await User.findByPk(employee.user_id);
+            if (user) {
+                await user.update({ is_active: true });
+            }
+        }
+
+        res.json({ message: 'Personel tekrar aktif edildi' });
+    } catch (error) {
+        console.error('Personel aktif etme hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
     }
 });
