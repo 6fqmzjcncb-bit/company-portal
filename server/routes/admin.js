@@ -275,4 +275,38 @@ router.get('/debug/sync-users-fix', async (req, res) => {
     }
 });
 
+// Diagnostic Route
+router.get('/debug/diagnose-roles', async (req, res) => {
+    try {
+        const { Role } = require('../models');
+        const roles = await Role.findAll();
+        const users = await User.findAll({
+            attributes: ['id', 'username', 'role_id', 'role']
+        });
+
+        let associationTest = null;
+        const admin = await User.findOne({
+            where: { username: 'admin' },
+            include: [{ model: Role, as: 'userRole' }]
+        });
+
+        if (admin) {
+            associationTest = {
+                username: admin.username,
+                role_id: admin.role_id,
+                userRole: admin.userRole,
+                role_enum: admin.role
+            };
+        }
+
+        res.json({
+            roles,
+            users,
+            associationTest
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message, stack: error.stack });
+    }
+});
+
 module.exports = router;
