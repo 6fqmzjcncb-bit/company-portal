@@ -150,14 +150,40 @@ function editEmployee(id) {
     }).catch(err => showAlert('Personel detayı yüklenemedi'));
 }
 
+// Event Listener for Employee Form
+document.addEventListener('DOMContentLoaded', () => {
+    // Other listeners moved to init...
+    const btnSave = document.getElementById('btnSaveEmployeeSalary');
+    if (btnSave) {
+        btnSave.addEventListener('click', handleEmployeeSubmit);
+        console.log('Save button listener attached');
+    }
+});
+
 async function handleEmployeeSubmit(e) {
     e.preventDefault();
+    console.log('Saving employee...');
+
+    const btn = document.getElementById('btnSaveEmployeeSalary');
+    const originalText = btn.innerText;
+
+    // Validation
+    const fullName = document.getElementById('fullName').value;
+    const role = document.getElementById('role').value;
+
+    if (!fullName || !role) {
+        alert('Lütfen Ad Soyad ve Rol alanlarını doldurun.');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'İşleniyor...';
 
     const id = document.getElementById('editEmpId').value;
     const data = {
-        full_name: document.getElementById('fullName').value,
+        full_name: fullName,
         phone: document.getElementById('phone').value,
-        role: document.getElementById('role').value,
+        role: role,
         daily_wage: document.getElementById('dailyWage').value || null,
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
@@ -177,28 +203,26 @@ async function handleEmployeeSubmit(e) {
 
         if (!response.ok) throw new Error('İşlem başarısız');
 
+        const result = await response.json();
+
+        // Check for created user credentials to show
+        if (result.createdUser) {
+            alert(`✅ Personel ve Kullanıcı Hesabı Oluşturuldu!\n\n👤 Kullanıcı Adı: ${result.createdUser.username}\n🔑 Şifre: ${result.createdUser.password}\n\nLütfen bu bilgileri personel ile paylaşın.`);
+        } else {
+            alert('Personel başarıyla kaydedildi');
+        }
+
         closeModal('employeeModal');
         await loadData(); // Reload table
-        showAlert('Personel kaydedildi');
+
     } catch (error) {
-        showAlert('Hata: ' + error.message);
+        alert('Hata: ' + error.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
     }
 }
-
-async function deleteEmployee(id) {
-    if (!confirm('Bu personeli ve tüm verilerini silmek istediğinize emin misiniz?')) return;
-
-    try {
-        const response = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error('Silinemedi');
-        await loadData();
-    } catch (error) {
-        showAlert('Silme işlemi başarısız');
-    }
-}
-
-// Event Listener for Employee Form
-document.getElementById('employeeForm').addEventListener('submit', handleEmployeeSubmit);
+// document.getElementById('employeeForm').addEventListener('submit', handleEmployeeSubmit); // REMOVED
 
 
 // --------------------------------------------------------------------------
