@@ -104,11 +104,7 @@
             'view_sources': 'Kaynaklar',
             'view_attendance': 'Çalışma Kaydı',
             'manage_salary': 'Maaş Yönetimi',
-            'manage_stock': 'Stok Yönetimi',
-            // Legacy/Fallback mappings to prevent English text
-            'view_tasks': 'Görevler (Eski)',
-            'view_dashboard': 'Ana Sayfa (Eski)',
-            'view_report': 'Raporlar (Eski)'
+            'manage_stock': 'Stok Yönetimi'
         };
 
         async function loadRoles() {
@@ -121,16 +117,21 @@
                 const allowedNames = ['Yönetici', 'Personel', 'Stok Sorumlusu'];
                 const filteredRoles = roles.filter(r => allowedNames.includes(r.name));
 
-                container.innerHTML = filteredRoles.map(role => `
+                container.innerHTML = filteredRoles.map(role => {
+                    // Filter permissions: Only show ones that have a Turkish name in PERMISSION_NAMES
+                    const validPermissions = role.permissions.filter(p => PERMISSION_NAMES[p]);
+
+                    return `
                         <tr>
                             <td><strong>${role.name}</strong></td>
-                            <td><small>${role.permissions.map(p => `<span class="badge badge-info" style="margin-right:4px;">${PERMISSION_NAMES[p] || p}</span>`).join('')}</small></td>
+                            <td><small>${validPermissions.map(p => `<span class="badge badge-info" style="margin-right:4px;">${PERMISSION_NAMES[p]}</span>`).join('')}</small></td>
                             <td>
                                 <button class="btn btn-sm btn-primary" onclick='openEditRoleModal(${JSON.stringify(role).replace(/'/g, "&#39;")})'>Düzenle</button>
                                 ${!role.is_system ? `<button class="btn btn-sm btn-danger" onclick="deleteRole(${role.id})">Sil</button>` : ''}
                             </td>
                         </tr>
-                    `).join('');
+                    `;
+                }).join('');
 
                 // Update User Modal Role Select
                 const userRoleSelect = document.getElementById('newRole');
