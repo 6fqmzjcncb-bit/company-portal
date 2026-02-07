@@ -119,18 +119,26 @@ const syncRolesAndPermissions = async () => {
         // 2. Create/Update Roles
         const roleMap = {};
         for (const r of allRoles) {
-            const [role] = await Role.findOrCreate({
+            // First ensure role exists
+            let [role, created] = await Role.findOrCreate({
                 where: { name: r.name },
                 defaults: r
             });
 
-            // Always update permissions to match current config
-            role.permissions = r.permissions;
-            role.is_system = r.is_system;
-            await role.save();
+            // FORCE UPDATE permissions to match strictly
+            await Role.update(
+                {
+                    permissions: r.permissions,
+                    is_system: r.is_system
+                },
+                { where: { id: role.id } }
+            );
+
+            // Reload to ensure we have latest data
+            await role.reload();
 
             roleMap[r.name] = role;
-            console.log(`✅ Rol ve yetkileri güncellendi: ${role.name}`);
+            console.log(`✅ Rol güncellendi: ${role.name} -> [${role.permissions.join(', ')}]`);
         }
 
         // 3. Ensure Demo Payment Accounts
