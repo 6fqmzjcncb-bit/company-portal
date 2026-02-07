@@ -129,9 +129,6 @@ const syncRolesAndPermissions = async () => {
     } catch (error) {
         console.error('Role sync error:', error);
     }
-} catch (error) {
-    console.error('Role sync error:', error);
-}
 };
 
 const seedDemoData = async () => {
