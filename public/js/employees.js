@@ -191,30 +191,37 @@ function closeModal() {
 }
 
 // Form submit handler - Global function to be called by button
-window.saveEmployee = async function () {
-    // DEBUG: Confirm call
-    // alert('Kaydet butonuna basıldı. İşlem başlıyor...');
-    console.log('Kaydet fonksiyonu çağrıldı.');
+console.log('employees.js loaded');
 
-    const submitBtn = document.querySelector('#employeeForm button.btn-primary');
-    const originalText = submitBtn.innerText;
+// Make function available globally
+window.submitEmployeeForm = async function () {
+    console.log('submitEmployeeForm called');
+    const submitBtn = document.querySelector('#employeeForm button[onclick*="submitEmployeeForm"]');
+    const originalText = submitBtn ? submitBtn.innerText : 'Kaydet';
 
     // Basic Validation
-    const fullName = document.getElementById('fullName').value;
-    const role = document.getElementById('role').value;
+    const fullNameInput = document.getElementById('fullName');
+    const roleInput = document.getElementById('role');
 
-    if (!fullName || !role) {
-        alert('Lütfen zorunlu alanları (Ad Soyad, Rol) doldurun.');
+    if (!fullNameInput || !roleInput) {
+        alert('Hata: Form elemanları bulunamadı!');
         return;
     }
 
-    submitBtn.disabled = true;
-    submitBtn.innerText = 'İşleniyor...';
+    if (!fullNameInput.value || !roleInput.value) {
+        alert('Lütfen Ad Soyad ve Rol alanlarını doldurun.');
+        return;
+    }
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'İşleniyor...';
+    }
 
     const formData = {
-        full_name: fullName,
+        full_name: fullNameInput.value,
         phone: document.getElementById('phone').value || null,
-        role: role,
+        role: roleInput.value,
         daily_wage: document.getElementById('dailyWage').value || null,
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
@@ -254,8 +261,10 @@ window.saveEmployee = async function () {
         console.error('Hata:', error);
         alert('İşlem sırasında hata oluştu: ' + error.message);
     } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerText = originalText;
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalText;
+        }
     }
 };
 
@@ -286,6 +295,52 @@ function formatDate(dateStr) {
 async function showPasswordAction(userId, name) {
     // Since we cannot show the password (hashed), we offer to reset it.
     // The user specifically asked to "see" it. I have to explain.
+    if (confirm(`⚠️ Güvenlik notu: Şifreler şifrelenerek saklandığı için mevcut şifreyi görmeniz mümkün değildir.\n\n"${name}" kullanıcısının şifresini standart "123456" olarak sıfırlamak ister misiniz?`)) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: '123456' })
+            });
+
+            if (response.ok) {
+                alert('Şifre başarıyla "123456" olarak güncellendi.');
+            } else {
+                const res = await response.json();
+                alert('Hata: ' + (res.error || 'İşlem başarısız'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Bağlantı hatası');
+        }
+    }
+}
+
+// Helper functions
+function getRoleText(role) {
+    const roles = {
+        'worker': 'İşçi',
+        'supervisor': 'Ustabaşı',
+        'manager': 'Yönetici'
+    };
+    return roles[role] || role;
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('tr-TR', {
+        style: 'currency',
+        currency: 'TRY'
+    }).format(amount);
+}
+
+function formatDate(dateStr) {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('tr-TR');
+}
+
+// Password Action
+async function showPasswordAction(userId, name) {
     if (confirm(`⚠️ Güvenlik notu: Şifreler şifrelenerek saklandığı için mevcut şifreyi görmeniz mümkün değildir.\n\n"${name}" kullanıcısının şifresini standart "123456" olarak sıfırlamak ister misiniz?`)) {
         try {
             const response = await fetch(`/api/admin/users/${userId}/password`, {
