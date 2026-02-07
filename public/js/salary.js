@@ -154,7 +154,6 @@ function editEmployee(id) {
         document.getElementById('fullName').value = fullEmp.full_name;
         document.getElementById('phone').value = fullEmp.phone || '';
         document.getElementById('phone').value = fullEmp.phone || '';
-        document.getElementById('role').value = fullEmp.role;
 
         // Load roles and set selected
         loadSystemRoles().then(() => {
