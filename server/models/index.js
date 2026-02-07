@@ -1,3 +1,4 @@
+const { sequelize } = require('../config/database');
 const User = require('./User');
 const Source = require('./Source');
 const Product = require('./Product');
