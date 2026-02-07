@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Source } = require('../models');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requirePermission } = require('../middleware/auth');
 
-// Tüm kaynakları listele
-router.get('/', requireAuth, async (req, res) => {
+// Tüm kaynakları listele (view_sources veya manage_stock yetkisi)
+// Not: requirePermission tek bir yetki kontrol eder. Şimdilik view_sources diyelim.
+// Ancak Stok Sorumlusu 'manage_stock' ve 'view_sources' alacak.
+router.get('/', requirePermission('view_sources'), async (req, res) => {
     try {
         const sources = await Source.findAll({
             order: [['name', 'ASC']]
@@ -16,8 +18,8 @@ router.get('/', requireAuth, async (req, res) => {
     }
 });
 
-// Yeni kaynak ekle (sadece admin)
-router.post('/', requireAdmin, async (req, res) => {
+// Yeni kaynak ekle (manage_stock yetkisi)
+router.post('/', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { name, color_code, type } = req.body;
 
@@ -34,8 +36,8 @@ router.post('/', requireAdmin, async (req, res) => {
     }
 });
 
-// Kaynak güncelle (sadece admin)
-router.put('/:id', requireAdmin, async (req, res) => {
+// Kaynak güncelle (manage_stock yetkisi)
+router.put('/:id', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, color_code, type } = req.body;
@@ -54,8 +56,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Kaynak sil (sadece admin)
-router.delete('/:id', requireAdmin, async (req, res) => {
+// Kaynak sil (manage_stock yetkisi)
+router.delete('/:id', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { id } = req.params;
         const source = await Source.findByPk(id);

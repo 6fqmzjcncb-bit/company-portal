@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const { Attendance, Employee } = require('../models');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, requirePermission } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-// Tarihe göre çalışma kayıtları
-router.get('/', requireAuth, async (req, res) => {
+// Tarihe göre çalışma kayıtları (view_attendance yetkisi)
+router.get('/', requirePermission('view_attendance'), async (req, res) => {
     try {
         const { date, employee_id, start_date, end_date } = req.query;
 

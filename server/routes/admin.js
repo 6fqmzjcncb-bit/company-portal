@@ -162,7 +162,20 @@ router.put('/users/:id/role', requireAdmin, async (req, res) => {
         // For now, let's allow it but warn or assume there are other admins. 
         // Ideally, check if user is the LAST admin before removing admin role.
 
-        await user.update({ role_id: role_id || null });
+        // Legacy Role Mapping (for backward compatibility)
+        let legacyRole = 'staff';
+        if (role_id) {
+            const role = await Role.findByPk(role_id);
+            if (role) {
+                if (role.name === 'Yönetici') legacyRole = 'admin';
+                else if (role.name === 'Personel') legacyRole = 'staff';
+            }
+        }
+
+        await user.update({
+            role_id: role_id || null,
+            role: legacyRole
+        });
 
         res.json({ message: 'Kullanıcı rolü güncellendi', user });
     } catch (error) {

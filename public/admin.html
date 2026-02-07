@@ -98,15 +98,13 @@
 
         // --- Role Management ---
         const PERMISSION_NAMES = {
-            'all': 'Tam Yetki (Yönetici)',
-            'view_tasks': 'Görev Görüntüleme',
+            'all': 'Tam Yetki (Admin)',
             'view_jobs': 'İş Listeleri',
-            'view_products': 'Ürün Görüntüleme',
-            'view_sources': 'Kaynak Görüntüleme',
-            'manage_stock': 'Stok ve Ürün Yönetimi',
-            'manage_salary': 'Maaş ve Personel Yönetimi',
-            'view_report': 'Raporları Görüntüleme',
-            'manage_users': 'Kullanıcı Yönetimi (Admin)'
+            'view_products': 'Ürünler',
+            'view_sources': 'Kaynaklar',
+            'view_attendance': 'Çalışma Kaydı',
+            'manage_salary': 'Maaş Yönetimi',
+            'manage_stock': 'Stok Yönetimi'
         };
 
         async function loadRoles() {
@@ -865,21 +863,19 @@
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <label><input type="checkbox" name="permissions" value="all"> <strong>Tam Yetki
                                             (Admin)</strong></label>
-                                    <label><input type="checkbox" name="permissions" value="view_tasks"> Görevler
-                                        (Personel)</label>
+
                                     <label><input type="checkbox" name="permissions" value="view_jobs"> İş
                                         Listeleri</label>
                                     <label><input type="checkbox" name="permissions" value="view_sources">
                                         Kaynaklar</label>
-                                    <label><input type="checkbox" name="permissions" value="view_products"> Ürünler
-                                        (Görüntüleme)</label>
-                                    <label><input type="checkbox" name="permissions" value="manage_stock">
-                                        Stok/Ürün Yönetimi</label>
-                                    <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
+                                    <label><input type="checkbox" name="permissions" value="view_products">
+                                        Ürünler</label>
+                                    <label><input type="checkbox" name="permissions" value="view_attendance"> Çalışma
+                                        Kaydı</label>
+
+                                    <label><input type="checkbox" name="permissions" value="manage_stock"> Stok
                                         Yönetimi</label>
-                                    <label><input type="checkbox" name="permissions" value="view_report">
-                                        Raporlar</label>
-                                    <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
+                                    <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
                                         Yönetimi</label>
                                 </div>
                                 <small class="text-muted mt-2 d-block">İpucu: 'Kullanıcı Yönetimi' yetkisi sadece

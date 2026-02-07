@@ -101,10 +101,7 @@ const syncRolesAndPermissions = async () => {
         const allRoles = [
             // System Roles
             { name: 'Yönetici', permissions: ['all'], is_system: true },
-            { name: 'Personel', permissions: ['view_tasks', 'view_jobs', 'view_products'], is_system: true },
-            // Demo Roles
-            { name: 'Muhasebe', permissions: ['manage_salary', 'view_report'], is_system: false },
-            { name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
+            { name: 'Personel', permissions: ['view_tasks', 'view_jobs', 'view_products', 'view_attendance'], is_system: true },
             { name: 'Stok Sorumlusu', permissions: ['view_sources', 'manage_stock'], is_system: false }
         ];
 

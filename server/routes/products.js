@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Product } = require('../models');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requirePermission } = require('../middleware/auth');
 const { Op } = require('sequelize');
 
 // Tüm ürünleri listele
@@ -67,8 +67,8 @@ router.get('/search', requireAuth, async (req, res) => {
     }
 });
 
-// Yeni ürün ekle (sadece admin)
-router.post('/', requireAdmin, async (req, res) => {
+// Yeni ürün ekle (sadece manage_stock yetkisi olanlar)
+router.post('/', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { name, barcode, current_stock } = req.body;
 
@@ -85,8 +85,8 @@ router.post('/', requireAdmin, async (req, res) => {
     }
 });
 
-// Ürün güncelle (sadece admin)
-router.put('/:id', requireAdmin, async (req, res) => {
+// Ürün güncelle (sadece manage_stock yetkisi olanlar)
+router.put('/:id', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { id } = req.params;
         const { name, barcode, current_stock } = req.body;
@@ -105,8 +105,8 @@ router.put('/:id', requireAdmin, async (req, res) => {
     }
 });
 
-// Ürün sil (sadece admin)
-router.delete('/:id', requireAdmin, async (req, res) => {
+// Ürün sil (sadece manage_stock yetkisi olanlar)
+router.delete('/:id', requirePermission('manage_stock'), async (req, res) => {
     try {
         const { id } = req.params;
         const product = await Product.findByPk(id);
