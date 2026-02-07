@@ -584,13 +584,26 @@ async function loadSystemRoles() {
 
         const roles = await response.json();
 
-        select.innerHTML = '<option value="">Seçiniz (Opsiyonel)</option>';
+        select.innerHTML = ''; // Clear loading/placeholder
+
+        let personelRoleId = null;
+
         roles.forEach(role => {
             const opt = document.createElement('option');
             opt.value = role.id;
             opt.textContent = role.name + (role.is_system ? ' (Sistem)' : '');
             select.appendChild(opt);
+
+            // Check if this is the 'Personel' role to set as default
+            if (role.name === 'Personel') {
+                personelRoleId = role.id;
+            }
         });
+
+        // Set default to Personel if found
+        if (personelRoleId) {
+            select.value = personelRoleId;
+        }
     } catch (e) {
         console.error(e);
         select.innerHTML = '<option value="">Hata!</option>';
