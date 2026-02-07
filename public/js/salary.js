@@ -187,7 +187,7 @@ function editEmployee(id) {
         showToast('Hata', 'Personel detayı yüklenemedi', 'error');
     });
 }
-}
+
 
 async function reactivateEmployee(id) {
     if (!confirm('Bu personeli tekrar işe almak istediğinize emin misiniz?')) return;
