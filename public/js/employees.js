@@ -190,22 +190,31 @@ function closeModal() {
     document.getElementById('employeeModal').style.display = 'none';
 }
 
-// Form submit
-document.getElementById('employeeForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
+// Form submit handler - Global function to be called by button
+window.saveEmployee = async function () {
+    // DEBUG: Confirm call
+    // alert('Kaydet butonuna basıldı. İşlem başlıyor...');
+    console.log('Kaydet fonksiyonu çağrıldı.');
 
-    // DEBUG: Confirm button click
-    console.log('Kaydet butonuna basıldı. İşlem başlıyor...');
+    const submitBtn = document.querySelector('#employeeForm button.btn-primary');
+    const originalText = submitBtn.innerText;
 
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const oldText = submitBtn.innerText;
+    // Basic Validation
+    const fullName = document.getElementById('fullName').value;
+    const role = document.getElementById('role').value;
+
+    if (!fullName || !role) {
+        alert('Lütfen zorunlu alanları (Ad Soyad, Rol) doldurun.');
+        return;
+    }
+
     submitBtn.disabled = true;
     submitBtn.innerText = 'İşleniyor...';
 
     const formData = {
-        full_name: document.getElementById('fullName').value,
+        full_name: fullName,
         phone: document.getElementById('phone').value || null,
-        role: document.getElementById('role').value,
+        role: role,
         daily_wage: document.getElementById('dailyWage').value || null,
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
@@ -217,17 +226,11 @@ document.getElementById('employeeForm').addEventListener('submit', async (e) => 
         const url = editingId ? `/api/employees/${editingId}` : '/api/employees';
         const method = editingId ? 'PUT' : 'POST';
 
-        // DEBUG: Alert before fetch
-        // alert('Sending data...'); 
-
         const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
-
-        // DEBUG: Alert status
-        // alert('Response status: ' + response.status);
 
         let result;
         try {
@@ -249,9 +252,12 @@ document.getElementById('employeeForm').addEventListener('submit', async (e) => 
         loadEmployees();
     } catch (error) {
         console.error('Hata:', error);
-        alert('İşlem sırasında hata oluştu');
+        alert('İşlem sırasında hata oluştu: ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = originalText;
     }
-});
+};
 
 // Helper functions
 function getRoleText(role) {
