@@ -113,7 +113,7 @@ const syncRolesAndPermissions = async () => {
             // System Roles
             { name: 'Yönetici', permissions: ['all'], is_system: true },
             { name: 'Personel', permissions: ['view_jobs', 'view_products', 'view_attendance'], is_system: true },
-            { name: 'Stok Sorumlusu', permissions: ['view_sources', 'view_products', 'manage_stock'], is_system: false }
+            { name: 'Stok Sorumlusu', permissions: ['view_sources', 'view_products'], is_system: false }
         ];
 
         // 2. Create/Update Roles

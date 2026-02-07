@@ -45,6 +45,7 @@ const requirePermission = (permission) => {
             });
 
             if (user && user.userRole) {
+                req.userRoleName = user.userRole.name; // Store for logic
                 if (user.userRole.permissions.includes('all') || user.userRole.permissions.includes(permission)) {
                     return next();
                 }
