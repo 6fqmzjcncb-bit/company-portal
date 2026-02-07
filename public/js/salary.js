@@ -130,9 +130,14 @@ async function showAddEmployeeModal() {
     document.getElementById('employeeModal').style.display = 'flex';
 }
 
+// function editEmployee(id) {
+//     const emp = allEmployees.find(e => e.id === id);
+//     if (!emp) return;
+
 function editEmployee(id) {
-    const emp = allEmployees.find(e => e.id === id);
-    if (!emp) return;
+    // Removed early return to allow editing archived employees by fetching them
+    // const emp = allEmployees.find(e => e.id === id); 
+
 
     document.getElementById('empModalTitle').textContent = 'Personel Düzenle';
     document.getElementById('btnDeleteEmployee').style.display = 'block'; // Show delete for edit
@@ -549,10 +554,40 @@ async function deleteEmployee(id) {
 }
 
 // Replaces reactivateEmployee with Modal open
-function reactivateEmployee(id) {
+// Replaces reactivateEmployee with Modal open
+async function openRehireModal(id) {
     document.getElementById('rehireEmpId').value = id;
     document.getElementById('rehireDailyWage').value = '';
     document.getElementById('rehireMonthlySalary').value = '';
+
+    // Fetch latest details to show "Old Info"
+    try {
+        const res = await fetch(`/api/employees/${id}`);
+        const emp = await res.json();
+
+        const oldInfoHtml = `
+            <div style="background: #f3f4f6; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 0.9rem;">
+                <strong>Mevcut Kayıtlı Bilgiler:</strong>
+                <ul style="margin: 5px 0 0 15px; color: #555;">
+                    <li>Günlük: ${emp.daily_wage ? formatCurrency(emp.daily_wage) : '-'}</li>
+                    <li>Aylık: ${emp.monthly_salary ? formatCurrency(emp.monthly_salary) : '-'}</li>
+                    <li>Görevi: ${emp.role_id ? 'Sistemde Tanımlı' : (emp.role || 'Personel')}</li>
+                     <li>Ayrılma Tarihi: ${emp.termination_date ? formatDate(emp.termination_date) : '-'}</li>
+                </ul>
+            </div>
+        `;
+
+        const infoContainer = document.getElementById('rehireOldInfo');
+        if (infoContainer) infoContainer.innerHTML = oldInfoHtml;
+
+        // Also update placeholders
+        document.getElementById('rehireDailyWage').placeholder = emp.daily_wage || 'Yeni Tutar';
+        document.getElementById('rehireMonthlySalary').placeholder = emp.monthly_salary || 'Yeni Tutar';
+
+    } catch (e) {
+        console.error('Rehire info fetch error', e);
+    }
+
     document.getElementById('rehireModal').style.display = 'flex';
 }
 
