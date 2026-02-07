@@ -195,11 +195,7 @@ router.put('/users/:id/toggle-access', requireAdmin, async (req, res) => {
 // Sync and Fix Users Route
 router.get('/debug/sync-users-fix', async (req, res) => {
     try {
-        const { Role } = require('../models');
-        // Ensure schema
-        await User.sync({ alter: true });
-
-        // 1. Fetch System Roles
+        // 1. Fetch System Roles (Using top-level Role model)
         const adminRole = await Role.findOne({ where: { name: 'Yönetici' } });
         const staffRole = await Role.findOne({ where: { name: 'Personel' } });
 
@@ -212,23 +208,25 @@ router.get('/debug/sync-users-fix', async (req, res) => {
         // 2. Fix Existing Users with Legacy Roles
         const users = await User.findAll();
         for (const user of users) {
-            // Generic fix for others
-            if (!user.role_id) {
-                if (user.role === 'admin') user.role_id = adminRole.id;
-                else if (user.role === 'staff') user.role_id = staffRole.id;
-                await user.save();
+            let shouldSave = false;
+
+            // Logic: Map legacy string roles to new Role IDs
+            if (user.username === 'admin' || user.role === 'admin') {
+                if (user.role_id !== adminRole.id) {
+                    user.role_id = adminRole.id;
+                    shouldSave = true;
+                    logs.push(`✅ Fixed Admin: ${user.username}`);
+                }
+            } else if (user.username === 'staff' || user.role === 'staff') {
+                if (user.role_id !== staffRole.id) {
+                    user.role_id = staffRole.id;
+                    shouldSave = true;
+                    logs.push(`✅ Fixed Staff: ${user.username}`);
+                }
             }
 
-            // FORCE FIX for specific known users (admin, staff)
-            if (user.username === 'admin') {
-                user.role_id = adminRole.id;
+            if (shouldSave) {
                 await user.save();
-                logs.push('✅ Admin user fixed forcedly.');
-            }
-            if (user.username === 'staff') {
-                user.role_id = staffRole.id;
-                await user.save();
-                logs.push('✅ Staff user fixed forcedly.');
             }
         }
 
