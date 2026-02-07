@@ -162,20 +162,50 @@ const seedDemoData = async () => {
     // Deprecated: Logic moved to syncRolesAndPermissions for reliability
 };
 
-// Manual Seed Endpoint
-app.get('/seed-demo-data', async (req, res) => {
+// Force Seed Endpoint (Nuclear Option)
+app.get('/setup/force-seed', async (req, res) => {
+    const logs = [];
+    const log = (msg) => { console.log(msg); logs.push(msg); };
+
     try {
-        await syncRolesAndPermissions();
-        const { Role, PaymentAccount } = require('./models');
-        const roles = await Role.findAll();
-        const accounts = await PaymentAccount.findAll();
-        res.json({
-            message: 'Demo verileri yüklendi',
-            roles: roles.map(r => r.name),
-            accounts: accounts.map(a => a.name)
-        });
+        log('🚀 Force Seeding Started...');
+        const { Role, PaymentAccount, User } = require('./models');
+
+        // 1. Roles
+        const roles = [
+            { name: 'Yönetici', permissions: ['all'], is_system: true },
+            { name: 'Personel', permissions: ['view_tasks'], is_system: true },
+            { name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
+            { name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
+            { name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
+        ];
+
+        for (const r of roles) {
+            try {
+                const [role, created] = await Role.findOrCreate({ where: { name: r.name }, defaults: r });
+                log(`${created ? '✅ Created' : 'ℹ️ Exists'}: Role ${r.name}`);
+            } catch (e) { log(`❌ Error Role ${r.name}: ${e.message}`); }
+        }
+
+        // 2. Accounts
+        const accounts = [
+            { name: 'Merkez Kasa', type: 'cash', icon: '💵' },
+            { name: 'Ziraat Bankası', type: 'bank', icon: '🏦' },
+            { name: 'Şirket Kredi Kartı', type: 'credit_card', icon: '💳' }
+        ];
+
+        for (const a of accounts) {
+            try {
+                const [acc, created] = await PaymentAccount.findOrCreate({ where: { name: a.name }, defaults: a });
+                log(`${created ? '✅ Created' : 'ℹ️ Exists'}: Account ${a.name}`);
+            } catch (e) { log(`❌ Error Account ${a.name}: ${e.message}`); }
+        }
+
+        res.json({ success: true, logs });
+
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        log(`❌ CRITICAL ERROR: ${error.message}`);
+        res.status(500).json({ error: error.message, logs });
     }
 });
 
