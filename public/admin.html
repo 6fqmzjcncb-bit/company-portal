@@ -862,8 +862,12 @@
                             <div class="form-group">
                                 <label>Yetkiler</label>
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <label><input type="checkbox" name="permissions" value="all"> <strong>Tam Yetki
+                                            (Admin)</strong></label>
                                     <label><input type="checkbox" name="permissions" value="view_dashboard"> Ana
                                         Sayfa</label>
+                                    <label><input type="checkbox" name="permissions" value="view_tasks"> Görevler
+                                        (Personel)</label>
                                     <label><input type="checkbox" name="permissions" value="view_jobs"> İş
                                         Listeleri</label>
                                     <label><input type="checkbox" name="permissions" value="manage_stock">
@@ -873,7 +877,7 @@
                                     <label><input type="checkbox" name="permissions" value="view_report">
                                         Raporlar</label>
                                     <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
-                                        Yönetimi (Admin)</label>
+                                        Yönetimi</label>
                                 </div>
                                 <small class="text-muted mt-2 d-block">İpucu: 'Kullanıcı Yönetimi' yetkisi sadece
                                     Yöneticilere verilmelidir.</small>
