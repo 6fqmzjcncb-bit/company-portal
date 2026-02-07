@@ -22,6 +22,11 @@ router.get('/', requireAuth, async (req, res) => {
 
         const employees = await Employee.findAll({
             where: whereClause,
+            include: [{
+                model: User,
+                as: 'user',
+                attributes: ['username', 'is_active']
+            }],
             order: [['is_active', 'DESC'], ['full_name', 'ASC']]
         });
         res.json(employees);

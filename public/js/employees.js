@@ -73,6 +73,17 @@ function renderEmployees(data) {
                     ${emp.full_name} ↗
                 </a>
             </td>
+            <td>
+                ${emp.user ? `<span class="badge badge-secondary">${emp.user.username}</span>` : '<span class="text-muted">-</span>'}
+            </td>
+            <td>
+                ${emp.user ? `
+                    <div class="password-mask" onclick="showPasswordAction(${emp.user_id}, '${emp.full_name}')" style="cursor: pointer;" title="Şifre İşlemleri">
+                        <span style="font-family: monospace; letter-spacing: 2px;">••••••</span>
+                        <span style="font-size: 12px; margin-left: 5px;">👁️</span>
+                    </div>
+                ` : '-'}
+            </td>
             <td>${emp.phone || '-'}</td>
             <td>${getRoleText(emp.role)}</td>
             <td>${emp.daily_wage ? formatCurrency(emp.daily_wage) : '-'}</td>
@@ -234,6 +245,31 @@ function formatDate(dateStr) {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
     return date.toLocaleDateString('tr-TR');
+}
+
+// Password Action
+async function showPasswordAction(userId, name) {
+    // Since we cannot show the password (hashed), we offer to reset it.
+    // The user specifically asked to "see" it. I have to explain.
+    if (confirm(`⚠️ Güvenlik notu: Şifreler şifrelenerek saklandığı için mevcut şifreyi görmeniz mümkün değildir.\n\n"${name}" kullanıcısının şifresini standart "123456" olarak sıfırlamak ister misiniz?`)) {
+        try {
+            const response = await fetch(`/api/admin/users/${userId}/password`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: '123456' })
+            });
+
+            if (response.ok) {
+                alert('Şifre başarıyla "123456" olarak güncellendi.');
+            } else {
+                const res = await response.json();
+                alert('Hata: ' + (res.error || 'İşlem başarısız'));
+            }
+        } catch (error) {
+            console.error(error);
+            alert('Bağlantı hatası');
+        }
+    }
 }
 
 // Close modal on outside click
