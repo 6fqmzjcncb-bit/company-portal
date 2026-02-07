@@ -100,8 +100,9 @@
         const PERMISSION_NAMES = {
             'all': 'Tam Yetki (Yönetici)',
             'view_tasks': 'Görev Görüntüleme',
-            'view_dashboard': 'Ana Sayfa Görüntüleme',
             'view_jobs': 'İş Listeleri',
+            'view_products': 'Ürün Görüntüleme',
+            'view_sources': 'Kaynak Görüntüleme',
             'manage_stock': 'Stok ve Ürün Yönetimi',
             'manage_salary': 'Maaş ve Personel Yönetimi',
             'view_report': 'Raporları Görüntüleme',
@@ -864,14 +865,16 @@
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                     <label><input type="checkbox" name="permissions" value="all"> <strong>Tam Yetki
                                             (Admin)</strong></label>
-                                    <label><input type="checkbox" name="permissions" value="view_dashboard"> Ana
-                                        Sayfa</label>
                                     <label><input type="checkbox" name="permissions" value="view_tasks"> Görevler
                                         (Personel)</label>
                                     <label><input type="checkbox" name="permissions" value="view_jobs"> İş
                                         Listeleri</label>
+                                    <label><input type="checkbox" name="permissions" value="view_sources">
+                                        Kaynaklar</label>
+                                    <label><input type="checkbox" name="permissions" value="view_products"> Ürünler
+                                        (Görüntüleme)</label>
                                     <label><input type="checkbox" name="permissions" value="manage_stock">
-                                        Stok/Ürünler</label>
+                                        Stok/Ürün Yönetimi</label>
                                     <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
                                         Yönetimi</label>
                                     <label><input type="checkbox" name="permissions" value="view_report">
