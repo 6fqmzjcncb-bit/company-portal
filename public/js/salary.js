@@ -291,8 +291,18 @@ async function handleEmployeeSubmit(e) {
 
         // Check for created user credentials to show
         if (result.createdUser) {
-            // Persistent alert for credentials (important info)
-            alert(`✅ Personel ve Kullanıcı Hesabı Oluşturuldu!\n\n👤 Kullanıcı Adı: ${result.createdUser.username}\n🔑 Şifre: ${result.createdUser.password}\n\nLütfen bu bilgileri personel ile paylaşın.`);
+            // Show Custom Credential Modal
+            document.getElementById('credUsername').textContent = result.createdUser.username;
+            document.getElementById('credPassword').textContent = result.createdUser.password;
+
+            const credModal = document.getElementById('credentialModal');
+            if (credModal) {
+                credModal.style.display = 'flex';
+            } else {
+                // Fallback just in case
+                alert(`Kullanıcı: ${result.createdUser.username}\nŞifre: ${result.createdUser.password}`);
+            }
+
             showToast('Başarılı', 'Personel ve kullanıcı hesabı oluşturuldu.', 'success');
         } else {
             showToast('Başarılı', 'Personel başarıyla kaydedildi.', 'success');
