@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const router = express.Router();
-const { User, Product, Employee } = require('../models');
+const { User, Product, Employee, Role } = require('../models');
 const { requireAdmin } = require('../middleware/auth');
 
 // Tüm stok durumunu görüntüle (sadece admin)
@@ -49,7 +49,12 @@ router.delete('/users/:id', requireAdmin, async (req, res) => {
 // Yeni kullanıcı ekle (sadece admin)
 router.post('/users', requireAdmin, async (req, res) => {
     try {
-        const { username, password, full_name, role_id } = req.body; // use role_id
+        console.log('📝 Creating User Payload:', req.body); // DEBUG
+        const { username, password, full_name, role_id } = req.body;
+
+        if (!role_id) {
+            console.warn('⚠️ No role_id provided for user creation!');
+        }
 
         // Şifreyi hashle
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -58,8 +63,8 @@ router.post('/users', requireAdmin, async (req, res) => {
             username,
             password: hashedPassword,
             full_name,
-            role_id: role_id,
-            role: 'staff' // Deprecated enum fallback (default)
+            role_id: role_id ? parseInt(role_id) : null,
+            role: 'staff' // Legacy fallback, but role_id should take precedence in logic
         });
 
         res.status(201).json(user);
