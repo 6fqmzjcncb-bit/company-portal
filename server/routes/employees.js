@@ -109,12 +109,14 @@ router.post('/', requireAuth, async (req, res) => {
         const plainPassword = generatePassword();
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
+        console.log('📝 Creating Employee User with role_id:', role_id); // DEBUG
+
         const user = await User.create({
             username,
             password: hashedPassword,
             full_name: full_name,
-            role_id: role_id || null, // Use provided role_id
-            role: 'staff' // Fallback for legacy enum
+            role_id: role_id ? parseInt(role_id) : null, // Parse INT to be safe
+            role: 'staff' // Legacy enum requirement considering NOT NULL constraint usually?
         }, { transaction: t });
 
         // 4. Link Employee -> User
@@ -148,6 +150,15 @@ router.put('/:id', requireAuth, async (req, res) => {
         }
 
         await employee.update(req.body);
+
+        // Update Linked User Role if provided
+        if (req.body.role_id && employee.user_id) {
+            const user = await User.findByPk(employee.user_id);
+            if (user) {
+                await user.update({ role_id: parseInt(req.body.role_id) });
+            }
+        }
+
         res.json(employee);
     } catch (error) {
         console.error('Personel güncelleme hatası:', error);
