@@ -59,7 +59,7 @@ router.post('/users', requireAdmin, async (req, res) => {
             password: hashedPassword,
             full_name,
             role_id: role_id,
-            role: 'staff' // Legacy support
+            role: 'staff' // Deprecated enum fallback (default)
         });
 
         res.status(201).json(user);

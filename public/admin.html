@@ -98,8 +98,6 @@
 
         // --- Role Management ---
         const PERMISSION_NAMES = {
-            'all': 'Tam Yetki (Yönetici)',
-            'view_tasks': 'Görev Görüntüleme',
             'view_dashboard': 'Ana Sayfa Görüntüleme',
             'view_jobs': 'İş Listeleri',
             'manage_stock': 'Stok ve Ürün Yönetimi',
@@ -116,7 +114,7 @@
 
                 container.innerHTML = roles.map(role => `
                         <tr>
-                            <td><strong>${role.name}</strong> ${role.is_system ? '<span class="badge badge-secondary" style="font-size:0.7em; background:#6c757d;">Varsayılan</span>' : ''}</td>
+                            <td><strong>${role.name}</strong> ${role.is_system ? '<span class="badge badge-secondary" style="font-size:0.7em">Sistem</span>' : ''}</td>
                             <td><small>${role.permissions.map(p => `<span class="badge badge-info" style="margin-right:4px;">${PERMISSION_NAMES[p] || p}</span>`).join('')}</small></td>
                             <td>
                                 <button class="btn btn-sm btn-primary" onclick='openEditRoleModal(${JSON.stringify(role).replace(/'/g, "&#39;")})'>Düzenle</button>
@@ -214,16 +212,7 @@
 
                 container.innerHTML = users.map(user => {
                     const linkedEmp = user.employee ? `<span class="badge badge-success">👤 ${user.employee.full_name}</span>` : '<span class="text-muted">-</span>';
-                    // Display Role Name: prioritizing the relation, falling back to legacy enum
-                    let roleName = '<span class="text-muted">Rol Yok</span>';
-
-                    if (user.userRole) {
-                        roleName = user.userRole.name;
-                    } else if (user.role === 'admin') {
-                        roleName = 'Yönetici (Eski)';
-                    } else if (user.role === 'staff') {
-                        roleName = 'Personel (Eski)';
-                    }
+                    const roleName = user.userRole ? user.userRole.name : (user.role === 'admin' ? 'Yönetici (Eski)' : 'Personel (Eski)');
 
                     return `
                         <tr>
