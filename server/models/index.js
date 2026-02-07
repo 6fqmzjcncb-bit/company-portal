@@ -142,5 +142,6 @@ module.exports = {
     SalaryPayment,
     JobView,
     JobItemDeletion,
-    PaymentAccount
+    PaymentAccount,
+    sequelize // Export sequelize instance
 };
