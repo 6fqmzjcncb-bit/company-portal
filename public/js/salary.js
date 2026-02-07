@@ -136,40 +136,27 @@ async function showAddEmployeeModal() {
 
 function editEmployee(id) {
     // Removed early return to allow editing archived employees by fetching them
-    // const emp = allEmployees.find(e => e.id === id); 
-
 
     document.getElementById('empModalTitle').textContent = 'Personel Düzenle';
-    document.getElementById('btnDeleteEmployee').style.display = 'block'; // Show delete for edit
-    document.getElementById('btnDeleteEmployee').onclick = () => deleteEmployee(id); // Bind delete
+    document.getElementById('btnDeleteEmployee').style.display = 'block';
+    document.getElementById('btnDeleteEmployee').onclick = () => deleteEmployee(id);
 
-    document.getElementById('editEmpId').value = emp.id;
-    document.getElementById('fullName').value = emp.full_name;
-    document.getElementById('phone').value = emp.phone || ''; // Assuming phone might be available in future backend update or currently hidden
-    // document.getElementById('role').value = 'worker'; // Removed default 
-    // START_DATE fix: We need fetch full details or rely on what we have. 
-    // /balance endpoint returns: {id, full_name, daily_wage, start_date ...}
-    // It does NOT return phone, role, hire_date, monthly_salary, notes etc fully.
-    // OPTIMAL TRICK: We should probably fetch /api/employees to get full list for editing, 
-    // or update /balance to return everything.
-    // Let's use /api/employees fetch inside loadData to populate a full list for editing context.
+    // clear fields or show loading
+    document.getElementById('fullName').value = 'Yükleniyor...';
+    document.getElementById('phone').value = '';
+    document.getElementById('dailyWage').value = '';
+    document.getElementById('monthlySalary').value = '';
+    document.getElementById('hireDate').value = '';
+    document.getElementById('notes').value = '';
+    document.getElementById('editEmpId').value = id;
 
-    // For now, let's fetch full employee details on Edit click to be safe
+    // Fetch full employee details
     fetch(`/api/employees/${id}`).then(res => res.json()).then(fullEmp => {
         document.getElementById('fullName').value = fullEmp.full_name;
-        document.getElementById('phone').value = fullEmp.phone || '';
         document.getElementById('phone').value = fullEmp.phone || '';
 
         // Load roles and set selected
         loadSystemRoles().then(() => {
-            // We need to know which role the user has. 
-            // The /api/employees/:id endpoint returns `user` object.
-            // We need to check fullEmp.user.role_id if available or fetch user details.
-            // Current /api/employees/:id implementation returns `user` with `username` and `is_active`.
-            // It does NOT return role_id directly. 
-            // However, `roles.js` logic links User->Role. 
-            // Let's assume for now we might not show the specific System Role in Edit unless we update the backend to return it.
-            // For now, just load the list.
             if (fullEmp.user && fullEmp.user.role_id) {
                 document.getElementById('systemRole').value = fullEmp.user.role_id;
             }
@@ -180,24 +167,26 @@ function editEmployee(id) {
         document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
         document.getElementById('notes').value = fullEmp.notes || '';
 
-        document.getElementById('notes').value = fullEmp.notes || '';
-
         // Button Logic: Fire vs Re-hire
         const btnDelete = document.getElementById('btnDeleteEmployee');
         if (fullEmp.is_active) {
-            btnDelete.innerText = 'İşten Çıkar';
+            btnDelete.innerText = 'İşten Çıkar (Arşivle)';
             btnDelete.className = 'btn btn-danger';
             btnDelete.onclick = () => deleteEmployee(id);
             btnDelete.style.display = 'block';
         } else {
             btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
             btnDelete.className = 'btn btn-success';
-            btnDelete.onclick = () => reactivateEmployee(id);
+            btnDelete.onclick = () => openRehireModal(id);
             btnDelete.style.display = 'block';
         }
 
         document.getElementById('employeeModal').style.display = 'flex';
-    }).catch(err => showAlert('Personel detayı yüklenemedi'));
+    }).catch(err => {
+        console.error(err);
+        showToast('Hata', 'Personel detayı yüklenemedi', 'error');
+    });
+}
 }
 
 async function reactivateEmployee(id) {
