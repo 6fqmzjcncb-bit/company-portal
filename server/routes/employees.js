@@ -96,11 +96,22 @@ router.post('/', requireAuth, async (req, res) => {
             counter++;
         }
 
-        // 3. Create User (Default password: 123456)
-        const password = await bcrypt.hash('123456', 10);
+        // 3. Create User (Random Password)
+        const generatePassword = () => {
+            const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let pass = '';
+            for (let i = 0; i < 8; i++) {
+                pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return pass;
+        };
+
+        const plainPassword = generatePassword();
+        const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
         const user = await User.create({
             username,
-            password,
+            password: hashedPassword,
             full_name: full_name,
             role: 'staff' // Default role
         }, { transaction: t });
@@ -114,7 +125,7 @@ router.post('/', requireAuth, async (req, res) => {
         const employeeData = employee.toJSON();
         employeeData.createdUser = {
             username: username,
-            password: '123456' // Show this once to the admin
+            password: plainPassword // Show the generated password once
         };
 
         res.status(201).json(employeeData);

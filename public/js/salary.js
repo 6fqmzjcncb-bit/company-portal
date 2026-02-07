@@ -303,7 +303,6 @@ async function handleEmployeeSubmit(e) {
                 alert(`Kullanıcı: ${result.createdUser.username}\nŞifre: ${result.createdUser.password}`);
             }
 
-            showToast('Başarılı', 'Personel ve kullanıcı hesabı oluşturuldu.', 'success');
         } else {
             showToast('Başarılı', 'Personel başarıyla kaydedildi.', 'success');
         }
