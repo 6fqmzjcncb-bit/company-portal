@@ -227,11 +227,16 @@
 
                     <div class="form-group">
                         <label for="role">Görevi (Ünvan) *</label>
-                        <select id="role" required>
-                            <option value="worker">İşçi</option>
-                            <option value="supervisor">Ustabaşı</option>
-                            <option value="manager">Yönetici</option>
-                        </select>
+                        <input type="text" id="role" list="roleList" class="form-control"
+                            placeholder="Örn: Usta, Kalfa, Şoför" required>
+                        <datalist id="roleList">
+                            <option value="Usta">
+                            <option value="Kalfa">
+                            <option value="Yönetici">
+                            <option value="Şoför">
+                            <option value="Muhasebe">
+                            <option value="Saha Personeli">
+                        </datalist>
                     </div>
 
                     <div class="form-group"

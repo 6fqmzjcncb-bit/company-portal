@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Role, User } = require('../models');
-const { requireAdmin } = require('../middleware/auth');
+const { requireAdmin, requireAuth } = require('../middleware/auth');
 
 // Tüm rolleri listele
-router.get('/', requireAdmin, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
     try {
         let roles = await Role.findAll();
 

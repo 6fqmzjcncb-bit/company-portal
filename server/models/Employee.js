@@ -22,8 +22,8 @@ const Employee = sequelize.define('Employee', {
         comment: 'Bağlı kullanıcı ID'
     },
     role: {
-        type: DataTypes.ENUM('worker', 'supervisor', 'manager'),
-        defaultValue: 'worker'
+        type: DataTypes.STRING(50), // Changed from ENUM to STRING to allow custom titles
+        defaultValue: 'Personel'
     },
     daily_wage: {
         type: DataTypes.DECIMAL(10, 2),

@@ -132,7 +132,7 @@ function editEmployee(id) {
     document.getElementById('editEmpId').value = emp.id;
     document.getElementById('fullName').value = emp.full_name;
     document.getElementById('phone').value = emp.phone || ''; // Assuming phone might be available in future backend update or currently hidden
-    document.getElementById('role').value = 'worker'; // Default or fetch real role if available in /balance. Currently /balance returns simple object. 
+    // document.getElementById('role').value = 'worker'; // Removed default 
     // START_DATE fix: We need fetch full details or rely on what we have. 
     // /balance endpoint returns: {id, full_name, daily_wage, start_date ...}
     // It does NOT return phone, role, hire_date, monthly_salary, notes etc fully.
