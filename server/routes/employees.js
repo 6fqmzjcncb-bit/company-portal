@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
-const { Employee, Attendance, SalaryPayment, User, sequelize } = require('../models');
+const { Employee, Attendance, SalaryPayment, User, Role, sequelize } = require('../models');
 const { requireAuth } = require('../middleware/auth');
 
 // Tüm personeli listele
@@ -111,12 +111,21 @@ router.post('/', requireAuth, async (req, res) => {
 
         console.log('📝 Creating Employee User with role_id:', role_id); // DEBUG
 
+        // If role_id is not provided, default to 'Personel' system role
+        let finalRoleId = role_id ? parseInt(role_id) : null;
+        if (!finalRoleId) {
+            const defaultRole = await Role.findOne({ where: { name: 'Personel' } });
+            if (defaultRole) {
+                finalRoleId = defaultRole.id;
+            }
+        }
+
         const user = await User.create({
             username,
             password: hashedPassword,
             full_name: full_name,
-            role_id: role_id ? parseInt(role_id) : null, // Parse INT to be safe
-            role: 'staff' // Legacy enum requirement considering NOT NULL constraint usually?
+            role_id: finalRoleId,
+            role: 'staff' // Legacy fallback
         }, { transaction: t });
 
         // 4. Link Employee -> User
