@@ -181,37 +181,7 @@ app.get('/setup/force-seed', async (req, res) => {
     // ... existing ...
 });
 
-// PUBLIC FIX ROUTE (Emergency)
-app.get('/debug/force-fix-public', async (req, res) => {
-    try {
-        const { User, Role } = require('./models');
-        // 1. Fetch System Roles
-        const adminRole = await Role.findOne({ where: { name: 'Yönetici' } });
-        const staffRole = await Role.findOne({ where: { name: 'Personel' } });
 
-        if (!adminRole || !staffRole) return res.json({ error: 'Roles not found' });
-
-        let logs = [];
-
-        // 2. Fix Admin
-        const adminUser = await User.findOne({ where: { username: 'admin' } });
-        if (adminUser) {
-            await adminUser.update({ role_id: adminRole.id });
-            logs.push('Admin Fixed');
-        }
-
-        // 3. Fix Staff
-        const staffUser = await User.findOne({ where: { username: 'staff' } });
-        if (staffUser) {
-            await staffUser.update({ role_id: staffRole.id });
-            logs.push('Staff Fixed');
-        }
-
-        res.json({ message: 'Fixed', logs });
-    } catch (error) {
-        res.json({ error: error.message });
-    }
-});
 
 // ... inside initializeDatabase ...
 // await syncRolesAndPermissions(); 
