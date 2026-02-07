@@ -178,48 +178,38 @@ const seedDemoData = async () => {
 
 // Force Seed Endpoint (Nuclear Option)
 app.get('/setup/force-seed', async (req, res) => {
-    const logs = [];
-    const log = (msg) => { console.log(msg); logs.push(msg); };
+    // ... existing ...
+});
 
+// PUBLIC FIX ROUTE (Emergency)
+app.get('/debug/force-fix-public', async (req, res) => {
     try {
-        log('🚀 Force Seeding Started...');
-        const { Role, PaymentAccount, User } = require('./models');
+        const { User, Role } = require('./models');
+        // 1. Fetch System Roles
+        const adminRole = await Role.findOne({ where: { name: 'Yönetici' } });
+        const staffRole = await Role.findOne({ where: { name: 'Personel' } });
 
-        // 1. Roles
-        const roles = [
-            { name: 'Yönetici', permissions: ['all'], is_system: true },
-            { name: 'Personel', permissions: ['view_tasks'], is_system: true },
-            { name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
-            { name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
-            { name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
-        ];
+        if (!adminRole || !staffRole) return res.json({ error: 'Roles not found' });
 
-        for (const r of roles) {
-            try {
-                const [role, created] = await Role.findOrCreate({ where: { name: r.name }, defaults: r });
-                log(`${created ? '✅ Created' : 'ℹ️ Exists'}: Role ${r.name}`);
-            } catch (e) { log(`❌ Error Role ${r.name}: ${e.message}`); }
+        let logs = [];
+
+        // 2. Fix Admin
+        const adminUser = await User.findOne({ where: { username: 'admin' } });
+        if (adminUser) {
+            await adminUser.update({ role_id: adminRole.id });
+            logs.push('Admin Fixed');
         }
 
-        // 2. Accounts
-        const accounts = [
-            { name: 'Merkez Kasa', type: 'cash', icon: '💵' },
-            { name: 'Ziraat Bankası', type: 'bank', icon: '🏦' },
-            { name: 'Şirket Kredi Kartı', type: 'credit_card', icon: '💳' }
-        ];
-
-        for (const a of accounts) {
-            try {
-                const [acc, created] = await PaymentAccount.findOrCreate({ where: { name: a.name }, defaults: a });
-                log(`${created ? '✅ Created' : 'ℹ️ Exists'}: Account ${a.name}`);
-            } catch (e) { log(`❌ Error Account ${a.name}: ${e.message}`); }
+        // 3. Fix Staff
+        const staffUser = await User.findOne({ where: { username: 'staff' } });
+        if (staffUser) {
+            await staffUser.update({ role_id: staffRole.id });
+            logs.push('Staff Fixed');
         }
 
-        res.json({ success: true, logs });
-
+        res.json({ message: 'Fixed', logs });
     } catch (error) {
-        log(`❌ CRITICAL ERROR: ${error.message}`);
-        res.status(500).json({ error: error.message, logs });
+        res.json({ error: error.message });
     }
 });
 
