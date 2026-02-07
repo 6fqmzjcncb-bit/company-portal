@@ -12,10 +12,8 @@ router.get('/', requireAuth, async (req, res) => {
         if (roles.length === 0) {
             roles = [
                 { id: 1, name: 'Yönetici', permissions: ['all'], is_system: true },
-                { id: 2, name: 'Personel', permissions: ['view_tasks'], is_system: true },
-                { id: 3, name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
-                { id: 4, name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
-                { id: 5, name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
+                { id: 2, name: 'Personel', permissions: ['view_tasks', 'view_jobs', 'view_products', 'view_attendance'], is_system: true },
+                { id: 5, name: 'Stok Sorumlusu', permissions: ['view_sources', 'view_products'], is_system: false }
             ];
             // Async: Try to save them for real in background
             (async () => {
