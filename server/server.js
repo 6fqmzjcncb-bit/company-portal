@@ -140,17 +140,31 @@ const syncRolesAndPermissions = async () => {
         }
         console.log('✅ Ödeme hesapları hazır.');
 
-        // 4. Migrate Existing Users (Fix "Eski" roles)
-        const users = await User.findAll({ where: { role_id: null } });
-        for (const user of users) {
-            if (user.role === 'admin' && roleMap['Yönetici']) {
-                await user.update({ role_id: roleMap['Yönetici'].id });
-            } else if (roleMap['Personel']) {
-                await user.update({ role_id: roleMap['Personel'].id });
+        // 4. Force Migrate Specific Users (Admin & Staff)
+        const adminUser = await User.findOne({ where: { username: 'admin' } });
+        if (adminUser && roleMap['Yönetici']) {
+            if (adminUser.role_id !== roleMap['Yönetici'].id) {
+                await adminUser.update({ role_id: roleMap['Yönetici'].id });
+                console.log('✅ Admin user role fixed.');
             }
         }
-        if (users.length > 0) {
-            console.log(`✅ ${users.length} kullanıcı yeni rol sistemine güncellendi.`);
+
+        const staffUser = await User.findOne({ where: { username: 'staff' } });
+        if (staffUser && roleMap['Personel']) {
+            if (staffUser.role_id !== roleMap['Personel'].id) {
+                await staffUser.update({ role_id: roleMap['Personel'].id });
+                console.log('✅ Staff user role fixed.');
+            }
+        }
+
+        // 5. Migrate Any Other Legacy Users
+        const legacyUsers = await User.findAll({ where: { role_id: null } });
+        for (const user of legacyUsers) {
+            if (user.role === 'admin' && roleMap['Yönetici']) {
+                await user.update({ role_id: roleMap['Yönetici'].id });
+            } else if (user.role === 'staff' && roleMap['Personel']) {
+                await user.update({ role_id: roleMap['Personel'].id });
+            }
         }
 
     } catch (error) {
