@@ -274,10 +274,10 @@ async function handleEmployeeSubmit(e) {
 
     // Validation
     const fullName = document.getElementById('fullName').value;
-    const role = document.getElementById('role').value;
+    // Role removed, handled by backend/systemRole
 
-    if (!fullName || !role) {
-        showToast('Hata', 'Lütfen Ad Soyad ve Rol alanlarını doldurun.', 'error');
+    if (!fullName) {
+        showToast('Hata', 'Lütfen Ad Soyad alanını doldurun.', 'error');
         return;
     }
 
@@ -288,7 +288,7 @@ async function handleEmployeeSubmit(e) {
     const data = {
         full_name: fullName,
         phone: document.getElementById('phone').value,
-        role: role,
+        // role: role, // Removed
         daily_wage: document.getElementById('dailyWage').value || null,
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
@@ -702,5 +702,26 @@ async function handleSmartReimbursement(empId, input) {
         input.value = oldVal.toFixed(2); // Revert
         input.disabled = false;
         input.style.borderColor = 'red';
+    }
+}
+
+async function deleteEmployee(id) {
+    if (!confirm('Bu personeli işten çıkarmak istediğinize emin misiniz? Bu işlem personeli arşivleyecektir.')) return;
+
+    try {
+        const response = await fetch(`/api/employees/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('İşlem başarısız');
+        }
+
+        showToast('Başarılı', 'Personel işten çıkarıldı (Arşivlendi).', 'success');
+        closeModal('employeeModal');
+        await loadData();
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', 'Personel silinemedi.', 'error');
     }
 }
