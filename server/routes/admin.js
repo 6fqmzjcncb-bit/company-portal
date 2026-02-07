@@ -212,20 +212,23 @@ router.get('/debug/sync-users-fix', async (req, res) => {
         // 2. Fix Existing Users with Legacy Roles
         const users = await User.findAll();
         for (const user of users) {
-            let updated = false;
+            // Generic fix for others
             if (!user.role_id) {
-                if (user.role === 'admin') {
-                    user.role_id = adminRole.id;
-                    updated = true;
-                } else if (user.role === 'staff') {
-                    user.role_id = staffRole.id;
-                    updated = true;
-                }
+                if (user.role === 'admin') user.role_id = adminRole.id;
+                else if (user.role === 'staff') user.role_id = staffRole.id;
+                await user.save();
             }
 
-            if (updated) {
+            // FORCE FIX for specific known users (admin, staff)
+            if (user.username === 'admin') {
+                user.role_id = adminRole.id;
                 await user.save();
-                logs.push(`✅ Fixed User: ${user.username} -> ${user.role} mapped to Role ID ${user.role_id}`);
+                logs.push('✅ Admin user fixed forcedly.');
+            }
+            if (user.username === 'staff') {
+                user.role_id = staffRole.id;
+                await user.save();
+                logs.push('✅ Staff user fixed forcedly.');
             }
         }
 
