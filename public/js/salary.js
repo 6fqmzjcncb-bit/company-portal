@@ -505,6 +505,14 @@ async function loadArchivedEmployees() {
             const balanceClass = hasBalance ? 'text-danger' : 'text-success';
             const balanceText = hasBalance ? formatCurrency(emp.current_balance) : 'Hesap Kapalı';
 
+            // Wage Display
+            const wageInfo = emp.daily_wage
+                ? `${formatCurrency(emp.daily_wage)} (Günlük)`
+                : (emp.monthly_salary ? `${formatCurrency(emp.monthly_salary)} (Aylık)` : '-');
+
+            // Date (Termination - approximate using updatedAt or we need a real field. Using updatedAt for now)
+            const terminationDate = emp.updatedAt ? new Date(emp.updatedAt).toLocaleDateString('tr-TR') : '-';
+
             return `
             <div class="archive-card">
                 <div class="archive-header">
@@ -518,19 +526,26 @@ async function loadArchivedEmployees() {
                         <span class="archive-value">${emp.phone || '-'}</span>
                     </div>
                     <div class="archive-detail-item text-right">
-                         <span class="archive-label">Çalışılan</span>
+                         <span class="archive-label">Toplam Çalışma</span>
                         <span class="archive-value">${emp.total_worked_days} Gün</span>
                     </div>
                 </div>
 
-                <div class="archive-details" style="margin-top: 4px;">
+                <div class="archive-details" style="margin-top: 8px;">
+                     <div class="archive-detail-item">
+                        <span class="archive-label">Ücret</span>
+                        <span class="archive-value">${wageInfo}</span>
+                    </div>
+                    <div class="archive-detail-item text-right">
+                         <span class="archive-label">Ayrılma Tarihi</span>
+                        <span class="archive-value">${terminationDate}</span> 
+                    </div>
+                </div>
+
+                <div class="archive-details" style="margin-top: 8px;">
                     <div class="archive-detail-item">
                         <span class="archive-label">Son Bakiye</span>
                         <span class="archive-value ${balanceClass}">${balanceText}</span>
-                    </div>
-                    <div class="archive-detail-item text-right">
-                         <span class="archive-label">Silinme Tarihi</span>
-                        <span class="archive-value">-</span> 
                     </div>
                 </div>
 
