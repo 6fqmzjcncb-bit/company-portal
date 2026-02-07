@@ -192,17 +192,48 @@ router.put('/users/:id/toggle-access', requireAdmin, async (req, res) => {
     }
 });
 
-// Temporary Sync Fix Route
+// Sync and Fix Users Route
 router.get('/debug/sync-users-fix', async (req, res) => {
     try {
+        const { Role } = require('../models');
         // Ensure schema
         await User.sync({ alter: true });
 
+        // 1. Fetch System Roles
+        const adminRole = await Role.findOne({ where: { name: 'Yönetici' } });
+        const staffRole = await Role.findOne({ where: { name: 'Personel' } });
+
+        if (!adminRole || !staffRole) {
+            return res.status(500).json({ error: 'Sistem rolleri (Yönetici, Personel) bulunamadı. Lütfen sunucuyu yeniden başlatın.' });
+        }
+
+        let logs = [];
+
+        // 2. Fix Existing Users with Legacy Roles
+        const users = await User.findAll();
+        for (const user of users) {
+            let updated = false;
+            if (!user.role_id) {
+                if (user.role === 'admin') {
+                    user.role_id = adminRole.id;
+                    updated = true;
+                } else if (user.role === 'staff') {
+                    user.role_id = staffRole.id;
+                    updated = true;
+                }
+            }
+
+            if (updated) {
+                await user.save();
+                logs.push(`✅ Fixed User: ${user.username} -> ${user.role} mapped to Role ID ${user.role_id}`);
+            }
+        }
+
+        // 3. Create Users for Employees who don't have one
         const employees = await Employee.findAll({
             where: { is_active: true }
         });
 
-        let count = 0;
         for (const emp of employees) {
             if (emp.user_id) {
                 const user = await User.findByPk(emp.user_id);
@@ -224,13 +255,19 @@ router.get('/debug/sync-users-fix', async (req, res) => {
 
             const password = await bcrypt.hash('123456', 10);
             const user = await User.create({
-                username, password, full_name: emp.full_name, role: 'staff', is_active: true
+                username,
+                password,
+                full_name: emp.full_name,
+                role_id: staffRole.id, // Assign Personel role by default
+                role: 'staff',
+                is_active: true
             });
 
             await emp.update({ user_id: user.id });
-            count++;
+            logs.push(`✨ Created User for Employee: ${emp.full_name} -> ${username}`);
         }
-        res.json({ message: `Synced ${count} users` });
+
+        res.json({ message: 'Sync complete', logs });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });
