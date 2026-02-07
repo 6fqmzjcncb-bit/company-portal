@@ -600,7 +600,7 @@ async function loadSystemRoles() {
         roles.forEach(role => {
             const opt = document.createElement('option');
             opt.value = role.id;
-            opt.textContent = role.name + (role.is_system ? ' (Sistem)' : '');
+            opt.textContent = role.name;
             select.appendChild(opt);
 
             // Check if this is the 'Personel' role to set as default
