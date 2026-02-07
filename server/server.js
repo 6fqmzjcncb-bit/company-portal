@@ -169,9 +169,6 @@ const seedDemoData = async () => {
     } catch (error) {
         console.error('Seed error:', error);
     }
-} catch (error) {
-    console.error('Seed error:', error);
-}
 };
 
 // Manual Seed Endpoint
