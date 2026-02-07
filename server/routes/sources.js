@@ -3,9 +3,7 @@ const router = express.Router();
 const { Source } = require('../models');
 const { requireAuth, requireAdmin, requirePermission } = require('../middleware/auth');
 
-// Tüm kaynakları listele (view_sources veya manage_stock yetkisi)
-// Not: requirePermission tek bir yetki kontrol eder. Şimdilik view_sources diyelim.
-// Ancak Stok Sorumlusu 'manage_stock' ve 'view_sources' alacak.
+// Tüm kaynakları listele (view_sources yetkisi)
 router.get('/', requirePermission('view_sources'), async (req, res) => {
     try {
         const sources = await Source.findAll({
@@ -71,9 +69,6 @@ router.delete('/:id', requirePermission('view_sources'), async (req, res) => {
     } catch (error) {
         console.error('Source delete error:', error);
         res.status(500).json({ error: 'Kaynak silinemedi' });
-    }
-}); console.error('Source delete error:', error);
-res.status(500).json({ error: 'Kaynak silinemedi' });
     }
 });
 
