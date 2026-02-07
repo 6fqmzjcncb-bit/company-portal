@@ -101,9 +101,14 @@ const syncRolesAndPermissions = async () => {
         const allRoles = [
             // System Roles
             { name: 'Yönetici', permissions: ['all'], is_system: true },
-            { name: 'Personel', permissions: ['view_tasks', 'view_jobs', 'view_products', 'view_attendance'], is_system: true },
+            { name: 'Personel', permissions: ['view_jobs', 'view_products', 'view_attendance'], is_system: true },
             { name: 'Stok Sorumlusu', permissions: ['view_sources', 'manage_stock'], is_system: false }
         ];
+
+        // 1.1 Delete Legacy/Unused Roles
+        const rolesToDelete = ['Muhasebe', 'Saha Ekibi'];
+        await Role.destroy({ where: { name: rolesToDelete } });
+        console.log('🧹 Eski roller temizlendi.');
 
         // 2. Create/Update Roles
         const roleMap = {};
@@ -112,14 +117,14 @@ const syncRolesAndPermissions = async () => {
                 where: { name: r.name },
                 defaults: r
             });
-            // Update permissions if they changed (optional, but good for enforcement)
-            if (JSON.stringify(role.permissions) !== JSON.stringify(r.permissions)) {
-                role.permissions = r.permissions;
-                role.is_system = r.is_system;
-                await role.save();
-            }
+
+            // Always update permissions to match current config
+            role.permissions = r.permissions;
+            role.is_system = r.is_system;
+            await role.save();
+
             roleMap[r.name] = role;
-            console.log(`✅ Rol hazır: ${role.name}`);
+            console.log(`✅ Rol ve yetkileri güncellendi: ${role.name}`);
         }
 
         // 3. Ensure Demo Payment Accounts
