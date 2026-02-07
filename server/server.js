@@ -129,6 +129,49 @@ const syncRolesAndPermissions = async () => {
     } catch (error) {
         console.error('Role sync error:', error);
     }
+} catch (error) {
+    console.error('Role sync error:', error);
+}
+};
+
+const seedDemoData = async () => {
+    try {
+        const { PaymentAccount } = require('./models');
+        console.log('🌱 Demo verileri kontrol ediliyor...');
+
+        // --- Payment Accounts ---
+        const accounts = [
+            { name: 'Merkez Kasa', type: 'cash', icon: '💵' },
+            { name: 'Ziraat Bankası', type: 'bank', icon: '🏦' },
+            { name: 'Şirket Kredi Kartı', type: 'credit_card', icon: '💳' }
+        ];
+
+        for (const a of accounts) {
+            await PaymentAccount.findOrCreate({
+                where: { name: a.name },
+                defaults: a
+            });
+        }
+
+        // --- Additional Roles ---
+        const roles = [
+            { name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
+            { name: 'Saha Ekibi', permissions: ['view_tasks'], is_system: false }, // Fixed permission name
+            { name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
+        ];
+
+        for (const r of roles) {
+            await Role.findOrCreate({
+                where: { name: r.name },
+                defaults: r
+            });
+        }
+
+        console.log('✅ Demo verileri (Hesaplar ve Ek Roller) hazır.');
+
+    } catch (error) {
+        console.error('Seed error:', error);
+    }
 };
 
 // ... inside initializeDatabase ...
@@ -193,6 +236,7 @@ const initializeDatabase = async () => {
 
         // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
         await syncRolesAndPermissions(); // Migrate Roles FIRST
+        await seedDemoData(); // Seed Demo Data (Accounts, Extra Roles)
         await syncMissingUsers();
 
     } catch (error) {
