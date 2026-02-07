@@ -114,6 +114,10 @@ function showAddEmployeeModal() {
     document.getElementById('editEmpId').value = '';
     document.getElementById('empModalTitle').textContent = 'Yeni Personel Ekle';
     document.getElementById('btnDeleteEmployee').style.display = 'none'; // Hide delete for new
+
+    // Load System Roles
+    loadSystemRoles();
+
     document.getElementById('employeeModal').style.display = 'flex';
 }
 
@@ -140,7 +144,24 @@ function editEmployee(id) {
     fetch(`/api/employees/${id}`).then(res => res.json()).then(fullEmp => {
         document.getElementById('fullName').value = fullEmp.full_name;
         document.getElementById('phone').value = fullEmp.phone || '';
+        document.getElementById('phone').value = fullEmp.phone || '';
         document.getElementById('role').value = fullEmp.role;
+
+        // Load roles and set selected
+        loadSystemRoles().then(() => {
+            // We need to know which role the user has. 
+            // The /api/employees/:id endpoint returns `user` object.
+            // We need to check fullEmp.user.role_id if available or fetch user details.
+            // Current /api/employees/:id implementation returns `user` with `username` and `is_active`.
+            // It does NOT return role_id directly. 
+            // However, `roles.js` logic links User->Role. 
+            // Let's assume for now we might not show the specific System Role in Edit unless we update the backend to return it.
+            // For now, just load the list.
+            if (fullEmp.user && fullEmp.user.role_id) {
+                document.getElementById('systemRole').value = fullEmp.user.role_id;
+            }
+        });
+
         document.getElementById('dailyWage').value = fullEmp.daily_wage || '';
         document.getElementById('monthlySalary').value = fullEmp.monthly_salary || '';
         document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
@@ -264,6 +285,8 @@ async function handleEmployeeSubmit(e) {
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
         notes: document.getElementById('notes').value,
+        notes: document.getElementById('notes').value,
+        role_id: document.getElementById('systemRole').value || null, // Add system role
         is_active: true
     };
 
@@ -545,6 +568,35 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
         showAlert('Hata: ' + error.message);
     }
 });
+
+// --- System Roles ---
+async function loadSystemRoles() {
+    const select = document.getElementById('systemRole');
+    if (!select) return;
+
+    // If already loaded and has options > 1 (more than placeholder), skip
+    if (select.options.length > 1) return;
+
+    try {
+        select.innerHTML = '<option value="">Yükleniyor...</option>';
+        const response = await fetch('/api/roles');
+        if (!response.ok) throw new Error('Roller yüklenemedi');
+
+        const roles = await response.json();
+
+        select.innerHTML = '<option value="">Seçiniz (Opsiyonel)</option>';
+        roles.forEach(role => {
+            const opt = document.createElement('option');
+            opt.value = role.id;
+            opt.textContent = role.name + (role.is_system ? ' (Sistem)' : '');
+            select.appendChild(opt);
+        });
+    } catch (e) {
+        console.error(e);
+        select.innerHTML = '<option value="">Hata!</option>';
+    }
+}
+
 
 // Utils
 function formatCurrency(v) {

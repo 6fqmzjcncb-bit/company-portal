@@ -97,6 +97,15 @@
         }
 
         // --- Role Management ---
+        const PERMISSION_NAMES = {
+            'view_dashboard': 'Ana Sayfa Görüntüleme',
+            'view_jobs': 'İş Listeleri',
+            'manage_stock': 'Stok ve Ürün Yönetimi',
+            'manage_salary': 'Maaş ve Personel Yönetimi',
+            'view_report': 'Raporları Görüntüleme',
+            'manage_users': 'Kullanıcı Yönetimi (Admin)'
+        };
+
         async function loadRoles() {
             const container = document.getElementById('rolesContainer');
             try {
@@ -106,9 +115,10 @@
                 container.innerHTML = roles.map(role => `
                         <tr>
                             <td><strong>${role.name}</strong> ${role.is_system ? '<span class="badge badge-secondary" style="font-size:0.7em">Sistem</span>' : ''}</td>
-                            <td><small>${role.permissions.map(p => `<code>${p}</code>`).join(' ')}</small></td>
+                            <td><small>${role.permissions.map(p => `<span class="badge badge-info" style="margin-right:4px;">${PERMISSION_NAMES[p] || p}</span>`).join('')}</small></td>
                             <td>
-                                ${!role.is_system ? `<button class="btn btn-sm btn-danger" onclick="deleteRole(${role.id})">Sil</button>` : '<span class="text-muted">-</span>'}
+                                <button class="btn btn-sm btn-primary" onclick='openEditRoleModal(${JSON.stringify(role).replace(/'/g, "&#39;")})'>Düzenle</button>
+                                ${!role.is_system ? `<button class="btn btn-sm btn-danger" onclick="deleteRole(${role.id})">Sil</button>` : ''}
                             </td>
                         </tr>
                     `).join('');
@@ -125,12 +135,16 @@
 
         async function submitRoleForm(e) {
             e.preventDefault();
+            const id = document.getElementById('editRoleId').value;
             const name = document.getElementById('roleName').value;
             const permissions = Array.from(document.querySelectorAll('input[name="permissions"]:checked')).map(cb => cb.value);
 
+            const url = id ? `/api/roles/${id}` : '/api/roles';
+            const method = id ? 'PUT' : 'POST';
+
             try {
-                const response = await fetch('/api/roles', {
-                    method: 'POST',
+                const response = await fetch(url, {
+                    method: method,
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, permissions })
                 });
@@ -138,7 +152,7 @@
                 if (response.ok) {
                     closeModal('roleModal');
                     loadRoles();
-                    showAlert('Rol oluşturuldu');
+                    showAlert(id ? 'Rol güncellendi' : 'Rol oluşturuldu');
                 } else {
                     const res = await response.json();
                     showAlert('Hata: ' + res.error);
@@ -166,6 +180,23 @@
 
         window.openRoleModal = function () {
             document.getElementById('roleForm').reset();
+            document.getElementById('editRoleId').value = '';
+            document.getElementById('roleModalTitle').innerText = 'Yeni Rol Ekle';
+            document.querySelectorAll('input[name="permissions"]').forEach(cb => cb.checked = false);
+            document.getElementById('roleModal').style.display = 'flex';
+        }
+
+        window.openEditRoleModal = function (role) {
+            document.getElementById('roleForm').reset();
+            document.getElementById('editRoleId').value = role.id;
+            document.getElementById('roleModalTitle').innerText = 'Rolü Düzenle';
+            document.getElementById('roleName').value = role.name;
+
+            // Check permissions
+            document.querySelectorAll('input[name="permissions"]').forEach(cb => {
+                cb.checked = role.permissions.includes(cb.value);
+            });
+
             document.getElementById('roleModal').style.display = 'flex';
         }
 
@@ -736,11 +767,12 @@
         <div id="roleModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Yeni Rol Ekle</h2>
+                    <h2 id="roleModalTitle">Yeni Rol Ekle</h2>
                     <button class="modal-close" onclick="closeModal('roleModal')">&times;</button>
                 </div>
                 <div class="modal-body">
                     <form id="roleForm">
+                        <input type="hidden" id="editRoleId">
                         <div class="form-group">
                             <label>Rol Adı</label>
                             <input type="text" id="roleName" required placeholder="Örn: Muhasebe">
@@ -760,85 +792,86 @@
                                 <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
                                     Yönetimi (Admin)</label>
                             </div>
+                            <small class="text-muted mt-2 d-block">İpucu: 'Kullanıcı Yönetimi' yetkisi sadece
+                                Yöneticilere verilmelidir.</small>
                         </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('roleModal')">İptal</button>
-                            <button type="submit" class="btn btn-primary">Rolü Oluştur</button>
-                        </div>
-                    </form>
                 </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('roleModal')">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <!-- Link Employee Modal -->
-        <div id="linkEmployeeModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Kullanıcı - Personel Eşleşmesi</h2>
-                    <button class="modal-close" onclick="closeModal('linkEmployeeModal')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p class="mb-3 text-muted">Bu kullanıcıyı bir personel ile eşleştirin. Böylece personel sadece kendi
-                        verilerini görür.</p>
-                    <form id="linkEmployeeForm">
-                        <input type="hidden" id="linkUserId">
-                        <div class="form-group">
-                            <label>Kullanıcı</label>
-                            <input type="text" id="linkUserName" class="form-control" disabled
-                                style="background: #f3f4f6;">
-                        </div>
-                        <div class="form-group">
-                            <label>Bağlanacak Personel</label>
-                            <select id="linkEmployeeSelect" class="form-control">
-                                <option value="">Seçiniz...</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
-                                başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('linkEmployeeModal')">Vazgeç</button>
-                            <button type="submit" class="btn btn-primary">Kaydet ve Eşleştir</button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Link Employee Modal -->
+    <div id="linkEmployeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Kullanıcı - Personel Eşleşmesi</h2>
+                <button class="modal-close" onclick="closeModal('linkEmployeeModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3 text-muted">Bu kullanıcıyı bir personel ile eşleştirin. Böylece personel sadece kendi
+                    verilerini görür.</p>
+                <form id="linkEmployeeForm">
+                    <input type="hidden" id="linkUserId">
+                    <div class="form-group">
+                        <label>Kullanıcı</label>
+                        <input type="text" id="linkUserName" class="form-control" disabled style="background: #f3f4f6;">
+                    </div>
+                    <div class="form-group">
+                        <label>Bağlanacak Personel</label>
+                        <select id="linkEmployeeSelect" class="form-control">
+                            <option value="">Seçiniz...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
+                            başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('linkEmployeeModal')">Vazgeç</button>
+                        <button type="submit" class="btn btn-primary">Kaydet ve Eşleştir</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <!-- Password Reset Modal -->
-        <div id="passwordModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Şifre Değiştir</h2>
-                    <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form onsubmit="event.preventDefault(); resetPassword();">
-                        <input type="hidden" id="resetUserId">
-                        <div class="form-group">
-                            <label>Kullanıcı</label>
-                            <input type="text" id="resetUserName" class="form-control" disabled
-                                style="background: #f3f4f6;">
-                        </div>
-                        <div class="form-group">
-                            <label>Yeni Şifre</label>
-                            <input type="text" id="resetPassword" class="form-control" required
-                                placeholder="Yeni şifreyi girin" minlength="6">
-                            <small class="text-muted">Kullanıcı sisteme bu şifre ile giriş yapacak.</small>
-                        </div>
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('passwordModal')">İptal</button>
-                            <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
-                        </div>
-                    </form>
-                </div>
+    <!-- Password Reset Modal -->
+    <div id="passwordModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Şifre Değiştir</h2>
+                <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="event.preventDefault(); resetPassword();">
+                    <input type="hidden" id="resetUserId">
+                    <div class="form-group">
+                        <label>Kullanıcı</label>
+                        <input type="text" id="resetUserName" class="form-control" disabled
+                            style="background: #f3f4f6;">
+                    </div>
+                    <div class="form-group">
+                        <label>Yeni Şifre</label>
+                        <input type="text" id="resetPassword" class="form-control" required
+                            placeholder="Yeni şifreyi girin" minlength="6">
+                        <small class="text-muted">Kullanıcı sisteme bu şifre ile giriş yapacak.</small>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('passwordModal')">İptal</button>
+                        <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
+                    </div>
+                </form>
             </div>
         </div>
+    </div>
     </div>
     <script src="/js/utils.js?v=1.0"></script>
 </body>

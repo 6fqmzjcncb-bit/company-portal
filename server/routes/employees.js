@@ -71,7 +71,7 @@ router.get('/:id', requireAuth, async (req, res) => {
 router.post('/', requireAuth, async (req, res) => {
     const t = await sequelize.transaction();
     try {
-        const { full_name } = req.body;
+        const { full_name, role_id } = req.body;
 
         // 1. Create Employee
         const employee = await Employee.create(req.body, { transaction: t });
@@ -113,7 +113,8 @@ router.post('/', requireAuth, async (req, res) => {
             username,
             password: hashedPassword,
             full_name: full_name,
-            role: 'staff' // Default role
+            role_id: role_id || null, // Use provided role_id
+            role: 'staff' // Fallback for legacy enum
         }, { transaction: t });
 
         // 4. Link Employee -> User

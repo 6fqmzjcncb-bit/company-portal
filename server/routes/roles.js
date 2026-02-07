@@ -41,6 +41,38 @@ router.post('/', requireAdmin, async (req, res) => {
     }
 });
 
+// Rol güncelle
+router.put('/:id', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, permissions } = req.body;
+
+        const role = await Role.findByPk(id);
+        if (!role) {
+            return res.status(404).json({ error: 'Rol bulunamadı' });
+        }
+
+        if (name) {
+            // Check name uniqueness if changed
+            if (name !== role.name) {
+                const exists = await Role.findOne({ where: { name } });
+                if (exists) return res.status(400).json({ error: 'Bu isimde rol zaten var' });
+                role.name = name;
+            }
+        }
+
+        if (permissions) {
+            role.permissions = permissions;
+        }
+
+        await role.save();
+        res.json(role);
+    } catch (error) {
+        console.error('Role update error:', error);
+        res.status(500).json({ error: 'Rol güncellenemedi' });
+    }
+});
+
 // Rol sil
 router.delete('/:id', requireAdmin, async (req, res) => {
     try {
