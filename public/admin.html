@@ -113,7 +113,11 @@
                 const response = await fetch('/api/roles');
                 const roles = await response.json();
 
-                container.innerHTML = roles.map(role => `
+                // Client-side filter for strict view
+                const allowedNames = ['Yönetici', 'Personel', 'Stok Sorumlusu'];
+                const filteredRoles = roles.filter(r => allowedNames.includes(r.name));
+
+                container.innerHTML = filteredRoles.map(role => `
                         <tr>
                             <td><strong>${role.name}</strong></td>
                             <td><small>${role.permissions.map(p => `<span class="badge badge-info" style="margin-right:4px;">${PERMISSION_NAMES[p] || p}</span>`).join('')}</small></td>

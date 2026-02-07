@@ -96,19 +96,25 @@ const syncRolesAndPermissions = async () => {
     try {
         console.log('🛡️ Rol ve Yetki sistemi senkronize ediliyor...');
         const { Role, PaymentAccount, User } = require('./models');
+        const { Op } = require('sequelize');
 
-        // 1. Define all roles to ensure (System + Demo)
+        // 1. Define allowed roles
+        const allowedRoles = ['Yönetici', 'Personel', 'Stok Sorumlusu'];
+
+        // 1.1 Delete ANY role not in allowed list
+        await Role.destroy({
+            where: {
+                name: { [Op.notIn]: allowedRoles }
+            }
+        });
+        console.log('🧹 Yetkisiz roller temizlendi.');
+
         const allRoles = [
             // System Roles
             { name: 'Yönetici', permissions: ['all'], is_system: true },
             { name: 'Personel', permissions: ['view_jobs', 'view_products', 'view_attendance'], is_system: true },
             { name: 'Stok Sorumlusu', permissions: ['view_sources', 'view_products', 'manage_stock'], is_system: false }
         ];
-
-        // 1.1 Delete Legacy/Unused Roles
-        const rolesToDelete = ['Muhasebe', 'Saha Ekibi'];
-        await Role.destroy({ where: { name: rolesToDelete } });
-        console.log('🧹 Eski roller temizlendi.');
 
         // 2. Create/Update Roles
         const roleMap = {};
