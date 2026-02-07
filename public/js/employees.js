@@ -17,8 +17,10 @@ async function checkAuth() {
 
 // User info display
 document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth();
-    if (!currentUser) return;
+    // document.getElementById('userName').textContent = currentUser.full_name;
+    // document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+    // DEBUG:
+    // alert('Page loaded');
 
     document.getElementById('userName').textContent = currentUser.full_name;
     document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
@@ -192,6 +194,14 @@ function closeModal() {
 document.getElementById('employeeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
+    // DEBUG: Confirm button click
+    console.log('Kaydet butonuna basıldı. İşlem başlıyor...');
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const oldText = submitBtn.innerText;
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'İşleniyor...';
+
     const formData = {
         full_name: document.getElementById('fullName').value,
         phone: document.getElementById('phone').value || null,
@@ -207,13 +217,25 @@ document.getElementById('employeeForm').addEventListener('submit', async (e) => 
         const url = editingId ? `/api/employees/${editingId}` : '/api/employees';
         const method = editingId ? 'PUT' : 'POST';
 
+        // DEBUG: Alert before fetch
+        // alert('Sending data...'); 
+
         const response = await fetch(url, {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(formData)
         });
 
-        const result = await response.json(); // Get JSON response
+        // DEBUG: Alert status
+        // alert('Response status: ' + response.status);
+
+        let result;
+        try {
+            result = await response.json();
+        } catch (e) {
+            console.error('JSON Parse Error:', e);
+            throw new Error('Sunucudan geçersiz yanıt alındı.');
+        }
 
         if (!response.ok) throw new Error(result.error || 'Kayıt başarısız');
 
