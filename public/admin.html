@@ -487,36 +487,33 @@
 
             <div class="card">
                 <div class="card-header">
-                    <span>👥 Kullanıcılar</span>
-                    <div>
-                        <button class="btn btn-secondary btn-sm" onclick="debugSyncUsers()"
-                            title="Eksik kullanıcıları tamamla">🛠️ Sistemi Onar</button>
+                    <div class="card-header">
+                        <span>👥 Kullanıcılar</span>
                         <button class="btn btn-primary btn-sm" onclick="addUser()">+ Yeni Kullanıcı</button>
                     </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ad Soyad</th>
+                                    <th>Kullanıcı Adı</th>
+                                    <th>Rol</th>
+                                    <th>Bağlı Personel</th>
+                                    <th>Erişim</th>
+                                    <th>Kayıt Tarihi</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersContainer">
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Ad Soyad</th>
-                                <th>Kullanıcı Adı</th>
-                                <th>Rol</th>
-                                <th>Bağlı Personel</th>
-                                <th>Erişim</th>
-                                <th>Kayıt Tarihi</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersContainer">
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    <div class="loader"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </main>
 
         <!-- Account Add Modal -->
