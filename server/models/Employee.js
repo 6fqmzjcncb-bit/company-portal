@@ -44,6 +44,11 @@ const Employee = sequelize.define('Employee', {
         allowNull: true,
         comment: 'Hakediş hesaplaması için başlangıç tarihi (Son ödeme tarihi)'
     },
+    termination_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        comment: 'İşten ayrılış tarihi'
+    },
     is_active: {
         type: DataTypes.BOOLEAN,
         defaultValue: true

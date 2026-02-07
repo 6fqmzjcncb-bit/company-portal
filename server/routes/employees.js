@@ -184,7 +184,10 @@ router.delete('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Personel bulunamadı' });
         }
 
-        await employee.update({ is_active: false });
+        await employee.update({
+            is_active: false,
+            termination_date: new Date()
+        });
 
         if (employee.user_id) {
             const user = await User.findByPk(employee.user_id);
@@ -209,7 +212,22 @@ router.post('/:id/reactivate', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Personel bulunamadı' });
         }
 
-        await employee.update({ is_active: true });
+        const updates = {
+            is_active: true,
+            termination_date: null // Clear termination date
+        };
+
+        // If wages provided, update them
+        if (req.body.daily_wage !== undefined) updates.daily_wage = req.body.daily_wage;
+        if (req.body.monthly_salary !== undefined) updates.monthly_salary = req.body.monthly_salary;
+
+        // Optionally reset hire_date to now if requested? Usually keeping original history is better, 
+        // but user might want a new 'start_date' for salary calculation.
+        // Let's set start_date to today for new accrual period if the user explicitly wants to reset it.
+        // For now, let's just reset start_date (accrual start) to today so calculations start fresh.
+        updates.start_date = new Date();
+
+        await employee.update(updates);
 
         if (employee.user_id) {
             const user = await User.findByPk(employee.user_id);
