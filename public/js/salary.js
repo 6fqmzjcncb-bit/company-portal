@@ -709,7 +709,7 @@ async function loadArchivedEmployees() {
                     <button class="btn-archive-manage" style="flex: 1;" onclick="editEmployee(${emp.id})">
                         <span>📋</span> Kartı Aç
                     </button>
-                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="reactivateEmployee(${emp.id})">
+                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="openRehireModal(${emp.id})">
                         <span>♻️</span> İşe Geri Al
                     </button>
                 </div>
