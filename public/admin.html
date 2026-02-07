@@ -240,6 +240,7 @@
                         <td>${new Date(user.created_at).toLocaleDateString('tr-TR')}</td>
                         <td>
                             <button class="btn btn-sm btn-outline-warning" onclick="openPasswordModal(${user.id}, '${user.username}')">🔑 Şifre</button>
+                            <button class="btn btn-sm btn-info" onclick="openEditUserRoleModal(${user.id}, '${user.username}', ${user.role_id || 'null'})">✏️ Rol</button>
                             ${user.id !== currentUserId ? `<button class="btn btn-sm btn-danger" onclick="deleteUser(${user.id})">Sil</button>` : ''}
                         </td>
                         </tr>
@@ -567,324 +568,396 @@
                 });
             }
         });
+        // User Role Edit
+        function openEditUserRoleModal(userId, username, currentRoleId) {
+            document.getElementById('editUserRoleId').value = userId;
+            document.getElementById('editUserRoleName').innerText = username;
+
+            // Populate select with existing roles (reusing loadRoles logic if possible or just assuming #newRole is populated)
+            // We need to clone options from #newRole or #roleName? No, from #newRole is best.
+            const sourceSelect = document.getElementById('newRole');
+            const targetSelect = document.getElementById('updateRoleSelect');
+            targetSelect.innerHTML = sourceSelect.innerHTML;
+
+            targetSelect.value = currentRoleId || '';
+            document.getElementById('userRoleModal').style.display = 'flex';
+        }
+
+        async function submitUserRoleForm(e) {
+            e.preventDefault();
+            const userId = document.getElementById('editUserRoleId').value;
+            const roleId = document.getElementById('updateRoleSelect').value;
+
+            try {
+                const response = await fetch(`/api/admin/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role_id: roleId })
+                });
+
+                if (response.ok) {
+                    closeModal('userRoleModal');
+                    loadUsers();
+                    showAlert('Kullanıcı rolü güncellendi');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + res.error);
+                }
+            } catch (error) {
+                console.error(error);
+                showAlert('Bağlantı hatası');
+            }
+        }
+
     </script>
 </head>
 
 <body>
-    <div class="app-container">
-        <aside class="sidebar">
-            <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
-            <ul class="nav-menu">
-                <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
-                        Sayfa</a></li>
-                <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
-                        Listeleri</a></li>
-                <li class="nav-item"><a href="/sources.html" class="nav-link"><span
-                            class="nav-icon">📦</span>Kaynaklar</a></li>
-                <li class="nav-item">
-                    <a href="/products.html" class="nav-link">
-                        <span class="nav-icon">🔧</span>
-                        Ürünler
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href="/attendance.html" class="nav-link">
-                        <span class="nav-icon">📅</span>
-                        Çalışma Kaydı
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="/salary.html" class="nav-link">
-                        <span class="nav-icon">💰</span>
-                        Maaş Yönetimi
-                    </a>
-                </li>
-
-                <li class="nav-item" id="adminLink"><a href="/admin.html" class="nav-link active"><span
-                            class="nav-icon">⚙️</span>Yönetim</a></li>
-            </ul>
-            <div class="user-info">
-                <div class="user-name" id="userName">...</div>
-                <div class="user-role" id="userRole"></div>
-                <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
-            </div>
-        </aside>
-        <main class="main-content">
-            <h1 class="page-title mb-4">Yönetim Paneli</h1>
-
-
-
-            <div class="card mb-4">
-                <div class="card-header">
-                    <span>💳 Ödeme Hesapları (Kasa/Banka)</span>
-                    <button class="btn btn-success btn-sm" onclick="openAccountModal()">+ Yeni Hesap</button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Hesap Adı</th>
-                                <th>Tip</th>
-                                <th>İkon</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="accountsContainer">
-                            <tr>
-                                <td colspan="4" class="text-center">
-                                    <div class="loader"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Roles Management Card -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <span>🛡️ Rol Yönetimi ve Yetkiler</span>
-                    <button class="btn btn-secondary btn-sm" onclick="openRoleModal()">+ Yeni Rol</button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Rol Adı</th>
-                                <th>Yetkiler</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rolesContainer">
-                            <tr>
-                                <td colspan="3" class="text-center">
-                                    <div class="loader"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <span>👥 Kullanıcılar</span>
-                    <button class="btn btn-primary btn-sm" onclick="addUser()">+ Yeni Kullanıcı</button>
-                </div>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Ad Soyad</th>
-                                <th>Kullanıcı Adı</th>
-                                <th>Rol</th>
-                                <th>Bağlı Personel</th>
-                                <th>Erişim</th>
-                                <th>Kayıt Tarihi</th>
-                                <th>İşlem</th>
-                            </tr>
-                        </thead>
-                        <tbody id="usersContainer">
-                            <tr>
-                                <td colspan="7" class="text-center">
-                                    <div class="loader"></div>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-
-        <!-- Account Add Modal -->
-        <div id="accountModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Yeni Ödeme Hesabı Ekle</h2>
-                    <button class="modal-close" onclick="closeModal('accountModal')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="accountForm">
-                        <div class="form-group">
-                            <label>Hesap Adı</label>
-                            <input type="text" id="accName" placeholder="Örn: Ziraat Bankası" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Hesap Tipi</label>
-                            <select id="accType" class="form-control">
-                                <option value="bank">Banka</option>
-                                <option value="cash">Nakit Kasa</option>
-                                <option value="credit_card">Kredi Kartı</option>
-                            </select>
-                        </div>
-
-
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('accountModal')">İptal</button>
-                            <button type="submit" class="btn btn-primary">Hesabı Oluştur</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Add User Modal -->
-        <div id="userModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Yeni Kullanıcı Ekle</h2>
-                    <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="userForm">
-                        <div class="form-group">
-                            <label>Kullanıcı Adı</label>
-                            <input type="text" id="newUsername" required placeholder="Giriş için kullanılacak">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Şifre</label>
-                            <input type="password" id="newPassword" required placeholder="En az 6 karakter">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Ad Soyad</label>
-                            <input type="text" id="newFullName" required placeholder="Görünecek isim">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Rol</label>
-                            <select id="newRole">
-                                <option value="staff">Personel</option>
-                                <option value="admin">Yönetici</option>
-                            </select>
-                        </div>
-
-                        <div class="modal-actions">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('userModal')">İptal</button>
-                            <button type="submit" class="btn btn-primary">Kullanıcıyı Oluştur</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Role Add Modal -->
-        <div id="roleModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="roleModalTitle">Yeni Rol Ekle</h2>
-                    <button class="modal-close" onclick="closeModal('roleModal')">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <form id="roleForm">
-                        <input type="hidden" id="editRoleId">
-                        <div class="form-group">
-                            <label>Rol Adı</label>
-                            <input type="text" id="roleName" required placeholder="Örn: Muhasebe">
-                        </div>
-
-                        <div class="form-group">
-                            <label>Yetkiler</label>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                <label><input type="checkbox" name="permissions" value="view_dashboard"> Ana
-                                    Sayfa</label>
-                                <label><input type="checkbox" name="permissions" value="view_jobs"> İş Listeleri</label>
-                                <label><input type="checkbox" name="permissions" value="manage_stock">
-                                    Stok/Ürünler</label>
-                                <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
-                                    Yönetimi</label>
-                                <label><input type="checkbox" name="permissions" value="view_report"> Raporlar</label>
-                                <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
-                                    Yönetimi (Admin)</label>
-                            </div>
-                            <small class="text-muted mt-2 d-block">İpucu: 'Kullanıcı Yönetimi' yetkisi sadece
-                                Yöneticilere verilmelidir.</small>
-                        </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('roleModal')">İptal</button>
-                    <button type="submit" class="btn btn-primary">Kaydet</button>
-                </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Link Employee Modal -->
-    <div id="linkEmployeeModal" class="modal">
+    <!-- ... existing body ... -->
+    <!-- INSERT MODAL AT BOTTOM -->
+    <div id="userRoleModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Kullanıcı - Personel Eşleşmesi</h2>
-                <button class="modal-close" onclick="closeModal('linkEmployeeModal')">&times;</button>
+                <h2>Rol Değiştir: <span id="editUserRoleName"></span></h2>
+                <button class="modal-close" onclick="closeModal('userRoleModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <p class="mb-3 text-muted">Bu kullanıcıyı bir personel ile eşleştirin. Böylece personel sadece kendi
-                    verilerini görür.</p>
-                <form id="linkEmployeeForm">
-                    <input type="hidden" id="linkUserId">
+                <form onsubmit="submitUserRoleForm(event)">
+                    <input type="hidden" id="editUserRoleId">
                     <div class="form-group">
-                        <label>Kullanıcı</label>
-                        <input type="text" id="linkUserName" class="form-control" disabled style="background: #f3f4f6;">
-                    </div>
-                    <div class="form-group">
-                        <label>Bağlanacak Personel</label>
-                        <select id="linkEmployeeSelect" class="form-control">
-                            <option value="">Seçiniz...</option>
+                        <label>Yeni Rol Seçin</label>
+                        <select id="updateRoleSelect" class="form-control" required>
+                            <!-- Populated via JS -->
                         </select>
                     </div>
-                    <div class="form-group">
-                        <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
-                            başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
-                    </div>
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary"
-                            onclick="closeModal('linkEmployeeModal')">Vazgeç</button>
-                        <button type="submit" class="btn btn-primary">Kaydet ve Eşleştir</button>
+                            onclick="closeModal('userRoleModal')">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Password Reset Modal -->
-    <div id="passwordModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Şifre Değiştir</h2>
-                <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+    <body>
+        <div class="app-container">
+            <aside class="sidebar">
+                <div class="logo"><span class="logo-icon">🏢</span>Şirket Portalı</div>
+                <ul class="nav-menu">
+                    <li class="nav-item"><a href="/dashboard.html" class="nav-link"><span class="nav-icon">📊</span>Ana
+                            Sayfa</a></li>
+                    <li class="nav-item"><a href="/jobs.html" class="nav-link"><span class="nav-icon">📋</span>İş
+                            Listeleri</a></li>
+                    <li class="nav-item"><a href="/sources.html" class="nav-link"><span
+                                class="nav-icon">📦</span>Kaynaklar</a></li>
+                    <li class="nav-item">
+                        <a href="/products.html" class="nav-link">
+                            <span class="nav-icon">🔧</span>
+                            Ürünler
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a href="/attendance.html" class="nav-link">
+                            <span class="nav-icon">📅</span>
+                            Çalışma Kaydı
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="/salary.html" class="nav-link">
+                            <span class="nav-icon">💰</span>
+                            Maaş Yönetimi
+                        </a>
+                    </li>
+
+                    <li class="nav-item" id="adminLink"><a href="/admin.html" class="nav-link active"><span
+                                class="nav-icon">⚙️</span>Yönetim</a></li>
+                </ul>
+                <div class="user-info">
+                    <div class="user-name" id="userName">...</div>
+                    <div class="user-role" id="userRole"></div>
+                    <button class="btn btn-secondary btn-sm btn-block" onclick="logout()">Çıkış Yap</button>
+                </div>
+            </aside>
+            <main class="main-content">
+                <h1 class="page-title mb-4">Yönetim Paneli</h1>
+
+
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span>💳 Ödeme Hesapları (Kasa/Banka)</span>
+                        <button class="btn btn-success btn-sm" onclick="openAccountModal()">+ Yeni Hesap</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Hesap Adı</th>
+                                    <th>Tip</th>
+                                    <th>İkon</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="accountsContainer">
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Roles Management Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <span>🛡️ Rol Yönetimi ve Yetkiler</span>
+                        <button class="btn btn-secondary btn-sm" onclick="openRoleModal()">+ Yeni Rol</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rol Adı</th>
+                                    <th>Yetkiler</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rolesContainer">
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span>👥 Kullanıcılar</span>
+                        <button class="btn btn-primary btn-sm" onclick="addUser()">+ Yeni Kullanıcı</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Ad Soyad</th>
+                                    <th>Kullanıcı Adı</th>
+                                    <th>Rol</th>
+                                    <th>Bağlı Personel</th>
+                                    <th>Erişim</th>
+                                    <th>Kayıt Tarihi</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersContainer">
+                                <tr>
+                                    <td colspan="7" class="text-center">
+                                        <div class="loader"></div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Account Add Modal -->
+            <div id="accountModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Yeni Ödeme Hesabı Ekle</h2>
+                        <button class="modal-close" onclick="closeModal('accountModal')">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="accountForm">
+                            <div class="form-group">
+                                <label>Hesap Adı</label>
+                                <input type="text" id="accName" placeholder="Örn: Ziraat Bankası" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Hesap Tipi</label>
+                                <select id="accType" class="form-control">
+                                    <option value="bank">Banka</option>
+                                    <option value="cash">Nakit Kasa</option>
+                                    <option value="credit_card">Kredi Kartı</option>
+                                </select>
+                            </div>
+
+
+
+                            <div class="modal-actions">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeModal('accountModal')">İptal</button>
+                                <button type="submit" class="btn btn-primary">Hesabı Oluştur</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <form onsubmit="event.preventDefault(); resetPassword();">
-                    <input type="hidden" id="resetUserId">
-                    <div class="form-group">
-                        <label>Kullanıcı</label>
-                        <input type="text" id="resetUserName" class="form-control" disabled
-                            style="background: #f3f4f6;">
+
+            <!-- Add User Modal -->
+            <div id="userModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Yeni Kullanıcı Ekle</h2>
+                        <button class="modal-close" onclick="closeModal('userModal')">&times;</button>
                     </div>
-                    <div class="form-group">
-                        <label>Yeni Şifre</label>
-                        <input type="text" id="resetPassword" class="form-control" required
-                            placeholder="Yeni şifreyi girin" minlength="6">
-                        <small class="text-muted">Kullanıcı sisteme bu şifre ile giriş yapacak.</small>
+                    <div class="modal-body">
+                        <form id="userForm">
+                            <div class="form-group">
+                                <label>Kullanıcı Adı</label>
+                                <input type="text" id="newUsername" required placeholder="Giriş için kullanılacak">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Şifre</label>
+                                <input type="password" id="newPassword" required placeholder="En az 6 karakter">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Ad Soyad</label>
+                                <input type="text" id="newFullName" required placeholder="Görünecek isim">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Rol</label>
+                                <select id="newRole">
+                                    <option value="staff">Personel</option>
+                                    <option value="admin">Yönetici</option>
+                                </select>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeModal('userModal')">İptal</button>
+                                <button type="submit" class="btn btn-primary">Kullanıcıyı Oluştur</button>
+                            </div>
+                        </form>
                     </div>
+                </div>
+            </div>
+
+            <!-- Role Add Modal -->
+            <div id="roleModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 id="roleModalTitle">Yeni Rol Ekle</h2>
+                        <button class="modal-close" onclick="closeModal('roleModal')">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="roleForm">
+                            <input type="hidden" id="editRoleId">
+                            <div class="form-group">
+                                <label>Rol Adı</label>
+                                <input type="text" id="roleName" required placeholder="Örn: Muhasebe">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Yetkiler</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <label><input type="checkbox" name="permissions" value="view_dashboard"> Ana
+                                        Sayfa</label>
+                                    <label><input type="checkbox" name="permissions" value="view_jobs"> İş
+                                        Listeleri</label>
+                                    <label><input type="checkbox" name="permissions" value="manage_stock">
+                                        Stok/Ürünler</label>
+                                    <label><input type="checkbox" name="permissions" value="manage_salary"> Maaş
+                                        Yönetimi</label>
+                                    <label><input type="checkbox" name="permissions" value="view_report">
+                                        Raporlar</label>
+                                    <label><input type="checkbox" name="permissions" value="manage_users"> Kullanıcı
+                                        Yönetimi (Admin)</label>
+                                </div>
+                                <small class="text-muted mt-2 d-block">İpucu: 'Kullanıcı Yönetimi' yetkisi sadece
+                                    Yöneticilere verilmelidir.</small>
+                            </div>
+                    </div>
+
                     <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary"
-                            onclick="closeModal('passwordModal')">İptal</button>
-                        <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('roleModal')">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
                     </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
-    </div>
-    <script src="/js/utils.js?v=1.0"></script>
-</body>
+
+        <!-- Link Employee Modal -->
+        <div id="linkEmployeeModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Kullanıcı - Personel Eşleşmesi</h2>
+                    <button class="modal-close" onclick="closeModal('linkEmployeeModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-3 text-muted">Bu kullanıcıyı bir personel ile eşleştirin. Böylece personel sadece kendi
+                        verilerini görür.</p>
+                    <form id="linkEmployeeForm">
+                        <input type="hidden" id="linkUserId">
+                        <div class="form-group">
+                            <label>Kullanıcı</label>
+                            <input type="text" id="linkUserName" class="form-control" disabled
+                                style="background: #f3f4f6;">
+                        </div>
+                        <div class="form-group">
+                            <label>Bağlanacak Personel</label>
+                            <select id="linkEmployeeSelect" class="form-control">
+                                <option value="">Seçiniz...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <small class="text-warning" id="linkWarning" style="display: none;">⚠️ Bu personel zaten
+                                başka bir kullanıcıya bağlı. Değiştirirseniz eski bağlantı kopar.</small>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('linkEmployeeModal')">Vazgeç</button>
+                            <button type="submit" class="btn btn-primary">Kaydet ve Eşleştir</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Password Reset Modal -->
+        <div id="passwordModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Şifre Değiştir</h2>
+                    <button class="modal-close" onclick="closeModal('passwordModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form onsubmit="event.preventDefault(); resetPassword();">
+                        <input type="hidden" id="resetUserId">
+                        <div class="form-group">
+                            <label>Kullanıcı</label>
+                            <input type="text" id="resetUserName" class="form-control" disabled
+                                style="background: #f3f4f6;">
+                        </div>
+                        <div class="form-group">
+                            <label>Yeni Şifre</label>
+                            <input type="text" id="resetPassword" class="form-control" required
+                                placeholder="Yeni şifreyi girin" minlength="6">
+                            <small class="text-muted">Kullanıcı sisteme bu şifre ile giriş yapacak.</small>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="button" class="btn btn-secondary"
+                                onclick="closeModal('passwordModal')">İptal</button>
+                            <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </div>
+        <script src="/js/utils.js?v=1.0"></script>
+    </body>
 
 </html>

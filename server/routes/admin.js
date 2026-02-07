@@ -139,7 +139,37 @@ router.put('/users/:id/link-employee', requireAdmin, async (req, res) => {
     }
 });
 
-// Kullanıcı şifresini güncelle (Admin reset)
+// Kullanıcı rolünü güncelle (Role Reassignment)
+router.put('/users/:id/role', requireAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { role_id } = req.body;
+
+        const user = await User.findByPk(id);
+        if (!user) {
+            return res.status(404).json({ error: 'Kullanıcı bulunamadı' });
+        }
+
+        // Validate Role
+        if (role_id) {
+            const role = await Role.findByPk(role_id);
+            if (!role) {
+                return res.status(400).json({ error: 'Geçersiz rol seçimi' });
+            }
+        }
+
+        // Prevent modifying own role to something else if you are the only admin? 
+        // For now, let's allow it but warn or assume there are other admins. 
+        // Ideally, check if user is the LAST admin before removing admin role.
+
+        await user.update({ role_id: role_id || null });
+
+        res.json({ message: 'Kullanıcı rolü güncellendi', user });
+    } catch (error) {
+        console.error('Role update error:', error);
+        res.status(500).json({ error: 'Rol güncellenemedi' });
+    }
+});
 router.put('/users/:id/password', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;

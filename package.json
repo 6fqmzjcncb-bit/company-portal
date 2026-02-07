@@ -8,7 +8,8 @@
     "setup": "node server/setup.js",
     "dev": "nodemon server/server.js",
     "sync-users": "node scripts/sync_users.js",
-    "fix-roles": "node scripts/fix_legacy_roles.js"
+    "fix-roles": "node scripts/fix_legacy_roles.js",
+    "fix-roles-force": "node variables/fix_roles_force.js"
   },
   "keywords": [
     "portal",
