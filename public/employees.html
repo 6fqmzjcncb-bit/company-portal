@@ -169,73 +169,16 @@
 
                     <div class="modal-actions">
                         <button type="button" class="btn btn-secondary" onclick="closeModal()">İptal</button>
-                        <button type="button" class="btn btn-primary" onclick="forceSaveEmployee()">Kaydet</button>
+                        <button type="button" class="btn btn-warning"
+                            onclick="alert('Test Butonu Çalışıyor!')">Test</button>
+                        <button type="button" class="btn btn-primary" id="btnSaveEmployee">Kaydet</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <script src="/js/employees.js?v=5"></script>
-    <script>
-        // Emergency Inline Script to bypass cache issues
-        // Emergency Inline Script - v2
-
-        // Define helpers locally to avoid missing dependency
-        function getRoleText(role) {
-            const roles = { 'worker': 'İşçi', 'supervisor': 'Ustabaşı', 'manager': 'Yönetici' };
-            return roles[role] || role;
-        }
-
-        async function forceSaveEmployee() {
-            alert('Kaydet butonuna basıldı! (v2)'); // Immediate proof of life
-            console.log('Force Save called v2');
-
-            const submitBtn = document.querySelector('#employeeForm button.btn-primary');
-            if (submitBtn) submitBtn.innerText = 'İşleniyor...';
-
-            const fullName = document.getElementById('fullName').value;
-            const role = document.getElementById('role').value;
-
-            if (!fullName || !role) {
-                alert('Lütfen Ad Soyad ve Rol alanlarını doldurun.');
-                if (submitBtn) submitBtn.innerText = 'Kaydet';
-                return;
-            }
-
-            const formData = {
-                full_name: fullName,
-                phone: document.getElementById('phone').value || null,
-                role: role,
-                daily_wage: document.getElementById('dailyWage').value || null,
-                monthly_salary: document.getElementById('monthlySalary').value || null,
-                hire_date: document.getElementById('hireDate').value || null,
-                notes: document.getElementById('notes').value || null,
-                is_active: true
-            };
-
-            const hiddenId = document.getElementById('employeeId').value;
-            const isEditing = hiddenId && hiddenId !== '';
-
-            try {
-                const response = await fetch(isEditing ? `/api/employees/${hiddenId}` : '/api/employees', {
-                    method: isEditing ? 'PUT' : 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    alert('İşlem Başarılı!');
-                    location.reload(); // Force reload to show changes and clear state
-                } else {
-                    alert('Hata: Sunucu yanıt vermedi.');
-                }
-            } catch (e) {
-                alert('Bağlantı Hatası: ' + e.message);
-            }
-        }
-    </script>
+    <script src="/js/employees.js?v=6"></script>
 </body>
 
 </html>
