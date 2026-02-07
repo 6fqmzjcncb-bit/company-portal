@@ -321,21 +321,12 @@
                 <button class="modal-close" onclick="closeModal('archivedEmployeesModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="table-container">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Personel</th>
-                                <th>Telefon</th>
-                                <th>Çalışılan Gün</th>
-                                <th>Son Bakiye</th>
-                                <th>İşlemler</th>
-                            </tr>
-                        </thead>
-                        <tbody id="archivedEmployeesList">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
+                <div id="archivedEmployeesGrid" class="grid grid-2">
+                    <!-- Cards will be populated here via JS -->
+                </div>
+                <div id="archivedLoading" class="text-center" style="display:none;">Yükleniyor...</div>
+                <div id="archivedEmpty" class="text-center text-muted" style="display:none; padding: 20px;">
+                    Arşivlenmiş personel bulunmamaktadır.
                 </div>
             </div>
         </div>

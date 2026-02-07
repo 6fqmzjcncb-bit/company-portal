@@ -475,43 +475,78 @@ function openArchivedModal() {
 }
 
 async function loadArchivedEmployees() {
-    const tbody = document.getElementById('archivedEmployeesList');
-    tbody.innerHTML = '<tr><td colspan="5" class="text-center">Yükleniyor...</td></tr>';
+    // Use grid
+    const grid = document.getElementById('archivedEmployeesGrid');
+    const loading = document.getElementById('archivedLoading');
+    const empty = document.getElementById('archivedEmpty');
+
+    grid.innerHTML = '';
+    loading.style.display = 'block';
+    empty.style.display = 'none';
 
     try {
         console.log('Arşiv yükleniyor...');
         const response = await fetch('/api/salary/balance?showArchived=true');
         const all = await response.json();
-        console.log('Tüm personel:', all);
 
         // Filter: is_active should be false (or 0)
         const archived = all.filter(e => e.is_active === false || e.is_active === 0);
         console.log('Arşivlenenler:', archived);
 
+        loading.style.display = 'none';
+
         if (archived.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">Arşivlenmiş personel bulunamadı.</td></tr>';
+            empty.style.display = 'block';
             return;
         }
 
-        tbody.innerHTML = archived.map(emp => `
-            <tr>
-                <td>
-                    <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
-                        ${emp.full_name} ✏️
+        grid.innerHTML = archived.map(emp => {
+            const hasBalance = emp.current_balance > 0;
+            const balanceClass = hasBalance ? 'text-danger' : 'text-success';
+            const balanceText = hasBalance ? formatCurrency(emp.current_balance) : 'Hesap Kapalı';
+
+            return `
+            <div class="archive-card">
+                <div class="archive-header">
+                    <span class="archive-name">${emp.full_name}</span>
+                    <span class="badge badge-secondary">Pasif</span>
+                </div>
+                
+                <div class="archive-details">
+                    <div class="archive-detail-item">
+                        <span class="archive-label">Telefon</span>
+                        <span class="archive-value">${emp.phone || '-'}</span>
                     </div>
-                </td>
-                 <td>${emp.phone || '-'}</td>
-                 <td>${emp.total_worked_days} Gün</td>
-                 <td>${formatCurrency(emp.current_balance)}</td>
-                 <td>
-                    <button class="btn-small btn-secondary" onclick="editEmployee(${emp.id})">Yönet</button>
-                 </td>
-            </tr>
-        `).join('');
+                    <div class="archive-detail-item text-right">
+                         <span class="archive-label">Çalışılan</span>
+                        <span class="archive-value">${emp.total_worked_days} Gün</span>
+                    </div>
+                </div>
+
+                <div class="archive-details" style="margin-top: 4px;">
+                    <div class="archive-detail-item">
+                        <span class="archive-label">Son Bakiye</span>
+                        <span class="archive-value ${balanceClass}">${balanceText}</span>
+                    </div>
+                    <div class="archive-detail-item text-right">
+                         <span class="archive-label">Silinme Tarihi</span>
+                        <span class="archive-value">-</span> 
+                    </div>
+                </div>
+
+                <div class="archive-actions">
+                    <button class="btn-archive-manage" onclick="editEmployee(${emp.id})">
+                        <span>📋</span> Kartı Aç / Yönet
+                    </button>
+                </div>
+            </div>
+            `;
+        }).join('');
 
     } catch (e) {
         console.error('Arşiv yükleme hatası:', e);
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Hata: ' + e.message + '</td></tr>';
+        loading.style.display = 'none';
+        grid.innerHTML = '<div class="text-danger text-center">Hata: ' + e.message + '</div>';
     }
 }
 // Placeholder for now - Need to update backend first to return is_active?
@@ -792,6 +827,18 @@ async function handleSmartReimbursement(empId, input) {
 }
 
 async function deleteEmployee(id) {
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+
+    // Check balance if positive
+    if (emp.current_balance > 0) {
+        // Custom confirm for settlement
+        if (confirm(`Bu personelin ${formatCurrency(emp.current_balance)} içeride alacağı görünüyor.\n\nTüm alacağını ÖDEYİP işten çıkarmak (Sıfırlayıp Arşivlemek) ister misiniz?\n\n(İptal derseniz bakiye ile birlikte arşivlenir.)`)) {
+            await settleAndArchive(id, emp.current_balance);
+            return;
+        }
+    }
+
     if (!confirm('Bu personeli işten çıkarmak istediğinize emin misiniz? Bu işlem personeli arşivleyecektir.')) return;
 
     try {
@@ -809,5 +856,42 @@ async function deleteEmployee(id) {
     } catch (error) {
         console.error(error);
         showToast('Hata', 'Personel silinemedi.', 'error');
+    }
+}
+
+async function settleAndArchive(id, amount) {
+    try {
+        showToast('Bilgi', 'Bakiye ödemesi yapılıyor...', 'info');
+
+        // 1. Pay
+        const payResponse = await fetch('/api/salary/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_id: id,
+                amount_paid: amount,
+                transaction_type: 'payment',
+                account: 'cash', // Default to cash
+                notes: 'İşten çıkış final ödemesi (Otomatik)',
+                payment_date: new Date().toISOString().split('T')[0]
+            })
+        });
+
+        if (!payResponse.ok) throw new Error('Ödeme işlemi başarısız oldu.');
+
+        // 2. Archive
+        const deleteResponse = await fetch(`/api/employees/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!deleteResponse.ok) throw new Error('Arşivleme işlemi başarısız oldu.');
+
+        showToast('Tamamlandı', 'Tüm alacaklar ödendi ve personel arşivlendi.', 'success');
+        closeModal('employeeModal');
+        await loadData();
+
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', error.message, 'error');
     }
 }
