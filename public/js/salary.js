@@ -158,7 +158,83 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSave.addEventListener('click', handleEmployeeSubmit);
         console.log('Save button listener attached');
     }
+
+    // Inject Toast CSS
+    const style = document.createElement('style');
+    style.innerHTML = `
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .toast {
+            background: #fff;
+            color: #333;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 300px;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
+            font-family: 'Inter', sans-serif;
+            border-left: 4px solid #3b82f6;
+        }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.visible { transform: translateX(0); }
+        .toast-icon { font-size: 1.2rem; }
+        .toast-content { display: flex; flex-direction: column; }
+        .toast-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 2px; }
+        .toast-message { font-size: 0.85rem; color: #64748b; }
+    `;
+    document.head.appendChild(style);
+
+    // Create container
+    const container = document.createElement('div');
+    container.className = 'toast-container';
+    document.body.appendChild(container);
 });
+
+// Custom Toast Notification
+window.showToast = function (title, message, type = 'info') {
+    const container = document.querySelector('.toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+
+    const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+
+    toast.innerHTML = `
+        <div class="toast-icon">${icon}</div>
+        <div class="toast-content">
+            <div class="toast-title">${title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => toast.classList.add('visible'));
+
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.remove('visible');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+// Replace standard alerts (optional wrapper)
+window.showAlert = function (msg) {
+    showToast('Bilgi', msg, 'info');
+}
+
 
 async function handleEmployeeSubmit(e) {
     e.preventDefault();
@@ -172,7 +248,7 @@ async function handleEmployeeSubmit(e) {
     const role = document.getElementById('role').value;
 
     if (!fullName || !role) {
-        alert('Lütfen Ad Soyad ve Rol alanlarını doldurun.');
+        showToast('Hata', 'Lütfen Ad Soyad ve Rol alanlarını doldurun.', 'error');
         return;
     }
 
@@ -201,25 +277,38 @@ async function handleEmployeeSubmit(e) {
             body: JSON.stringify(data)
         });
 
-        if (!response.ok) throw new Error('İşlem başarısız');
+        let result;
+        try {
+            result = await response.json();
+        } catch (e) {
+            console.error('JSON Parse Error', e);
+            throw new Error('Sunucudan geçersiz yanıt alındı (' + response.status + ')');
+        }
 
-        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || result.message || 'İşlem başarısız');
+        }
 
         // Check for created user credentials to show
         if (result.createdUser) {
+            // Persistent alert for credentials (important info)
             alert(`✅ Personel ve Kullanıcı Hesabı Oluşturuldu!\n\n👤 Kullanıcı Adı: ${result.createdUser.username}\n🔑 Şifre: ${result.createdUser.password}\n\nLütfen bu bilgileri personel ile paylaşın.`);
+            showToast('Başarılı', 'Personel ve kullanıcı hesabı oluşturuldu.', 'success');
         } else {
-            alert('Personel başarıyla kaydedildi');
+            showToast('Başarılı', 'Personel başarıyla kaydedildi.', 'success');
         }
 
         closeModal('employeeModal');
         await loadData(); // Reload table
 
     } catch (error) {
-        alert('Hata: ' + error.message);
+        console.error(error);
+        showToast('İşlem Başarısız', error.message, 'error');
     } finally {
-        btn.disabled = false;
-        btn.innerText = originalText;
+        if (btn) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     }
 }
 // document.getElementById('employeeForm').addEventListener('submit', handleEmployeeSubmit); // REMOVED
