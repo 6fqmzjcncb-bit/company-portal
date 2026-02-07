@@ -67,13 +67,8 @@ router.get('/search', requireAuth, async (req, res) => {
     }
 });
 
-// Yeni ürün ekle (Admin veya Stok Sorumlusu)
+// Yeni ürün ekle (Admin veya Yetkili)
 router.post('/', requirePermission('view_products'), async (req, res) => {
-    // Personel is Read-Only
-    if (req.userRoleName === 'Personel') {
-        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
-    }
-
     try {
         const { name, stock, min_stock, unit } = req.body;
         const product = await Product.create({ name, stock, min_stock, unit });
@@ -85,10 +80,6 @@ router.post('/', requirePermission('view_products'), async (req, res) => {
 
 // Ürün güncelle
 router.put('/:id', requirePermission('view_products'), async (req, res) => {
-    if (req.userRoleName === 'Personel') {
-        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
-    }
-
     try {
         const product = await Product.findByPk(req.params.id);
         if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
@@ -102,10 +93,6 @@ router.put('/:id', requirePermission('view_products'), async (req, res) => {
 
 // Ürün sil
 router.delete('/:id', requirePermission('view_products'), async (req, res) => {
-    if (req.userRoleName === 'Personel') {
-        return res.status(403).json({ error: 'Personel sadece ürünleri görüntüleyebilir.' });
-    }
-
     try {
         const product = await Product.findByPk(req.params.id);
         if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
@@ -115,19 +102,6 @@ router.delete('/:id', requirePermission('view_products'), async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-}); const { id } = req.params;
-const product = await Product.findByPk(id);
-
-if (!product) {
-    return res.status(404).json({ error: 'Ürün bulunamadı' });
-}
-
-await product.destroy();
-res.json({ success: true });
-    } catch (error) {
-    console.error('Product delete error:', error);
-    res.status(500).json({ error: 'Ürün silinemedi' });
-}
 });
 
 module.exports = router;
