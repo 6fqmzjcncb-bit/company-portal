@@ -6,7 +6,24 @@ const { requireAdmin } = require('../middleware/auth');
 // Tüm rolleri listele
 router.get('/', requireAdmin, async (req, res) => {
     try {
-        const roles = await Role.findAll();
+        let roles = await Role.findAll();
+
+        // --- DEMO FALLBACK ---
+        if (roles.length === 0) {
+            roles = [
+                { id: 1, name: 'Yönetici', permissions: ['all'], is_system: true },
+                { id: 2, name: 'Personel', permissions: ['view_tasks'], is_system: true },
+                { id: 3, name: 'Muhasebe', permissions: ['view_dashboard', 'manage_salary', 'view_report'], is_system: false },
+                { id: 4, name: 'Saha Ekibi', permissions: ['view_jobs', 'manage_stock'], is_system: false },
+                { id: 5, name: 'Stok Sorumlusu', permissions: ['view_dashboard', 'manage_stock'], is_system: false }
+            ];
+            // Async: Try to save them for real in background
+            (async () => {
+                const { Role } = require('../models');
+                for (const r of roles) await Role.findOrCreate({ where: { name: r.name }, defaults: r });
+            })();
+        }
+
         res.json(roles);
     } catch (error) {
         console.error('Role list error:', error);
