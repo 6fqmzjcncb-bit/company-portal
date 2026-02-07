@@ -335,7 +335,29 @@
     </main>
     </div>
 
-    <script src="/js/salary.js?v=3.1"></script>
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header"
+                style="justify-content: center; flex-direction: column; border: none; padding-bottom: 0;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+                <h2 id="confirmTitle" class="modal-title">Onay</h2>
+            </div>
+            <div class="modal-body" style="padding-top: 0;">
+                <p id="confirmMessage" style="color: var(--gray-600); font-size: 1.1rem; margin-bottom: 1.5rem;">İşlemi
+                    onaylıyor musunuz?</p>
+                <div class="flex justify-between" style="gap: 1rem;">
+                    <button id="btnConfirmCancel" class="btn btn-secondary" style="flex:1;">İptal</button>
+                    <button id="btnConfirmPrimary" class="btn btn-primary" style="flex:1;">Evet</button>
+                </div>
+                <!-- Optional Third Button for specific flows -->
+                <button id="btnConfirmSecondary" class="btn btn-outline mt-2" style="width:100%; display:none;">Seçenek
+                    2</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/salary.js"></script>
 </body>
 
 </html>

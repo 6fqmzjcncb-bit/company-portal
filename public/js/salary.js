@@ -474,6 +474,144 @@ function openArchivedModal() {
     loadArchivedEmployees();
 }
 
+// Custom Confirm Modal Helper
+function showConfirmModal(title, message, onConfirm) {
+    const modal = document.getElementById('confirmModal');
+    document.getElementById('confirmTitle').innerText = title;
+    document.getElementById('confirmMessage').innerText = message;
+
+    const btnYes = document.getElementById('btnConfirmPrimary');
+    const btnNo = document.getElementById('btnConfirmCancel');
+
+    // Reset clones to remove old listeners
+    const newBtnYes = btnYes.cloneNode(true);
+    const newBtnNo = btnNo.cloneNode(true);
+    btnYes.parentNode.replaceChild(newBtnYes, btnYes);
+    btnNo.parentNode.replaceChild(newBtnNo, btnNo);
+
+    newBtnYes.onclick = () => {
+        modal.style.display = 'none';
+        onConfirm();
+    };
+
+    newBtnNo.onclick = () => {
+        modal.style.display = 'none';
+    };
+
+    // Close on outside click
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    modal.style.display = 'flex';
+}
+
+async function deleteEmployee(id) {
+    const emp = allEmployees.find(e => e.id === id);
+    if (!emp) return;
+
+    // Check balance if positive
+    if (emp.current_balance > 0) {
+        showConfirmModal(
+            'Bakiye Uyarısı',
+            `Bu personelin ${formatCurrency(emp.current_balance)} içeride alacağı görünüyor.\n\nTüm alacağını ÖDEYİP işten çıkarmak (Sıfırlayıp Arşivlemek) ister misiniz?\n\n(İptal derseniz bakiye ile birlikte arşivlenir, Evet derseniz ödeme yapılıp arşivlenir.)`,
+            async () => {
+                await settleAndArchive(id, emp.current_balance);
+            }
+        );
+        return;
+    }
+
+    showConfirmModal(
+        'İşten Çıkarma',
+        'Bu personeli işten çıkarmak istediğinize emin misiniz? Bu işlem personeli arşivleyecektir.',
+        async () => {
+            try {
+                const response = await fetch(`/api/employees/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('İşlem başarısız');
+                }
+
+                showToast('Başarılı', 'Personel işten çıkarıldı (Arşivlendi).', 'success');
+                closeModal('employeeModal');
+                await loadData();
+            } catch (error) {
+                console.error(error);
+                showToast('Hata', 'Personel silinemedi.', 'error');
+            }
+        }
+    );
+}
+
+async function reactivateEmployee(id) {
+    showConfirmModal(
+        'İşe Geri Al',
+        'Bu personeli tekrar işe almak (Aktifleştirmek) istediğinize emin misiniz?',
+        async () => {
+            try {
+                const response = await fetch(`/api/employees/${id}/reactivate`, {
+                    method: 'POST'
+                });
+
+                if (!response.ok) throw new Error('İşlem başarısız');
+
+                showToast('Başarılı', 'Personel tekrar aktif edildi.', 'success');
+                closeModal('employeeModal'); // If open
+                await loadData(); // Reload main list
+                // Optionally reload archive list if modal is open
+                if (document.getElementById('archivedEmployeesModal').style.display === 'flex') {
+                    loadArchivedEmployees();
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('Hata', 'Personel aktif edilemedi.', 'error');
+            }
+        }
+    );
+}
+
+async function settleAndArchive(id, amount) {
+    try {
+        showToast('Bilgi', 'Bakiye ödemesi yapılıyor...', 'info');
+
+        // 1. Pay
+        const payResponse = await fetch('/api/salary/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_id: id,
+                amount_paid: amount,
+                transaction_type: 'payment',
+                account: 'cash', // Default to cash
+                notes: 'İşten çıkış final ödemesi (Otomatik)',
+                payment_date: new Date().toISOString().split('T')[0]
+            })
+        });
+
+        if (!payResponse.ok) throw new Error('Ödeme işlemi başarısız oldu.');
+
+        // 2. Archive
+        const deleteResponse = await fetch(`/api/employees/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!deleteResponse.ok) throw new Error('Arşivleme işlemi başarısız oldu.');
+
+        showToast('Tamamlandı', 'Tüm alacaklar ödendi ve personel arşivlendi.', 'success');
+        closeModal('employeeModal');
+        await loadData();
+
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', error.message, 'error');
+    }
+}
+
 async function loadArchivedEmployees() {
     // Use grid
     const grid = document.getElementById('archivedEmployeesGrid');
@@ -501,17 +639,24 @@ async function loadArchivedEmployees() {
         }
 
         grid.innerHTML = archived.map(emp => {
-            const hasBalance = emp.current_balance > 0;
-            const balanceClass = hasBalance ? 'text-danger' : 'text-success';
-            const balanceText = hasBalance ? formatCurrency(emp.current_balance) : 'Hesap Kapalı';
+            // Wage Display Logic: Show both if exist, or just one, or '-'
+            let wageInfo = '';
+            const daily = emp.daily_wage ? `${formatCurrency(emp.daily_wage)} (Günlük)` : '';
+            const monthly = emp.monthly_salary ? `${formatCurrency(emp.monthly_salary)} (Aylık)` : '';
 
-            // Wage Display
-            const wageInfo = emp.daily_wage
-                ? `${formatCurrency(emp.daily_wage)} (Günlük)`
-                : (emp.monthly_salary ? `${formatCurrency(emp.monthly_salary)} (Aylık)` : '-');
+            if (daily && monthly) {
+                wageInfo = `<div>${daily}</div><div>${monthly}</div>`;
+            } else if (daily) {
+                wageInfo = daily;
+            } else if (monthly) {
+                wageInfo = monthly;
+            } else {
+                wageInfo = '-';
+            }
 
-            // Date (Termination - approximate using updatedAt or we need a real field. Using updatedAt for now)
-            const terminationDate = emp.updatedAt ? new Date(emp.updatedAt).toLocaleDateString('tr-TR') : '-';
+            // Dates
+            const startDate = formatDate(emp.start_date);
+            const terminationDate = emp.updatedAt ? formatDate(emp.updatedAt) : '-';
 
             return `
             <div class="archive-card">
@@ -522,21 +667,10 @@ async function loadArchivedEmployees() {
                 
                 <div class="archive-details">
                     <div class="archive-detail-item">
-                        <span class="archive-label">Telefon</span>
-                        <span class="archive-value">${emp.phone || '-'}</span>
+                        <span class="archive-label">İşe Giriş</span>
+                        <span class="archive-value">${startDate}</span>
                     </div>
-                    <div class="archive-detail-item text-right">
-                         <span class="archive-label">Toplam Çalışma</span>
-                        <span class="archive-value">${emp.total_worked_days} Gün</span>
-                    </div>
-                </div>
-
-                <div class="archive-details" style="margin-top: 8px;">
-                     <div class="archive-detail-item">
-                        <span class="archive-label">Ücret</span>
-                        <span class="archive-value">${wageInfo}</span>
-                    </div>
-                    <div class="archive-detail-item text-right">
+                     <div class="archive-detail-item text-right">
                          <span class="archive-label">Ayrılma Tarihi</span>
                         <span class="archive-value">${terminationDate}</span> 
                     </div>
@@ -544,14 +678,21 @@ async function loadArchivedEmployees() {
 
                 <div class="archive-details" style="margin-top: 8px;">
                     <div class="archive-detail-item">
-                        <span class="archive-label">Son Bakiye</span>
-                        <span class="archive-value ${balanceClass}">${balanceText}</span>
+                        <span class="archive-label">Ücret Bilgisi</span>
+                        <span class="archive-value">${wageInfo}</span>
+                    </div>
+                     <div class="archive-detail-item text-right">
+                        <span class="archive-label">Toplam Çalışma</span>
+                        <span class="archive-value">${emp.total_worked_days} Gün</span>
                     </div>
                 </div>
-
-                <div class="archive-actions">
-                    <button class="btn-archive-manage" onclick="editEmployee(${emp.id})">
-                        <span>📋</span> Kartı Aç / Yönet
+                
+                <div class="archive-actions" style="display: flex; gap: 8px;">
+                    <button class="btn-archive-manage" style="flex: 1;" onclick="editEmployee(${emp.id})">
+                        <span>📋</span> Kartı Aç
+                    </button>
+                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="reactivateEmployee(${emp.id})">
+                        <span>♻️</span> İşe Geri Al
                     </button>
                 </div>
             </div>
@@ -838,75 +979,5 @@ async function handleSmartReimbursement(empId, input) {
         input.value = oldVal.toFixed(2); // Revert
         input.disabled = false;
         input.style.borderColor = 'red';
-    }
-}
-
-async function deleteEmployee(id) {
-    const emp = allEmployees.find(e => e.id === id);
-    if (!emp) return;
-
-    // Check balance if positive
-    if (emp.current_balance > 0) {
-        // Custom confirm for settlement
-        if (confirm(`Bu personelin ${formatCurrency(emp.current_balance)} içeride alacağı görünüyor.\n\nTüm alacağını ÖDEYİP işten çıkarmak (Sıfırlayıp Arşivlemek) ister misiniz?\n\n(İptal derseniz bakiye ile birlikte arşivlenir.)`)) {
-            await settleAndArchive(id, emp.current_balance);
-            return;
-        }
-    }
-
-    if (!confirm('Bu personeli işten çıkarmak istediğinize emin misiniz? Bu işlem personeli arşivleyecektir.')) return;
-
-    try {
-        const response = await fetch(`/api/employees/${id}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('İşlem başarısız');
-        }
-
-        showToast('Başarılı', 'Personel işten çıkarıldı (Arşivlendi).', 'success');
-        closeModal('employeeModal');
-        await loadData();
-    } catch (error) {
-        console.error(error);
-        showToast('Hata', 'Personel silinemedi.', 'error');
-    }
-}
-
-async function settleAndArchive(id, amount) {
-    try {
-        showToast('Bilgi', 'Bakiye ödemesi yapılıyor...', 'info');
-
-        // 1. Pay
-        const payResponse = await fetch('/api/salary/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                employee_id: id,
-                amount_paid: amount,
-                transaction_type: 'payment',
-                account: 'cash', // Default to cash
-                notes: 'İşten çıkış final ödemesi (Otomatik)',
-                payment_date: new Date().toISOString().split('T')[0]
-            })
-        });
-
-        if (!payResponse.ok) throw new Error('Ödeme işlemi başarısız oldu.');
-
-        // 2. Archive
-        const deleteResponse = await fetch(`/api/employees/${id}`, {
-            method: 'DELETE'
-        });
-
-        if (!deleteResponse.ok) throw new Error('Arşivleme işlemi başarısız oldu.');
-
-        showToast('Tamamlandı', 'Tüm alacaklar ödendi ve personel arşivlendi.', 'success');
-        closeModal('employeeModal');
-        await loadData();
-
-    } catch (error) {
-        console.error(error);
-        showToast('Hata', error.message, 'error');
     }
 }
