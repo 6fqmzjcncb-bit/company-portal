@@ -640,6 +640,15 @@ tr:hover {
   transition: opacity 0.3s ease;
 }
 
+/* Fix stacking order: Detail/Rehire modals must be higher than Archive List */
+#employeeModal,
+#rehireModal,
+#confirmModal,
+#credentialModal,
+#transactionModal {
+  z-index: 1050 !important;
+}
+
 .modal.active {
   display: flex;
 }
