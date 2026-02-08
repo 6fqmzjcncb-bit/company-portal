@@ -1206,10 +1206,10 @@ window.handleSmartReimbursement = async function (empId, input) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 employee_id: empId,
-                amount_paid: Math.abs(diff),
-                transaction_type: 'reimbursement', // Masraf Fişi (Alacak ekler)
-                account: 'cash', // Default to cash or ask? Cash is safe.
-                notes: 'Hızlı Masraf Girişi (Tablodan)',
+                amount_paid: diff, // Allow negative to reduce total
+                transaction_type: 'reimbursement', // Masraf Fişi
+                account: 'cash',
+                notes: `Hızlı Harcama Düzenlemesi (${diff > 0 ? '+' : ''}${formatCurrency(diff)})`,
                 payment_date: new Date().toISOString().split('T')[0]
             })
         });
