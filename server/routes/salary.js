@@ -222,6 +222,7 @@ router.post('/pay', requireAuth, async (req, res) => {
 
 
 // Ödeme silme
+// Ödeme silme
 router.delete('/:id', requireAuth, async (req, res) => {
     try {
         const payment = await SalaryPayment.findByPk(req.params.id);
@@ -230,8 +231,25 @@ router.delete('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Ödeme kaydı bulunamadı' });
         }
 
+        // Check if this payment created an attendance record automatically
+        if (payment.notes && payment.notes.includes('Bugün çalışıldı (+1)')) {
+            try {
+                // Find and delete the attendance record for that day
+                const Attendance = require('../models/Attendance');
+                await Attendance.destroy({
+                    where: {
+                        employee_id: payment.employee_id,
+                        date: payment.payment_date
+                    }
+                });
+                console.log('Otomatik oluşturulan katılım kaydı silindi.');
+            } catch (attError) {
+                console.error('Katılım silme hatası:', attError);
+            }
+        }
+
         await payment.destroy();
-        res.json({ message: 'Ödeme kaydı silindi' });
+        res.json({ message: 'Ödeme kaydı ve ilişkili çalışma günü silindi' });
     } catch (error) {
         console.error('Ödeme silme hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
