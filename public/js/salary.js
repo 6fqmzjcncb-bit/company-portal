@@ -151,51 +151,60 @@ function editEmployee(id) {
     document.getElementById('editEmpId').value = id;
 
     // Fetch full employee details
-    fetch(`/api/employees/${id}`).then(res => res.json()).then(fullEmp => {
-        document.getElementById('fullName').value = fullEmp.full_name;
-        document.getElementById('phone').value = fullEmp.phone || '';
+    fetch(`/api/employees/${id}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Personel detayı alınamadı');
+            return res.json();
+        })
+        .then(async fullEmp => { // Async to await roles if needed, or just let it run
+            try {
+                document.getElementById('fullName').value = fullEmp.full_name || '';
+                document.getElementById('phone').value = fullEmp.phone || '';
 
-        // Load roles and set selected
-        loadSystemRoles().then(() => {
-            if (fullEmp.user && fullEmp.user.role_id) {
-                document.getElementById('systemRole').value = fullEmp.user.role_id;
+                // Load roles safely
+                try {
+                    await loadSystemRoles();
+                    if (fullEmp.user && fullEmp.user.role_id) {
+                        const roleSelect = document.getElementById('systemRole');
+                        if (roleSelect) roleSelect.value = fullEmp.user.role_id;
+                    }
+                } catch (roleErr) {
+                    console.warn('Roller yüklenirken hata:', roleErr);
+                }
+
+                document.getElementById('dailyWage').value = fullEmp.daily_wage || '';
+                document.getElementById('monthlySalary').value = fullEmp.monthly_salary || '';
+                document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
+                document.getElementById('notes').value = fullEmp.notes || '';
+
+                // Button Logic: Fire vs Re-hire
+                const btnDelete = document.getElementById('btnDeleteEmployee');
+                if (btnDelete) {
+                    if (fullEmp.is_active) {
+                        btnDelete.innerText = 'İşten Çıkar (Arşivle)';
+                        btnDelete.className = 'btn btn-danger';
+                        btnDelete.onclick = () => deleteEmployee(id);
+                        btnDelete.style.display = 'block';
+                    } else {
+                        btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
+                        btnDelete.className = 'btn btn-success';
+                        btnDelete.onclick = () => reactivateFromEdit(id);
+                        btnDelete.style.display = 'block';
+                    }
+                }
+
+                document.getElementById('employeeModal').style.display = 'flex';
+            } catch (uiError) {
+                console.error('UI Update Error:', uiError);
+                // Try to show modal anyway if possible, or alert
+                alert('Personel bilgileri arayüze aktarılırken hata oluştu: ' + uiError.message);
+                document.getElementById('employeeModal').style.display = 'flex';
             }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Hata: Personel detayı yüklenemedi. ' + err.message);
         });
-
-        document.getElementById('dailyWage').value = fullEmp.daily_wage || '';
-        document.getElementById('monthlySalary').value = fullEmp.monthly_salary || '';
-        document.getElementById('hireDate').value = fullEmp.hire_date ? fullEmp.hire_date.split('T')[0] : '';
-        document.getElementById('notes').value = fullEmp.notes || '';
-
-        // Button Logic: Fire vs Re-hire
-        const balanceText = document.getElementById('modalBalance');
-        if (balanceText) {
-            balanceText.innerText = `Toplam Ödenecek: ${formatCurrency(total)}`;
-            // Auto-update amount input
-            const amountInput = document.getElementById('transAmount');
-            if (amountInput) {
-                // Using toLocaleString for formatting
-                amountInput.value = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            }
-        }
-        const btnDelete = document.getElementById('btnDeleteEmployee');
-        if (fullEmp.is_active) {
-            btnDelete.innerText = 'İşten Çıkar (Arşivle)';
-            btnDelete.className = 'btn btn-danger';
-            btnDelete.onclick = () => deleteEmployee(id);
-            btnDelete.style.display = 'block';
-        } else {
-            btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
-            btnDelete.className = 'btn btn-success';
-            btnDelete.onclick = () => reactivateFromEdit(id);
-            btnDelete.style.display = 'block';
-        }
-
-        document.getElementById('employeeModal').style.display = 'flex';
-    }).catch(err => {
-        console.error(err);
-        showToast('Hata', 'Personel detayı yüklenemedi', 'error');
-    });
 }
 
 
