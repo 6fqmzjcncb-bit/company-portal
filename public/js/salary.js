@@ -886,12 +886,16 @@ async function loadHistory() {
         const transactions = await response.json();
 
         const tbody = document.getElementById('transactionHistory');
-        if (!transactions || transactions.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">Kayıt bulunamadı</td></tr>';
+
+        // Filter out 'reimbursement' (Harcama) transactions as requested
+        const filteredTransactions = transactions.filter(t => t.transaction_type !== 'reimbursement');
+
+        if (!filteredTransactions || filteredTransactions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center">Kayıt bulunamadı</td></tr>';
             return;
         }
 
-        tbody.innerHTML = transactions.map(t => {
+        tbody.innerHTML = filteredTransactions.map(t => {
             const empName = t.employee ? t.employee.full_name : 'Silinmiş Personel';
             const typeLabels = {
                 'payment': '<span class="badge badge-success">Ödeme</span>',
