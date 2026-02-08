@@ -1232,15 +1232,4 @@ function editTransaction(t) {
 }
 
 // Reset modal state when opening new one
-function showTransactionModal() {
-    editingTransactionId = null; // Clear editing state
-    document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
-    document.getElementById('transactionForm').reset();
-    document.getElementById('employeeId').value = '';
-    // document.getElementById('employeeSelect').disabled = false;
 
-    // Set Default Date
-    document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
-
-    document.getElementById('transactionModal').style.display = 'flex';
-}
