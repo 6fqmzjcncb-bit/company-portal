@@ -60,7 +60,7 @@ router.get('/:id', requireAuth, async (req, res) => {
                 {
                     model: SalaryPayment,
                     as: 'payments',
-                    order: [['period_start', 'DESC']]
+                    order: [['payment_date', 'DESC']]
                 }
             ]
         });
