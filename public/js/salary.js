@@ -698,7 +698,7 @@ async function loadArchivedEmployees() {
 
             // Dates
             const startDate = formatDate(emp.start_date);
-            const terminationDate = emp.updatedAt ? formatDate(emp.updatedAt) : '-';
+            const terminationDate = emp.termination_date ? formatDate(emp.termination_date) : '-';
 
             return `
             <div class="archive-card">
@@ -730,9 +730,6 @@ async function loadArchivedEmployees() {
                 </div>
                 
                 <div class="archive-actions" style="display: flex; gap: 8px;">
-                    <button class="btn-archive-manage" style="flex: 1;" onclick="editEmployee(${emp.id})">
-                        <span>📋</span> Kartı Aç
-                    </button>
                     <button class="btn btn-success btn-sm" style="flex: 1;" onclick="openRehireModal(${emp.id})">
                         <span>♻️</span> İşe Geri Al
                     </button>

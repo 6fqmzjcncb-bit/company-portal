@@ -144,7 +144,8 @@ router.get('/balance', requireAuth, async (req, res) => {
                 total_paid: totalPaid,
                 total_expense: totalExpense,
                 total_reimbursement: totalReimbursement,
-                current_balance: currentBalance
+                current_balance: currentBalance,
+                termination_date: emp.termination_date
             });
         }
 
