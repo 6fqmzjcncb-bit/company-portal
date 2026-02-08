@@ -730,8 +730,8 @@ async function loadArchivedEmployees() {
                 </div>
                 
                 <div class="archive-actions" style="display: flex; gap: 8px;">
-                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="openRehireModal(${emp.id})">
-                        <span>♻️</span> İşe Geri Al
+                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="editEmployee(${emp.id})">
+                        <span>📋</span> İşe Geri Al
                     </button>
                 </div>
             </div>
