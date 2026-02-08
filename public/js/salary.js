@@ -1041,14 +1041,21 @@ function toggleAccountSelect() {
 // Form Submission
 // Currency Formatter Input
 window.formatCurrencyInput = function (input) {
-    let value = input.value.replace(/\D/g, ''); // Remove non-digits
-    if (!value) {
-        input.value = '';
+    let value = input.value;
+    if (!value) return;
+
+    // Remove existing dots (thousands separators)
+    // Replace comma with dot for parsing
+    let cleanVal = value.replace(/\./g, '').replace(',', '.');
+    let numberValue = parseFloat(cleanVal);
+
+    if (isNaN(numberValue)) {
+        // If invalid, maybe just leave it or clear? 
+        // Let's leave it to let user see error or correct it.
         return;
     }
 
-    // Convert to currency format (Type: 12345 -> 123,45)
-    const numberValue = parseFloat(value) / 100;
+    // Format: 1.000,00
     input.value = numberValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
