@@ -454,8 +454,8 @@ function createEmployeeRow(emp) {
         <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
         <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
         <td>
-            <button class="btn-small btn-success" onclick="openPaymentModal(${emp.id})">
-                Ödeme Yap
+            <button class="btn btn-primary btn-sm" onclick="openPaymentModal(${emp.id})" style="display: flex; align-items: center; gap: 5px;">
+                <span>💸</span> Ödeme Yap
             </button>
         </td>
     </tr>
@@ -540,6 +540,60 @@ async function deleteEmployee(id) {
             }
         }
     );
+}
+
+// ... existing code ...
+
+function showTransactionModal() {
+    try {
+        editingTransactionId = null; // Clear editing state
+        document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
+        const form = document.getElementById('transactionForm');
+        if (form) form.reset();
+
+        const empIdInput = document.getElementById('employeeId');
+        if (empIdInput) empIdInput.value = '';
+
+        // Set Default Date
+        const dateInput = document.getElementById('transDate');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+        document.getElementById('transactionModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Modal Error:', e);
+        showAlert('Hata: Modal açılamadı. ' + e.message);
+    }
+}
+
+function openPaymentModal(empId) {
+    try {
+        showTransactionModal();
+        document.getElementById('employeeSelect').value = empId;
+
+        const payRadio = document.querySelector('input[name="transType"][value="payment"]');
+        if (payRadio) payRadio.checked = true;
+
+        updateEmployeeContext();
+        toggleAccountSelect();
+    } catch (e) {
+        console.error('Payment Modal Error:', e);
+        showAlert('Hata: Ödeme penceresi açılamadı. ' + e.message);
+    }
+}
+
+function openExpenseModal(empId) {
+    try {
+        showTransactionModal();
+        document.getElementById('employeeSelect').value = empId;
+
+        const expRadio = document.querySelector('input[name="transType"][value="expense"]');
+        if (expRadio) expRadio.checked = true;
+
+        updateEmployeeContext();
+        toggleAccountSelect();
+    } catch (e) {
+        console.error('Expense Modal Error:', e);
+    }
 }
 
 async function reactivateFromEdit(id) {
@@ -863,29 +917,59 @@ async function loadHistory() {
 }
 
 // Modal Logic
+
 function showTransactionModal() {
-    document.getElementById('transactionForm').reset();
-    document.getElementById('employeeId').value = '';
+    try {
+        editingTransactionId = null; // Clear editing state
+        document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
+        const form = document.getElementById('transactionForm');
+        if (form) form.reset();
 
-    // Set Default Date
-    document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+        const empIdInput = document.getElementById('employeeId');
+        if (empIdInput) empIdInput.value = '';
 
-    document.getElementById('transactionModal').style.display = 'flex';
+        // Set Default Date
+        const dateInput = document.getElementById('transDate');
+        if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+
+        document.getElementById('transactionModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Modal Error:', e);
+        showAlert('Hata: Modal açılamadı. ' + e.message);
+    }
 }
 
 function openPaymentModal(empId) {
-    showTransactionModal();
-    document.getElementById('employeeSelect').value = empId;
-    document.querySelector('input[name="transType"][value="payment"]').checked = true;
-    updateEmployeeContext();
+    try {
+        showTransactionModal();
+        document.getElementById('employeeSelect').value = empId;
+
+        const payRadio = document.querySelector('input[name="transType"][value="payment"]');
+        if (payRadio) payRadio.checked = true;
+
+        updateEmployeeContext();
+        toggleAccountSelect();
+    } catch (e) {
+        console.error('Payment Modal Error:', e);
+        showAlert('Hata: Ödeme penceresi açılamadı. ' + e.message);
+    }
 }
 
 function openExpenseModal(empId) {
-    showTransactionModal();
-    document.getElementById('employeeSelect').value = empId;
-    document.querySelector('input[name="transType"][value="expense"]').checked = true;
-    updateEmployeeContext();
+    try {
+        showTransactionModal();
+        document.getElementById('employeeSelect').value = empId;
+
+        const expRadio = document.querySelector('input[name="transType"][value="expense"]');
+        if (expRadio) expRadio.checked = true;
+
+        updateEmployeeContext();
+        toggleAccountSelect();
+    } catch (e) {
+        console.error('Expense Modal Error:', e);
+    }
 }
+
 
 function updateEmployeeSelect() {
     const select = document.getElementById('employeeSelect');
