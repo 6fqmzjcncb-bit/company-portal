@@ -442,8 +442,8 @@ function createEmployeeRow(emp) {
     return `
     <tr>
         <td>
-            <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle">
-                ${emp.full_name} ✏️
+            <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
+                <span>✏️</span> <span style="font-weight: 500; color: #333;">${emp.full_name}</span>
             </div>
         </td>
         <td>${wageDisplay}</td>
@@ -451,15 +451,15 @@ function createEmployeeRow(emp) {
         <td>${emp.total_worked_days}</td>
         <td>${formatCurrency(emp.total_accrued)}</td>
         <td style="width: 150px;">
-            <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
+            <div style="display: flex; align-items: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 4px 8px;">
                 <input type="text" 
-                    style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
+                    style="border: none; outline: none; width: 100%; text-align: right; font-size: 0.95rem; background: transparent; color: #495057; font-weight: 500;" 
                     value="${(emp.total_reimbursement || 0) === 0 ? '' : (emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
                     placeholder="0,00"
                     data-original-value="${(emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
                     onblur="formatCurrencyInput(this)"
                     onchange="handleSmartReimbursement(${emp.id}, this)">
-                <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
+                <span style="font-size: 11px; color: #adb5bd; margin-left: 4px; font-weight: 600;">TL</span>
             </div>
         </td>
         <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
