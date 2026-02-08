@@ -543,7 +543,9 @@ async function deleteEmployee(id) {
 }
 
 async function reactivateFromEdit(id) {
-    if (!confirm('Bu personeli GÜNCEL ÜCRET BİLGİLERİYLE işe geri almak istediğinize emin misiniz?')) return;
+    // Check if daily wage or monthly salary is entered, at least one is required? 
+    // Or if they exist from previous data (fetched in edit modal), we assume fine.
+    // The user said "remove warning", so we proceed directly.
 
     const dailyWage = document.getElementById('dailyWage').value;
     const monthlySalary = document.getElementById('monthlySalary').value;
