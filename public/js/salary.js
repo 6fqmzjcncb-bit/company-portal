@@ -901,7 +901,6 @@ async function loadHistory() {
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
                 <td>
-                <td>
                     <button class="btn btn-secondary btn-sm" onclick='editTransaction(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Düzenle</button>
                 </td>
             </tr>
@@ -932,6 +931,11 @@ function showTransactionModal() {
         if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
 
         document.getElementById('transactionModal').style.display = 'flex';
+
+        // Hide delete button for new transaction
+        const btnDelete = document.getElementById('btnDeleteData');
+        if (btnDelete) btnDelete.style.display = 'none';
+
     } catch (e) {
         console.error('Modal Error:', e);
         showAlert('Hata: Modal açılamadı. ' + e.message);
@@ -1125,12 +1129,19 @@ window.editTransaction = function (t) {
         const btnDelete = document.getElementById('btnDeleteData');
         if (btnDelete) {
             btnDelete.style.display = 'block';
-            // We use a global helper that uses `editingTransactionId`
         }
 
     } catch (e) {
         console.error('Edit Error', e);
         showAlert('Hata: Düzenleme ekranı açılamadı');
+    }
+};
+
+};
+
+window.deleteCurrentTransaction = function () {
+    if (editingTransactionId) {
+        deleteTransaction(editingTransactionId);
     }
 };
 
