@@ -177,7 +177,7 @@ function editEmployee(id) {
         } else {
             btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
             btnDelete.className = 'btn btn-success';
-            btnDelete.onclick = () => openRehireModal(id);
+            btnDelete.onclick = () => reactivateFromEdit(id);
             btnDelete.style.display = 'block';
         }
 
@@ -542,7 +542,69 @@ async function deleteEmployee(id) {
     );
 }
 
-// Replaces reactivateEmployee with Modal open
+async function reactivateFromEdit(id) {
+    if (!confirm('Bu personeli GÜNCEL ÜCRET BİLGİLERİYLE işe geri almak istediğinize emin misiniz?')) return;
+
+    const dailyWage = document.getElementById('dailyWage').value;
+    const monthlySalary = document.getElementById('monthlySalary').value;
+    const roleId = document.getElementById('systemRole').value;
+
+    const payload = {};
+    if (dailyWage) payload.daily_wage = dailyWage;
+    if (monthlySalary) payload.monthly_salary = monthlySalary;
+
+    // Also update role if needed, though reactivate might not handle it directly unless we modify backend.
+    // The backend reactivate endpoint currently ONLY updates is_active, termination_date, start_date and wages.
+    // It does not update role_id. 
+    // However, the user might have changed role in the edit modal.
+    // Ideally we should SAVE first then REACTIVATE, or REACTIVATE then save?
+    // Let's do: Reactivate first with wages, then if successful, trigger a standard update separately if needed?
+    // Actually, `submitRehire` (the old one) only did wages.
+    // But since we are in the "Edit" modal, the user expects EVERYTHING to be saved (Name, Phone, etc).
+
+    // BETTER APPROACH: 
+    // 1. Reactivate the employee (sets is_active=true)
+    // 2. Call the standard "Save" logic to update all fields (Name, Phone, Role, Notes)
+
+    try {
+        // 1. Reactivate
+        const res = await fetch(`/api/employees/${id}/reactivate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) throw new Error('Aktifleştirme başarısız');
+
+        // 2. Update other details (Name, Phone, Role...) by triggering the Save button click or calling save logic?
+        // Let's manually trigger the update endpoint to be safe.
+        // Or simply: just call `saveEmployee`? `saveEmployee` uses `editEmpId`.
+        // If we call `saveEmployee`, it sends a PUT request.
+        // Does PUT work on inactive employees? Yes.
+        // Does PUT work on active employees? Yes.
+        // So we can just call `saveEmployee()`.
+
+        // Wait, `saveEmployee` refreshes the page/modal.
+        // So let's chain them.
+
+        showToast('Başarılı', 'Personel aktif edildi, bilgiler güncelleniyor...', 'success');
+
+        // Trigger generic save to ensure name/phone/role updates are applied
+        // We can just click the save button programmatically?
+        // document.getElementById('btnSaveEmployeeSalary').click(); 
+        // But `btnSaveEmployeeSalary` creates a NEW employee if no ID involves? 
+        // No, `saveEmployee` checks `editEmpId`.
+
+        await saveEmployee(); // reusing existing logic
+
+        // Modal closing is handled by saveEmployee if successful.
+
+    } catch (error) {
+        console.error(error);
+        showToast('Hata', 'İşlem sırasında bir sorun oluştu', 'error');
+    }
+}
+
 // Replaces reactivateEmployee with Modal open
 async function openRehireModal(id) {
     document.getElementById('rehireEmpId').value = id;
