@@ -901,8 +901,8 @@ async function loadHistory() {
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
                 <td>
-                    <button class="btn-small btn-secondary" onclick='editTransaction(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Düzenle</button>
-                    <button class="btn-small btn-danger" onclick="deleteTransaction('${t.id}')">Sil</button>
+                    <button class="btn btn-secondary btn-sm" onclick='editTransaction(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Düzenle</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')">Sil</button>
                 </td>
             </tr>
             `;
@@ -1037,6 +1037,34 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
             payment_date: date,
             notes: notes
         };
+
+        // Handle "Include Today" logic
+        const includeToday = document.getElementById('includeToday').checked;
+        const isPayment = document.querySelector('input[name="transType"]:checked').value === 'payment';
+
+        if (isPayment && includeToday && !editingTransactionId) {
+            try {
+                // Create attendance record first
+                const today = new Date().toISOString().split('T')[0];
+                await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_id: empId,
+                        date: today,
+                        worked: true,
+                        hours_worked: 1, // Default to 1 day/shift
+                        notes: 'Ödeme sırasında otomatik oluşturuldu'
+                    })
+                });
+
+                // Add note to payment
+                body.notes = (body.notes ? body.notes + ' - ' : '') + 'Bugün çalışıldı (+1)';
+            } catch (attError) {
+                console.error('Otomatik katılım oluşturma hatası', attError);
+                // Continue with payment but warn? Or just proceed.
+            }
+        }
 
         if (editingTransactionId) {
             url = `/api/salary/${editingTransactionId}`;
