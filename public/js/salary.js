@@ -179,17 +179,22 @@ function editEmployee(id) {
 
                 // Button Logic: Fire vs Re-hire
                 const btnDelete = document.getElementById('btnDeleteEmployee');
+                const btnSave = document.getElementById('btnSaveEmployeeSalary');
+
                 if (btnDelete) {
                     if (fullEmp.is_active) {
                         btnDelete.innerText = 'İşten Çıkar (Arşivle)';
                         btnDelete.className = 'btn btn-danger';
                         btnDelete.onclick = () => deleteEmployee(id);
                         btnDelete.style.display = 'block';
+                        if (btnSave) btnSave.style.display = 'inline-block';
                     } else {
                         btnDelete.innerText = 'İşe Geri Al (Aktifleştir)';
                         btnDelete.className = 'btn btn-success';
                         btnDelete.onclick = () => reactivateFromEdit(id);
                         btnDelete.style.display = 'block';
+                        // Hide save button when reactivating
+                        if (btnSave) btnSave.style.display = 'none';
                     }
                 }
 
