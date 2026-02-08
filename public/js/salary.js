@@ -1090,73 +1090,73 @@ async function handleSmartReimbursement(empId, input) {
                 transaction_type: 'reimbursement', // Maps to Harcamalar/Masraf
                 notes: 'Tablodan düzenleme (Fark: ' + diff.toFixed(2) + ')',
                 payment_date: new Date().toISOString().split('T')[0]
-            }
+            })
+        });
+
+        if (!response.ok) throw new Error('Kaydedilemedi');
+
+        // Success: Update original value to prevent double-submit
+        input.dataset.originalValue = newVal;
+        input.style.borderColor = 'green';
+        setTimeout(() => loadBalances(), 500); // Refresh to be safe
+
+    } catch (error) {
+        showAlert('Hata: ' + error.message);
+        input.value = oldVal.toFixed(2); // Revert
+        input.disabled = false;
+        input.style.borderColor = 'red';
+    }
+}
 
 // Transaction Actions
 async function deleteTransaction(id) {
-                    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
 
-                    try {
-                        const res = await fetch(`/api/salary/${id}`, { method: 'DELETE' });
-                        if (!res.ok) throw new Error('Silinemedi');
+    try {
+        const res = await fetch(`/api/salary/${id}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error('Silinemedi');
 
-                        showToast('Başarılı', 'İşlem silindi', 'success');
-                        loadData(); // Reload all
-                    } catch (e) {
-                        console.error(e);
-                        showToast('Hata', 'Silme başarısız', 'error');
-                    }
-                }
+        showToast('Başarılı', 'İşlem silindi', 'success');
+        loadData(); // Reload all
+    } catch (e) {
+        console.error(e);
+        showToast('Hata', 'Silme başarısız', 'error');
+    }
+}
 
 let editingTransactionId = null;
 
-            function editTransaction(t) {
-            // Populate modal with transaction data
-            editingTransactionId = t.id;
+function editTransaction(t) {
+    // Populate modal with transaction data
+    editingTransactionId = t.id;
 
-            document.getElementById('transactionModalTitle').innerText = 'İşlemi Düzenle';
-            document.getElementById('employeeSelect').value = t.employee_id;
-            // document.getElementById('employeeSelect').disabled = true; // Maybe lock employee?
+    document.getElementById('transactionModalTitle').innerText = 'İşlemi Düzenle';
+    document.getElementById('employeeSelect').value = t.employee_id;
+    // document.getElementById('employeeSelect').disabled = true; // Maybe lock employee?
 
-            // Set Type
-            const typeRadio = document.querySelector(`input[name="transType"][value="${t.transaction_type}"]`);
-            if(typeRadio) typeRadio.checked = true;
+    // Set Type
+    const typeRadio = document.querySelector(`input[name="transType"][value="${t.transaction_type}"]`);
+    if (typeRadio) typeRadio.checked = true;
 
-            document.getElementById('transAmount').value = t.amount_paid;
-            document.getElementById('accountSelect').value = t.account || 'cash';
-            document.getElementById('transDate').value = t.payment_date.split('T')[0];
-            document.getElementById('transNotes').value = t.notes || '';
+    document.getElementById('transAmount').value = t.amount_paid;
+    document.getElementById('accountSelect').value = t.account || 'cash';
+    document.getElementById('transDate').value = t.payment_date.split('T')[0];
+    document.getElementById('transNotes').value = t.notes || '';
 
-            toggleAccountSelect(); // Ensure correct fields show
+    toggleAccountSelect(); // Ensure correct fields show
     document.getElementById('transactionModal').style.display = 'flex';
-        }
+}
 
 // Reset modal state when opening new one
 function showTransactionModal() {
-                editingTransactionId = null; // Clear editing state
-                document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
-                document.getElementById('transactionForm').reset();
-                document.getElementById('employeeId').value = '';
-                // document.getElementById('employeeSelect').disabled = false;
+    editingTransactionId = null; // Clear editing state
+    document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
+    document.getElementById('transactionForm').reset();
+    document.getElementById('employeeId').value = '';
+    // document.getElementById('employeeSelect').disabled = false;
 
-                // Set Default Date
-                document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+    // Set Default Date
+    document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
 
-                document.getElementById('transactionModal').style.display = 'flex';
-            })
-    });
-
-    if (!response.ok) throw new Error('Kaydedilemedi');
-
-    // Success: Update original value to prevent double-submit
-    input.dataset.originalValue = newVal;
-    input.style.borderColor = 'green';
-    setTimeout(() => loadBalances(), 500); // Refresh to be safe
-
-} catch (error) {
-    showAlert('Hata: ' + error.message);
-    input.value = oldVal.toFixed(2); // Revert
-    input.disabled = false;
-    input.style.borderColor = 'red';
-}
+    document.getElementById('transactionModal').style.display = 'flex';
 }
