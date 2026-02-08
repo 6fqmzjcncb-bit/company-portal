@@ -450,7 +450,7 @@ function createEmployeeRow(emp) {
         <td><small>${formatDate(emp.start_date)}</small></td>
         <td>${emp.total_worked_days}</td>
         <td>${formatCurrency(emp.total_accrued)}</td>
-        <td style="width: 120px;">
+        <td style="width: 150px;">
             <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
                 <input type="text" 
                     style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
@@ -1086,10 +1086,13 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
     try {
         let url = '/api/salary/pay';
         let method = 'POST';
+        const transTypeInput = document.querySelector('input[name="transType"]:checked');
+        const transType = transTypeInput ? transTypeInput.value : 'payment';
+
         const body = {
             employee_id: empId,
             amount_paid: amount,
-            transaction_type: 'payment',
+            transaction_type: transType,
             account: account,
             payment_date: date,
             notes: notes
