@@ -598,6 +598,7 @@ async function reactivateFromEdit(id) {
         // No, `saveEmployee` checks `editEmpId`.
 
         await handleEmployeeSubmit({ preventDefault: () => { } }); // reusing existing logic
+        closeModal('archivedEmployeesModal');
 
         // Modal closing is handled by saveEmployee if successful.
 
