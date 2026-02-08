@@ -231,8 +231,34 @@ router.delete('/:id', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Ödeme kaydı bulunamadı' });
         }
 
+        const empId = payment.employee_id;
         await payment.destroy();
-        res.json({ message: 'Ödeme kaydı silindi' });
+
+        // Re-calculate the "Last Payment Date" (start_date) for the employee
+        // 1. Find the latest payment (transaction_type: 'payment') for this employee
+        const latestPayment = await SalaryPayment.findOne({
+            where: {
+                employee_id: empId,
+                transaction_type: 'payment'
+            },
+            order: [['payment_date', 'DESC']]
+        });
+
+        // 2. Update employee start_date
+        const Employee = require('../models/Employee');
+        const emp = await Employee.findByPk(empId);
+
+        if (emp) {
+            if (latestPayment) {
+                emp.start_date = latestPayment.payment_date;
+            } else {
+                // If no payments left, reset to null (or hire_date if preferred, but null means "from beginning")
+                emp.start_date = null;
+            }
+            await emp.save();
+        }
+
+        res.json({ message: 'Ödeme kaydı silindi ve bakiye başlangıç tarihi güncellendi' });
     } catch (error) {
         console.error('Ödeme silme hatası:', error);
         res.status(500).json({ error: 'Sunucu hatası' });
