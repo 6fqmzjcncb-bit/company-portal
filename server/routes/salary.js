@@ -222,17 +222,58 @@ router.post('/pay', requireAuth, async (req, res) => {
 
             const netExpenses = pendingReimbursements - pendingDeductions;
 
+            // --- Bakiye Hesaplama (Kısmi Ödeme Kontrolü) ---
+            let totalAccrued = 0;
+            if (emp.daily_wage) {
+                totalAccrued = daysWorked * parseFloat(emp.daily_wage);
+                // Mesai (Şimdilik basit tutuyoruz, Attendance modelinde saat varsa eklenebilir)
+                const totalOvertimeHours = attendances.reduce((sum, a) => sum + (parseFloat(a.hours_worked) || 0), 0);
+                if (totalOvertimeHours > 0) {
+                    const hourlyRate = parseFloat(emp.daily_wage) / 9;
+                    totalAccrued += totalOvertimeHours * hourlyRate; // Not strict, but approximation for balance check
+                }
+            } else if (emp.monthly_salary) {
+                totalAccrued = (parseFloat(emp.monthly_salary) / 30) * daysWorked;
+            }
+
+            // Şu anki toplam alacak (Bu ödeme düşülmeden önce)
+            // Not: totalPaid (bu dönemde yapılan ÖNCEKİ ödemeler) düşülmeli mi?
+            // filterDate'den sonra yapılan 'payment' tipi ödemeler...
+            // Fakat biz şu anki "amount_paid"i henüz kaydetmedik.
+            // O yüzden: (Hakediş + Net Harcama) - (Bu dönemdeki Önceki Ödemeler) = Kalan Borç
+
+            const previousPayments = await SalaryPayment.sum('amount_paid', {
+                where: {
+                    employee_id: emp.id,
+                    transaction_type: 'payment',
+                    payment_date: {
+                        [Op.gt]: filterDate,
+                        [Op.lte]: pDate
+                    }
+                }
+            }) || 0;
+
+            const currentDebt = (totalAccrued + netExpenses) - previousPayments;
+
             // Notlara ekle
             if (netExpenses !== 0) {
-                // Format currency manual or just use simple fixed
                 const expenseText = ` (Dahil Edilen Harcama: ${netExpenses.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL)`;
                 notes = (notes || '') + expenseText;
             }
 
-            // 3. Personelin "Başlangıç Tarihi"ni (son ödeme tarihi) güncelle
-            // Böylece bir sonraki hesaplama bu tarihten sonrasını baz alır.
-            emp.start_date = pDate;
-            await emp.save();
+            // 3. Personelin "Başlangıç Tarihi"ni GÜNCELLEME KONTROLÜ
+            // Eğer ödenen tutar, borcun tamamını (veya %99'unu - küsurat farkı için) karşılıyorsa sıfırla.
+            // Değilse, start_date'i değiştirme (böylece bakiye devretmeye devam eder).
+
+            // Tolerans: 1 TL (Küsurat hataları için)
+            if (parseFloat(amount_paid) >= (currentDebt - 1.0)) {
+                emp.start_date = pDate;
+                await emp.save();
+                notes = (notes || '') + ' (Hesap Kapatıldı)';
+            } else {
+                // Kısmi ödeme yapıldı. start_date değişmez.
+                notes = (notes || '') + ' (Kısmi Ödeme - Bakiye Devrediyor)';
+            }
         }
 
         const payment = await SalaryPayment.create({
