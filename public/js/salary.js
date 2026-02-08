@@ -1147,6 +1147,46 @@ window.editTransaction = function (t) {
 
 
 
+};
+
+window.handleSmartReimbursement = async function (empId, input) {
+    const newValue = parseFloat(input.value) || 0;
+    const originalValue = parseFloat(input.getAttribute('data-original-value')) || 0;
+    const diff = newValue - originalValue;
+
+    if (diff === 0) return; // No change
+
+    if (!confirm(`${formatCurrency(diff)} tutarında masraf/harcama ${diff > 0 ? 'eklemek' : 'çıkarmak'} istiyor musunuz?`)) {
+        input.value = originalValue; // Revert
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/salary/pay', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employee_id: empId,
+                amount_paid: Math.abs(diff),
+                transaction_type: 'reimbursement', // Masraf Fişi (Alacak ekler)
+                account: 'cash', // Default to cash or ask? Cash is safe.
+                notes: 'Hızlı Masraf Girişi (Tablodan)',
+                payment_date: new Date().toISOString().split('T')[0]
+            })
+        });
+
+        if (!response.ok) throw new Error('Kaydedilemedi');
+
+        showToast('Başarılı', 'Masraf işlendi', 'success');
+        input.blur();
+        await loadData(); // Refresh history and balances
+    } catch (e) {
+        console.error(e);
+        showToast('Hata', 'İşlem başarısız', 'error');
+        input.value = originalValue;
+    }
+};
+
 window.deleteCurrentTransaction = function () {
     if (editingTransactionId) {
         deleteTransaction(editingTransactionId);
