@@ -221,22 +221,21 @@ router.post('/pay', requireAuth, async (req, res) => {
 });
 
 
-// Ödeme silme
-// Ödeme silme
-router.delete('/:id', requireAuth, async (req, res) => {
-    try {
-        const payment = await SalaryPayment.findByPk(req.params.id);
 
-        if (!payment) {
-            return res.status(404).json({ error: 'Ödeme kaydı bulunamadı' });
-        }
+// Ödeme silmerouter.delete('/:id', requireAuth, async (req, res) => {
+try {
+    const payment = await SalaryPayment.findByPk(req.params.id);
 
-        await payment.destroy();
-        res.json({ message: 'Ödeme kaydı silindi' });
-    } catch (error) {
-        console.error('Ödeme silme hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+    if (!payment) {
+        return res.status(404).json({ error: 'Ödeme kaydı bulunamadı' });
     }
+
+    await payment.destroy();
+    res.json({ message: 'Ödeme kaydı silindi' });
+} catch (error) {
+    console.error('Ödeme silme hatası:', error);
+    res.status(500).json({ error: 'Sunucu hatası' });
+}
 });
 
 // Ödeme güncelle
