@@ -174,9 +174,11 @@ function editEmployee(id) {
             // Auto-update amount input
             const amountInput = document.getElementById('transAmount');
             if (amountInput) {
-                amountInput.value = total.toFixed(2);
+                // Using toLocaleString for formatting
+                amountInput.value = total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
-        } const btnDelete = document.getElementById('btnDeleteEmployee');
+        }
+        const btnDelete = document.getElementById('btnDeleteEmployee');
         if (fullEmp.is_active) {
             btnDelete.innerText = 'İşten Çıkar (Arşivle)';
             btnDelete.className = 'btn btn-danger';
@@ -960,6 +962,15 @@ function openPaymentModal(empId) {
 
         updateEmployeeContext();
         toggleAccountSelect();
+
+        // Default to 'Merkez Kasa'
+        const accSelect = document.getElementById('accountSelect');
+        if (accSelect) {
+            // Try explicit value or find option with text
+            accSelect.value = 'Merkez Kasa';
+            // If value doesn't match (e.g. if values are IDs), we might need to find by text.
+            // But based on loadSources, value IS name.
+        }
     } catch (e) {
         console.error('Payment Modal Error:', e);
         showAlert('Hata: Ödeme penceresi açılamadı. ' + e.message);
@@ -1028,12 +1039,33 @@ function toggleAccountSelect() {
 }
 
 // Form Submission
+// Currency Formatter Input
+window.formatCurrencyInput = function (input) {
+    let value = input.value.replace(/\D/g, ''); // Remove non-digits
+    if (!value) {
+        input.value = '';
+        return;
+    }
+
+    // Convert to currency format (Type: 12345 -> 123,45)
+    const numberValue = parseFloat(value) / 100;
+    input.value = numberValue.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Helper to parse formatted currency back to float
+function parseCurrencyInput(value) {
+    if (!value) return 0;
+    // Remove dots (thousands), replace comma with dot (decimal)
+    return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
+}
+
 // Form Submission
 document.getElementById('transactionForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const empId = document.getElementById('employeeSelect').value;
-    const amount = document.getElementById('transAmount').value;
+    const amountVal = document.getElementById('transAmount').value;
+    const amount = parseCurrencyInput(amountVal); // Parse formatted input
     const account = document.getElementById('accountSelect').value;
     const date = document.getElementById('transDate').value;
     const notes = document.getElementById('transNotes').value;
