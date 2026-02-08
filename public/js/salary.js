@@ -454,8 +454,8 @@ function createEmployeeRow(emp) {
         <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
         <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
         <td>
-            <button class="btn btn-primary btn-sm" onclick="openPaymentModal(${emp.id})" style="display: flex; align-items: center; gap: 5px;">
-                <span>💸</span> Ödeme Yap
+            <button class="btn btn-success btn-sm" onclick="openPaymentModal(${emp.id})">
+                Ödeme Yap
             </button>
         </td>
     </tr>
