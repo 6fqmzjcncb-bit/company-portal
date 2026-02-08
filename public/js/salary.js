@@ -847,14 +847,19 @@ async function loadHistory() {
                 <td>${formatCurrency(t.amount_paid)}</td>
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
+                <td>
+                    <button class="btn-small btn-secondary" onclick='editTransaction(${JSON.stringify(t)})'>Düzenle</button>
+                    <button class="btn-small btn-danger" onclick="deleteTransaction(${t.id})">Sil</button>
+                </td>
             </tr>
             `;
         }).join('');
+    }).join('');
 
-    } catch (error) {
-        console.error('Geçmiş hatası:', error);
-        document.getElementById('transactionHistory').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Yükleme hatası</td></tr>';
-    }
+} catch (error) {
+    console.error('Geçmiş hatası:', error);
+    document.getElementById('transactionHistory').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Yükleme hatası</td></tr>';
+}
 }
 
 // Modal Logic
@@ -925,34 +930,51 @@ function toggleAccountSelect() {
 }
 
 // Form Submission
+// Form Submission
 document.getElementById('transactionForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const empId = document.getElementById('employeeSelect').value;
-    // const type = document.querySelector('input[name="transType"]:checked').value; // Removed
     const amount = document.getElementById('transAmount').value;
     const account = document.getElementById('accountSelect').value;
     const date = document.getElementById('transDate').value;
     const notes = document.getElementById('transNotes').value;
 
     try {
-        const response = await fetch('/api/salary/pay', {
-            method: 'POST',
+        let url = '/api/salary/pay';
+        let method = 'POST';
+        const body = {
+            employee_id: empId,
+            amount_paid: amount,
+            transaction_type: 'payment',
+            account: account,
+            payment_date: date,
+            notes: notes
+        };
+
+        if (editingTransactionId) {
+            url = `/api/salary/${editingTransactionId}`;
+            method = 'PUT';
+            // For updates, we might want to respect the original transaction type if we supported editing expenses
+            // But the modal currently forces 'payment' in hidden logic or defaulting?
+            // Actually the modal has radio buttons for type? 
+            // In openPaymentModal it checks 'payment'.
+            // In editTransaction we set the radio button.
+            // So we should read the radio button value.
+            const type = document.querySelector('input[name="transType"]:checked').value;
+            body.transaction_type = type;
+        }
+
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                employee_id: empId,
-                amount_paid: amount,
-                transaction_type: 'payment', // Always payment from modal
-                account: account,
-                payment_date: date,
-                notes: notes
-            })
+            body: JSON.stringify(body)
         });
 
         if (!response.ok) throw new Error('Kaydedilemedi');
 
         showAlert('İşlem başarıyla kaydedildi');
-        closeModal();
+        closeModal('transactionModal');
         loadData(); // Refresh all tables
 
     } catch (error) {
@@ -1068,20 +1090,73 @@ async function handleSmartReimbursement(empId, input) {
                 transaction_type: 'reimbursement', // Maps to Harcamalar/Masraf
                 notes: 'Tablodan düzenleme (Fark: ' + diff.toFixed(2) + ')',
                 payment_date: new Date().toISOString().split('T')[0]
+            }
+
+// Transaction Actions
+async function deleteTransaction(id) {
+                    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
+
+                    try {
+                        const res = await fetch(`/api/salary/${id}`, { method: 'DELETE' });
+                        if (!res.ok) throw new Error('Silinemedi');
+
+                        showToast('Başarılı', 'İşlem silindi', 'success');
+                        loadData(); // Reload all
+                    } catch (e) {
+                        console.error(e);
+                        showToast('Hata', 'Silme başarısız', 'error');
+                    }
+                }
+
+let editingTransactionId = null;
+
+            function editTransaction(t) {
+            // Populate modal with transaction data
+            editingTransactionId = t.id;
+
+            document.getElementById('transactionModalTitle').innerText = 'İşlemi Düzenle';
+            document.getElementById('employeeSelect').value = t.employee_id;
+            // document.getElementById('employeeSelect').disabled = true; // Maybe lock employee?
+
+            // Set Type
+            const typeRadio = document.querySelector(`input[name="transType"][value="${t.transaction_type}"]`);
+            if(typeRadio) typeRadio.checked = true;
+
+            document.getElementById('transAmount').value = t.amount_paid;
+            document.getElementById('accountSelect').value = t.account || 'cash';
+            document.getElementById('transDate').value = t.payment_date.split('T')[0];
+            document.getElementById('transNotes').value = t.notes || '';
+
+            toggleAccountSelect(); // Ensure correct fields show
+    document.getElementById('transactionModal').style.display = 'flex';
+        }
+
+// Reset modal state when opening new one
+function showTransactionModal() {
+                editingTransactionId = null; // Clear editing state
+                document.getElementById('transactionModalTitle').innerText = 'Yeni İşlem Ekle';
+                document.getElementById('transactionForm').reset();
+                document.getElementById('employeeId').value = '';
+                // document.getElementById('employeeSelect').disabled = false;
+
+                // Set Default Date
+                document.getElementById('transDate').value = new Date().toISOString().split('T')[0];
+
+                document.getElementById('transactionModal').style.display = 'flex';
             })
-        });
+    });
 
-        if (!response.ok) throw new Error('Kaydedilemedi');
+    if (!response.ok) throw new Error('Kaydedilemedi');
 
-        // Success: Update original value to prevent double-submit
-        input.dataset.originalValue = newVal;
-        input.style.borderColor = 'green';
-        setTimeout(() => loadBalances(), 500); // Refresh to be safe
+    // Success: Update original value to prevent double-submit
+    input.dataset.originalValue = newVal;
+    input.style.borderColor = 'green';
+    setTimeout(() => loadBalances(), 500); // Refresh to be safe
 
-    } catch (error) {
-        showAlert('Hata: ' + error.message);
-        input.value = oldVal.toFixed(2); // Revert
-        input.disabled = false;
-        input.style.borderColor = 'red';
-    }
+} catch (error) {
+    showAlert('Hata: ' + error.message);
+    input.value = oldVal.toFixed(2); // Revert
+    input.disabled = false;
+    input.style.borderColor = 'red';
+}
 }

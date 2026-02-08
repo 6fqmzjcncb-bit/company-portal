@@ -238,6 +238,31 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
 });
 
+// Ödeme güncelle
+router.put('/:id', requireAuth, async (req, res) => {
+    try {
+        const { amount_paid, transaction_type, account, notes, payment_date } = req.body;
+        const payment = await SalaryPayment.findByPk(req.params.id);
+
+        if (!payment) {
+            return res.status(404).json({ error: 'Ödeme kaydı bulunamadı' });
+        }
+
+        await payment.update({
+            amount_paid,
+            transaction_type,
+            account,
+            notes,
+            payment_date: payment_date ? new Date(payment_date) : payment.payment_date
+        });
+
+        res.json(payment);
+    } catch (error) {
+        console.error('Ödeme güncelleme hatası:', error);
+        res.status(500).json({ error: 'Sunucu hatası' });
+    }
+});
+
 // GET /payments - Son işlemleri getir
 router.get('/payments', requireAuth, async (req, res) => {
     try {
