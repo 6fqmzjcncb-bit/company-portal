@@ -165,9 +165,10 @@ router.post('/pay', requireAuth, async (req, res) => {
             amount_paid,
             transaction_type, // 'payment' or 'expense'
             account,          // 'cash', 'bank'
-            notes,
             payment_date
         } = req.body;
+
+        let notes = req.body.notes;
 
         const emp = await Employee.findByPk(employee_id);
         if (!emp) return res.status(404).json({ error: 'Personel bulunamadı' });
