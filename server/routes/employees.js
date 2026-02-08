@@ -49,21 +49,7 @@ router.get('/', requireAuth, async (req, res) => {
 // Personel detayı getir
 router.get('/:id', requireAuth, async (req, res) => {
     try {
-        const employee = await Employee.findByPk(req.params.id, {
-            include: [
-                {
-                    model: Attendance,
-                    as: 'attendances',
-                    limit: 30,
-                    order: [['date', 'DESC']]
-                },
-                {
-                    model: SalaryPayment,
-                    as: 'payments',
-                    order: [['payment_date', 'DESC']]
-                }
-            ]
-        });
+        const employee = await Employee.findByPk(req.params.id);
 
         if (!employee) {
             return res.status(404).json({ error: 'Personel bulunamadı' });
