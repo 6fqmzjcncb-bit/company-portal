@@ -597,7 +597,7 @@ async function reactivateFromEdit(id) {
         // But `btnSaveEmployeeSalary` creates a NEW employee if no ID involves? 
         // No, `saveEmployee` checks `editEmpId`.
 
-        await saveEmployee(); // reusing existing logic
+        await handleEmployeeSubmit({ preventDefault: () => { } }); // reusing existing logic
 
         // Modal closing is handled by saveEmployee if successful.
 
