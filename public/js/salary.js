@@ -1156,10 +1156,8 @@ window.handleSmartReimbursement = async function (empId, input) {
 
     if (diff === 0) return; // No change
 
-    if (!confirm(`${formatCurrency(diff)} tutarında masraf/harcama ${diff > 0 ? 'eklemek' : 'çıkarmak'} istiyor musunuz?`)) {
-        input.value = originalValue; // Revert
-        return;
-    }
+    // Confirmation removed as requested
+    // if (!confirm(...)) return;
 
     try {
         const response = await fetch('/api/salary/pay', {
