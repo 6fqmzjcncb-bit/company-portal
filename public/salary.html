@@ -222,10 +222,14 @@
                                 <textarea id="transNotes" rows="2" placeholder="İşlem detayları..."></textarea>
                             </div>
 
-                            <div class="modal-actions">
-                                <button type="button" class="btn btn-secondary"
-                                    onclick="closeModal('transactionModal')">İptal</button>
-                                <button type="submit" class="btn btn-primary">İşlemi Kaydet</button>
+                            <div class="modal-actions" style="justify-content: space-between;">
+                                <button type="button" id="btnDeleteData" class="btn btn-danger" style="display: none;"
+                                    onclick="deleteCurrentTransaction()">Sil</button>
+                                <div style="display: flex; gap: 10px;">
+                                    <button type="button" class="btn btn-secondary"
+                                        onclick="closeModal('transactionModal')">İptal</button>
+                                    <button type="submit" class="btn btn-primary">İşlemi Kaydet</button>
+                                </div>
                             </div>
                         </form>
                     </div>

@@ -901,8 +901,8 @@ async function loadHistory() {
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
                 <td>
+                <td>
                     <button class="btn btn-secondary btn-sm" onclick='editTransaction(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Düzenle</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteTransaction('${t.id}')">Sil</button>
                 </td>
             </tr>
             `;
@@ -1116,7 +1116,18 @@ window.editTransaction = function (t) {
         updateEmployeeContext();
         toggleAccountSelect();
 
+        updateEmployeeContext();
+        toggleAccountSelect();
+
         document.getElementById('transactionModal').style.display = 'flex';
+
+        // Show delete button
+        const btnDelete = document.getElementById('btnDeleteData');
+        if (btnDelete) {
+            btnDelete.style.display = 'block';
+            // We use a global helper that uses `editingTransactionId`
+        }
+
     } catch (e) {
         console.error('Edit Error', e);
         showAlert('Hata: Düzenleme ekranı açılamadı');
