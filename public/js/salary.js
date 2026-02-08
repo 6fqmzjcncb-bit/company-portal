@@ -848,7 +848,7 @@ async function loadArchivedEmployees() {
                 </div>
                 
                 <div class="archive-actions" style="display: flex; gap: 8px;">
-                    <button class="btn btn-success btn-sm" style="flex: 1;" onclick="editEmployee(${emp.id})">
+                    <button class="btn btn-success btn-sm" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 5px;" onclick="editEmployee(${emp.id})">
                         <span>📋</span> İşe Geri Al
                     </button>
                 </div>
