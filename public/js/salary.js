@@ -1137,7 +1137,7 @@ window.editTransaction = function (t) {
     }
 };
 
-};
+
 
 window.deleteCurrentTransaction = function () {
     if (editingTransactionId) {
