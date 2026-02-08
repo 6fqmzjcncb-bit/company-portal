@@ -322,7 +322,6 @@ async function handleEmployeeSubmit(e) {
         monthly_salary: document.getElementById('monthlySalary').value || null,
         hire_date: document.getElementById('hireDate').value || null,
         notes: document.getElementById('notes').value,
-        notes: document.getElementById('notes').value,
         role_id: document.getElementById('systemRole').value || null, // Add system role
         is_active: true
     };
@@ -454,7 +453,7 @@ function createEmployeeRow(emp) {
         <td>${formatCurrency(emp.total_paid + emp.total_expense)}</td>
         <td><strong class="${balanceClass}">${formatCurrency(emp.current_balance)}</strong></td>
         <td>
-            <button class="btn btn-success btn-sm" onclick="openPaymentModal(${emp.id})">
+            <button class="btn btn-success btn-sm" onclick="openPaymentModal('${emp.id}')">
                 Ödeme Yap
             </button>
         </td>
@@ -902,8 +901,8 @@ async function loadHistory() {
                 <td>${getAccountLabel(t.account)}</td>
                 <td>${t.notes || '-'}</td>
                 <td>
-                    <button class="btn-small btn-secondary" onclick='editTransaction(${JSON.stringify(t)})'>Düzenle</button>
-                    <button class="btn-small btn-danger" onclick="deleteTransaction(${t.id})">Sil</button>
+                    <button class="btn-small btn-secondary" onclick='editTransaction(${JSON.stringify(t).replace(/'/g, "&apos;")})'>Düzenle</button>
+                    <button class="btn-small btn-danger" onclick="deleteTransaction('${t.id}')">Sil</button>
                 </td>
             </tr>
             `;
@@ -1007,7 +1006,10 @@ function updateEmployeeContext() {
 }
 
 function toggleAccountSelect() {
-    const type = document.querySelector('input[name="transType"]:checked').value;
+    const checkedRadio = document.querySelector('input[name="transType"]:checked');
+    if (!checkedRadio) return;
+
+    const type = checkedRadio.value;
     const accountGroup = document.getElementById('accountGroup');
     // Account selection is only needed for actual Money OUT (Payment)
     accountGroup.style.display = (type === 'payment') ? 'block' : 'none';
@@ -1149,87 +1151,3 @@ window.onclick = function (event) {
     if (event.target == empModal) closeModal('employeeModal');
     if (event.target == archivedModal) closeModal('archivedEmployeesModal');
 }
-
-async function handleSmartReimbursement(empId, input) {
-    const newVal = parseFloat(input.value);
-    const oldVal = parseFloat(input.getAttribute('data-original-value')) || 0;
-
-    if (isNaN(newVal)) {
-        input.value = oldVal.toFixed(2); // Reset on error
-        return;
-    }
-
-    const diff = newVal - oldVal;
-    if (Math.abs(diff) < 0.01) return; // No change
-
-    try {
-        input.disabled = true;
-
-        const response = await fetch('/api/salary/pay', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                employee_id: empId,
-                amount_paid: diff, // Send the difference (positive or negative)
-                transaction_type: 'reimbursement', // Maps to Harcamalar/Masraf
-                notes: 'Tablodan düzenleme (Fark: ' + diff.toFixed(2) + ')',
-                payment_date: new Date().toISOString().split('T')[0]
-            })
-        });
-
-        if (!response.ok) throw new Error('Kaydedilemedi');
-
-        // Success: Update original value to prevent double-submit
-        input.dataset.originalValue = newVal;
-        input.style.borderColor = 'green';
-        setTimeout(() => loadBalances(), 500); // Refresh to be safe
-
-    } catch (error) {
-        showAlert('Hata: ' + error.message);
-        input.value = oldVal.toFixed(2); // Revert
-        input.disabled = false;
-        input.style.borderColor = 'red';
-    }
-}
-
-// Transaction Actions
-async function deleteTransaction(id) {
-    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
-
-    try {
-        const res = await fetch(`/api/salary/${id}`, { method: 'DELETE' });
-        if (!res.ok) throw new Error('Silinemedi');
-
-        showToast('Başarılı', 'İşlem silindi', 'success');
-        loadData(); // Reload all
-    } catch (e) {
-        console.error(e);
-        showToast('Hata', 'Silme başarısız', 'error');
-    }
-}
-
-let editingTransactionId = null;
-
-function editTransaction(t) {
-    // Populate modal with transaction data
-    editingTransactionId = t.id;
-
-    document.getElementById('transactionModalTitle').innerText = 'İşlemi Düzenle';
-    document.getElementById('employeeSelect').value = t.employee_id;
-    // document.getElementById('employeeSelect').disabled = true; // Maybe lock employee?
-
-    // Set Type
-    const typeRadio = document.querySelector(`input[name="transType"][value="${t.transaction_type}"]`);
-    if (typeRadio) typeRadio.checked = true;
-
-    document.getElementById('transAmount').value = t.amount_paid;
-    document.getElementById('accountSelect').value = t.account || 'cash';
-    document.getElementById('transDate').value = t.payment_date.split('T')[0];
-    document.getElementById('transNotes').value = t.notes || '';
-
-    toggleAccountSelect(); // Ensure correct fields show
-    document.getElementById('transactionModal').style.display = 'flex';
-}
-
-// Reset modal state when opening new one
-
