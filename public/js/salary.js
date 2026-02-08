@@ -454,7 +454,8 @@ function createEmployeeRow(emp) {
             <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
                 <input type="text" 
                     style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
-                    value="${(emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
+                    value="${(emp.total_reimbursement || 0) === 0 ? '' : (emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
+                    placeholder="0,00"
                     data-original-value="${(emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
                     onblur="formatCurrencyInput(this)"
                     onchange="handleSmartReimbursement(${emp.id}, this)">
