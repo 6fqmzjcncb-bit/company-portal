@@ -854,12 +854,12 @@ async function loadHistory() {
             </tr>
             `;
         }).join('');
-    }).join('');
 
-} catch (error) {
-    console.error('Geçmiş hatası:', error);
-    document.getElementById('transactionHistory').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Yükleme hatası</td></tr>';
-}
+
+    } catch (error) {
+        console.error('Geçmiş hatası:', error);
+        document.getElementById('transactionHistory').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Yükleme hatası</td></tr>';
+    }
 }
 
 // Modal Logic
