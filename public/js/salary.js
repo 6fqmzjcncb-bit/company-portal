@@ -452,10 +452,11 @@ function createEmployeeRow(emp) {
         <td>${formatCurrency(emp.total_accrued)}</td>
         <td style="width: 120px;">
             <div style="display: flex; align-items: center; border: 1px solid #ced4da; border-radius: 4px; padding: 0 8px; background: #fff; height: 32px;">
-                <input type="number" 
+                <input type="text" 
                     style="border: none; outline: none; width: 100%; text-align: right; padding: 0; font-size: 1rem; background: transparent;" 
-                    value="${parseFloat((emp.total_reimbursement || 0).toFixed(2))}"
-                    data-original-value="${emp.total_reimbursement || 0}"
+                    value="${(emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
+                    data-original-value="${(emp.total_reimbursement || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}"
+                    onblur="formatCurrencyInput(this)"
                     onchange="handleSmartReimbursement(${emp.id}, this)">
                 <span style="font-size: 12px; color: #888; margin-left: 4px; font-weight: 500;">TL</span>
             </div>
@@ -1189,8 +1190,8 @@ window.editTransaction = function (t) {
 
 
 window.handleSmartReimbursement = async function (empId, input) {
-    const newValue = parseFloat(input.value) || 0;
-    const originalValue = parseFloat(input.getAttribute('data-original-value')) || 0;
+    const newValue = parseCurrencyInput(input.value);
+    const originalValue = parseCurrencyInput(input.getAttribute('data-original-value'));
     const diff = newValue - originalValue;
 
     if (diff === 0) return; // No change
