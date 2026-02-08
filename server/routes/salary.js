@@ -195,7 +195,40 @@ router.post('/pay', requireAuth, async (req, res) => {
             });
             daysWorked = attendances.length;
 
-            // 2. Personelin "Başlangıç Tarihi"ni (son ödeme tarihi) güncelle
+            // 2. Hesaplanacak Harcamalar (Masraf Fişi - Kesintiler)
+            // Bu dönemde birikmiş ve henüz ödenmemiş harcamalar
+            const pendingReimbursements = await SalaryPayment.sum('amount_paid', {
+                where: {
+                    employee_id: emp.id,
+                    transaction_type: 'reimbursement',
+                    payment_date: {
+                        [Op.gt]: filterDate,
+                        [Op.lte]: pDate
+                    }
+                }
+            }) || 0;
+
+            const pendingDeductions = await SalaryPayment.sum('amount_paid', {
+                where: {
+                    employee_id: emp.id,
+                    transaction_type: 'expense', // Kesinti
+                    payment_date: {
+                        [Op.gt]: filterDate,
+                        [Op.lte]: pDate
+                    }
+                }
+            }) || 0;
+
+            const netExpenses = pendingReimbursements - pendingDeductions;
+
+            // Notlara ekle
+            if (netExpenses !== 0) {
+                // Format currency manual or just use simple fixed
+                const expenseText = ` (Dahil Edilen Harcama: ${netExpenses.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} TL)`;
+                notes = (notes || '') + expenseText;
+            }
+
+            // 3. Personelin "Başlangıç Tarihi"ni (son ödeme tarihi) güncelle
             // Böylece bir sonraki hesaplama bu tarihten sonrasını baz alır.
             emp.start_date = pDate;
             await emp.save();
