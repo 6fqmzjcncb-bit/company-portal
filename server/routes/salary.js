@@ -89,7 +89,7 @@ router.get('/balance', requireAuth, async (req, res) => {
                 where: {
                     employee_id: emp.id,
                     worked: true,
-                    date: { [Op.gte]: filterDate }
+                    date: { [Op.gt]: filterDate }
                 },
                 order: [['date', 'ASC']]
             });

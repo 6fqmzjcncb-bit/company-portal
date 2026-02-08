@@ -168,7 +168,15 @@ function editEmployee(id) {
         document.getElementById('notes').value = fullEmp.notes || '';
 
         // Button Logic: Fire vs Re-hire
-        const btnDelete = document.getElementById('btnDeleteEmployee');
+        const balanceText = document.getElementById('modalBalance');
+        if (balanceText) {
+            balanceText.innerText = `Toplam Ödenecek: ${formatCurrency(total)}`;
+            // Auto-update amount input
+            const amountInput = document.getElementById('transAmount');
+            if (amountInput) {
+                amountInput.value = total.toFixed(2);
+            }
+        } const btnDelete = document.getElementById('btnDeleteEmployee');
         if (fullEmp.is_active) {
             btnDelete.innerText = 'İşten Çıkar (Arşivle)';
             btnDelete.className = 'btn btn-danger';
