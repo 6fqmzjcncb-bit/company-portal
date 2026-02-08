@@ -1096,6 +1096,51 @@ document.getElementById('transactionForm').addEventListener('submit', async (e) 
     }
 });
 
+// Transaction Edit/Delete (Restored)
+window.editTransaction = function (t) {
+    try {
+        editingTransactionId = t.id;
+        document.getElementById('transactionModalTitle').innerText = 'İşlem Düzenle';
+
+        // Populate Form
+        document.getElementById('employeeSelect').value = t.employee_id;
+        document.getElementById('transAmount').value = t.amount_paid;
+        document.getElementById('transDate').value = t.payment_date.split('T')[0];
+        document.getElementById('transNotes').value = t.notes || '';
+        document.getElementById('accountSelect').value = t.account;
+
+        // Set Access
+        const rad = document.querySelector(`input[name="transType"][value="${t.transaction_type}"]`);
+        if (rad) rad.checked = true;
+
+        updateEmployeeContext();
+        toggleAccountSelect();
+
+        document.getElementById('transactionModal').style.display = 'flex';
+    } catch (e) {
+        console.error('Edit Error', e);
+        showAlert('Hata: Düzenleme ekranı açılamadı');
+    }
+};
+
+window.deleteTransaction = async function (id) {
+    if (!confirm('Bu işlemi silmek istediğinize emin misiniz?')) return;
+
+    try {
+        const response = await fetch(`/api/salary/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) throw new Error('Silinemedi');
+
+        showAlert('İşlem silindi', 'success');
+        await loadData();
+    } catch (e) {
+        console.error(e);
+        showAlert('Hata: İşlem silinemedi', 'error');
+    }
+};
+
 // --- System Roles ---
 async function loadSystemRoles() {
     const select = document.getElementById('systemRole');
