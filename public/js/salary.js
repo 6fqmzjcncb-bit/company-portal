@@ -1147,7 +1147,7 @@ window.editTransaction = function (t) {
 
 
 
-};
+
 
 window.handleSmartReimbursement = async function (empId, input) {
     const newValue = parseFloat(input.value) || 0;
