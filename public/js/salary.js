@@ -443,7 +443,7 @@ function createEmployeeRow(emp) {
     <tr>
         <td>
             <div class="clickable-name" onclick="editEmployee(${emp.id})" title="Detayları Düzenle" style="cursor: pointer; display: flex; align-items: center; gap: 8px;">
-                <span>✏️</span> <span style="font-weight: 500; color: #333;">${emp.full_name}</span>
+                <span>✏️</span> <span style="font-weight: 500; color: #007bff; text-decoration: none;">${emp.full_name}</span>
             </div>
         </td>
         <td>${wageDisplay}</td>
