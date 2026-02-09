@@ -23,6 +23,23 @@ function setupFilters() {
     brandFilter?.addEventListener('change', filterProducts);
 }
 
+function populateBrandFilter() {
+    const brands = [...new Set(products.map(p => p.brand).filter(b => b))].sort();
+    const currentVal = brandFilter.value;
+
+    // Filter dropdown
+    brandFilter.innerHTML = '<option value="">Tüm Markalar</option>' +
+        brands.map(b => `<option value="${b}">${b}</option>`).join('');
+
+    if (brands.includes(currentVal)) brandFilter.value = currentVal;
+
+    // Autocomplete datalist for Add/Edit form
+    const datalist = document.getElementById('brandOptions');
+    if (datalist) {
+        datalist.innerHTML = brands.map(b => `<option value="${b}">`).join('');
+    }
+}
+
 function filterProducts() {
     const query = searchInput.value.toLowerCase().trim();
     const brand = brandFilter.value;
