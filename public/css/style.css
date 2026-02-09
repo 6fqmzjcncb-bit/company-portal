@@ -175,13 +175,32 @@ body {
 }
 
 .brand-filter {
+  /* FIXED WIDTH & STYLING */
   flex: 0 0 200px;
-  /* FIXED WIDTH: Do not grow, do not shrink */
   width: 200px;
   min-width: 200px;
   cursor: pointer;
   background-color: white;
   height: 45px;
+
+  /* Fix text clipping */
+  padding: 0 35px 0 12px;
+  /* Right padding for arrow */
+  box-sizing: border-box;
+  border: 1px solid #d1d5db;
+  /* Ensure border is visible */
+  border-radius: 6px;
+  font-size: 0.95rem;
+  appearance: none;
+  /* Remove native appearance to control padding */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Add custom arrow */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
 }
 
 .search-wrapper {
