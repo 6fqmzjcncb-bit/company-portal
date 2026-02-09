@@ -170,31 +170,34 @@ body {
   gap: 12px;
   margin-bottom: 20px;
   align-items: center;
-  /* Vertically center */
+  width: 100%;
+  /* Ensure full width */
 }
 
 .brand-filter {
+  flex: 0 0 200px;
+  /* FIXED WIDTH: Do not grow, do not shrink */
   width: 200px;
-  /* Fixed width */
   min-width: 200px;
   cursor: pointer;
   background-color: white;
   height: 45px;
-  /* Match standard input height */
 }
 
 .search-wrapper {
   flex: 1;
-  /* Take remaining space */
+  /* Take all remaining space */
+  display: flex;
+  /* Ensure input fills it */
 }
 
 .search-input {
   width: 100%;
+  flex: 1;
   height: 45px;
-  /* Match brand filter height */
 }
 
-/* On very small screens, allowed to stack but default is row */
+/* On very small screens, allowed to stack */
 @media (max-width: 600px) {
   .filter-container {
     flex-direction: column;
@@ -203,6 +206,8 @@ body {
 
   .brand-filter {
     width: 100%;
+    flex: auto;
+    /* Reset flex for mobile */
   }
 }
 
