@@ -57,8 +57,7 @@ function updateUserInterface(user) {
     if (user.role === 'admin') {
         const adminLink = document.getElementById('adminLink');
         if (adminLink) adminLink.style.display = 'block';
-        const addBtn = document.getElementById('addBtn');
-        if (addBtn) addBtn.style.display = 'block';
+        if (addBtn) addBtn.style.display = 'inline-block';
     }
 }
 
