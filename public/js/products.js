@@ -182,6 +182,12 @@ function renderProductDropdowns() {
 async function addProduct() {
     document.getElementById('addProductForm').reset();
     document.getElementById('editProdId').value = ''; // Clear ID
+    document.getElementById('newProdName').value = '';
+    document.getElementById('newProdBarcode').value = '';
+    document.getElementById('newProdBrand').value = '';
+    document.getElementById('newProdStock').value = ''; // Empty by default
+    document.getElementById('newProdUnit').value = 'adet';
+
     document.getElementById('productModalTitle').textContent = '✨ Yeni Ürün Ekle';
 
     // Hide delete button & history
@@ -344,7 +350,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
         const response = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, barcode, current_stock: stock })
+            body: JSON.stringify({ name, barcode, brand, current_stock: stock, unit })
         });
 
         if (response.ok) {

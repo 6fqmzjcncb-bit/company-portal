@@ -70,21 +70,33 @@ router.get('/search', requireAuth, async (req, res) => {
 // Yeni ürün ekle (Admin veya Yetkili)
 router.post('/', requirePermission('view_products'), async (req, res) => {
     try {
-        const { name, stock, min_stock, unit } = req.body;
-        const product = await Product.create({ name, stock, min_stock, unit });
-        res.status(201).json(product);
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
-});
+        try {
+            const { name, stock, min_stock, unit, brand, barcode } = req.body;
+            const product = await Product.create({
+                name,
+                current_stock: stock || 0, // Map 'stock' to 'current_stock'
+                min_stock,
+                unit,
+                brand,
+                barcode
+            });
+            res.status(201).json(product);
+        } catch (error) {
+            res.status(400).json({ error: error.message });
+        }
+    });
 
-// Ürün güncelle
+// Ürün güncelle (Admin veya Yetkili)
 router.put('/:id', requirePermission('view_products'), async (req, res) => {
     try {
+        const { name, current_stock, min_stock, barcode, unit, brand } = req.body;
         const product = await Product.findByPk(req.params.id);
-        if (!product) return res.status(404).json({ error: 'Ürün bulunamadı' });
 
-        await product.update(req.body);
+        if (!product) {
+            return res.status(404).json({ error: 'Ürün bulunamadı' });
+        }
+
+        await product.update({ name, current_stock, min_stock, barcode, unit, brand });
         res.json(product);
     } catch (error) {
         res.status(400).json({ error: error.message });
