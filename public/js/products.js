@@ -152,6 +152,7 @@ async function loadProducts() {
 
         renderProductList();
         renderProductDropdowns();
+        populateBrandFilter();
     } catch (error) {
         console.error('Ürün yükleme hatası:', error);
         document.getElementById('productsContainer').innerHTML =
