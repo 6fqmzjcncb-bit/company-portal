@@ -120,7 +120,7 @@ function renderProductList() {
 
     container.innerHTML = products.map(product => `
         <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
-            <td><strong>${product.name}</strong></td>
+            <td><strong style="color: var(--primary-color); text-decoration: underline;">${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
             <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
             <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>
@@ -147,8 +147,13 @@ async function addProduct() {
     document.getElementById('addProductForm').reset();
     document.getElementById('editProdId').value = ''; // Clear ID
     document.getElementById('productModalTitle').textContent = '✨ Yeni Ürün Ekle';
+
+    // Hide delete button & history
     const btnDelete = document.getElementById('btnDeleteProduct');
     if (btnDelete) btnDelete.style.display = 'none';
+
+    const historyDiv = document.getElementById('modalProductHistory');
+    if (historyDiv) historyDiv.style.display = 'none';
 
     document.getElementById('addProductModal').style.display = 'flex';
 }
@@ -336,6 +341,44 @@ async function editProduct(id) {
     // Show delete button
     const btnDelete = document.getElementById('btnDeleteProduct');
     if (btnDelete) btnDelete.style.display = 'block';
+
+    // Show & Load History
+    const historyDiv = document.getElementById('modalProductHistory');
+    const historyBody = document.getElementById('modalHistoryBody');
+
+    if (historyDiv && historyBody) {
+        historyDiv.style.display = 'block';
+        historyBody.innerHTML = '<tr><td colspan="4" class="text-center">Yükleniyor...</td></tr>';
+
+        try {
+            // Fetch last 5 movements
+            const res = await fetchWithTimeout(`/api/stock-movements?product_id=${id}&limit=5`);
+            if (res.ok) {
+                const moves = await res.json();
+                if (moves.length > 0) {
+                    historyBody.innerHTML = moves.map(m => {
+                        const typeInfo = getMovementTypeInfo(m.movement_type);
+                        const person = m.movement_type === 'IN' ? m.brought_by : (m.taken_by || '-');
+                        return `
+                            <tr>
+                                <td>${new Date(m.created_at).toLocaleDateString('tr-TR')}</td>
+                                <td><span class="badge ${typeInfo.class}" style="font-size:0.75rem; padding: 2px 6px;">${typeInfo.text}</span></td>
+                                <td>${m.quantity}</td>
+                                <td>${person}</td>
+                            </tr>
+                         `;
+                    }).join('');
+                } else {
+                    historyBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Hareket yok</td></tr>';
+                }
+            } else {
+                historyBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Yüklenemedi</td></tr>';
+            }
+        } catch (e) {
+            console.error(e);
+            historyBody.innerHTML = '<tr><td colspan="4" class="text-center text-danger">Hata</td></tr>';
+        }
+    }
 
     document.getElementById('addProductModal').style.display = 'flex';
 }
