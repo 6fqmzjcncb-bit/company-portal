@@ -184,16 +184,16 @@ body {
 
   /* HEIGHT & ALIGNMENT FIX */
   height: 45px;
-  line-height: 43px;
-  /* Match height minus 2px border */
+  /* line-height removed to let padding handle vertical alignment */
 
-  /* Fix text clipping */
+  /* Fix text clipping - Use Padding for centering */
   padding: 0 40px 0 12px;
-  /* NO vertical padding */
   box-sizing: border-box;
+
   border: 1px solid #d1d5db;
   border-radius: 6px;
   font-size: 0.95rem;
+  color: #111827;
 
   /* Reset browser styles */
   appearance: none;
