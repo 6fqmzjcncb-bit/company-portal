@@ -114,6 +114,8 @@ async function showAddEmployeeModal() {
     document.getElementById('editEmpId').value = '';
     document.getElementById('empModalTitle').textContent = 'Yeni Personel Ekle';
     document.getElementById('btnDeleteEmployee').style.display = 'none'; // Hide delete for new
+    const btnSave = document.getElementById('btnSaveEmployeeSalary');
+    if (btnSave) btnSave.style.display = 'inline-block'; // Ensure save is visible
 
     // Load System Roles
     await loadSystemRoles();
