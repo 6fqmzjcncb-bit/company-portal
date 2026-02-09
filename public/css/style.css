@@ -149,6 +149,52 @@ body {
   }
 }
 
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ===========================
+   FILTER BAR
+   =========================== */
+
+.filter-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.brand-filter {
+  width: 200px;
+  cursor: pointer;
+  background-color: white;
+  min-width: 150px;
+}
+
+.search-wrapper {
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .brand-filter {
+    width: 100%;
+  }
+}
+
 .app-container {
   min-height: 100vh;
   background: var(--gray-50);

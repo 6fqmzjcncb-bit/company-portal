@@ -116,13 +116,15 @@
             <!-- TAB 1: Products List -->
             <div id="tab-products" class="tab-content" style="display: block;">
 
-                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-                    <select id="brandFilter" class="form-input" style="width: 200px;">
+                <div class="filter-container">
+                    <select id="brandFilter" class="form-select brand-filter">
                         <option value="">Tüm Markalar</option>
                         <!-- Populated by JS -->
                     </select>
-                    <input type="text" id="productSearch" class="form-input"
-                        placeholder="🔍 Ürün Ara (Ad veya Barkod)..." style="flex: 1;">
+                    <div class="search-wrapper">
+                        <input type="text" id="productSearch" class="form-input search-input"
+                            placeholder="🔍 Ürün Ara (Ad veya Barkod)...">
+                    </div>
                 </div>
 
                 <div class="table-container">
