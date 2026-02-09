@@ -341,7 +341,9 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     const id = document.getElementById('editProdId').value;
     const name = document.getElementById('newProdName').value;
     const barcode = document.getElementById('newProdBarcode').value || null;
+    const brand = document.getElementById('newProdBrand').value || null;
     const stock = parseInt(document.getElementById('newProdStock').value) || 0;
+    const unit = document.getElementById('newProdUnit').value;
 
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/products/${id}` : '/api/products';
