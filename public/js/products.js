@@ -149,16 +149,19 @@ function renderProductList(listToRender = products) {
         return;
     }
 
-    container.innerHTML = listToRender.map(product => `
+    container.innerHTML = listToRender.map(product => {
+        const unit = product.unit ? product.unit.charAt(0).toUpperCase() + product.unit.slice(1).toLowerCase() : '-';
+        return `
         <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
             <td><strong style="color: var(--primary-color); text-decoration: underline;">${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
             <td>${product.brand || '-'}</td>
             <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
-            <td>${product.unit || '-'}</td>
+            <td>${unit}</td>
             <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function renderProductDropdowns() {
