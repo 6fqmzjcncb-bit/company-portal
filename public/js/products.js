@@ -373,16 +373,16 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
         });
 
         if (response.ok) {
-            alert(id ? 'Ürün güncellendi' : 'Ürün başarıyla eklendi');
+            showToast(id ? 'Ürün başarıyla güncellendi' : 'Ürün başarıyla eklendi', 'success');
             closeModals();
             loadProducts();
         } else {
             const err = await response.json();
-            alert('Hata: ' + (err.error || 'İşlem başarısız'));
+            showToast('Hata: ' + (err.error || 'İşlem başarısız'), 'error');
         }
     } catch (error) {
         console.error(error);
-        alert('Hata: ' + error.message);
+        showToast('Hata: ' + error.message, 'error');
     }
 });
 
