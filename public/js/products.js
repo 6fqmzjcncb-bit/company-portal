@@ -138,18 +138,18 @@ async function loadProducts() {
     } catch (error) {
         console.error('Ürün yükleme hatası:', error);
         document.getElementById('productsContainer').innerHTML =
-            `<tr><td colspan="4" class="text-center text-danger">Hata: ${error.message}</td></tr>`;
+            `<tr><td colspan="6" class="text-center text-danger">Hata: ${error.message}</td></tr>`;
     }
 }
 
-function renderProductList() {
+function renderProductList(listToRender = products) {
     const container = document.getElementById('productsContainer');
-    if (!products || products.length === 0) {
-        container.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Henüz ürün yok</td></tr>';
+    if (!listToRender || listToRender.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" class="text-center text-muted">Ürün bulunamadı</td></tr>';
         return;
     }
 
-    container.innerHTML = products.map(product => `
+    container.innerHTML = listToRender.map(product => `
         <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
             <td><strong style="color: var(--primary-color); text-decoration: underline;">${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
