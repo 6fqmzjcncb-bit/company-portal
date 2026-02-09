@@ -204,10 +204,11 @@
     <div id="addProductModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">✨ Yeni Ürün Ekle</h2>
+                <h2 class="modal-title" id="productModalTitle">✨ Yeni Ürün Ekle</h2>
                 <button class="modal-close" onclick="closeModals()">×</button>
             </div>
             <form id="addProductForm">
+                <input type="hidden" id="editProdId">
                 <div class="form-group">
                     <label class="form-label">Ürün Adı</label>
                     <input type="text" id="newProdName" class="form-input" required placeholder="Örn: Çimento">
@@ -220,9 +221,13 @@
                     <label class="form-label">Başlangıç Stok</label>
                     <input type="number" id="newProdStock" class="form-input" value="0" min="0">
                 </div>
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
-                    <button type="submit" class="btn btn-primary">Ürünü Ekle</button>
+                <div class="modal-actions" style="justify-content: space-between;">
+                    <button type="button" id="btnDeleteProduct" class="btn btn-danger" style="display:none;"
+                        onclick="deleteProduct()">Sil</button>
+                    <div style="display:flex; gap:10px;">
+                        <button type="button" class="btn btn-secondary" onclick="closeModals()">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
                 </div>
             </form>
         </div>

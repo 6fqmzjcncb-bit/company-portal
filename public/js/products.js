@@ -119,7 +119,7 @@ function renderProductList() {
     }
 
     container.innerHTML = products.map(product => `
-        <tr>
+        <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
             <td><strong>${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
             <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
@@ -145,6 +145,11 @@ function renderProductDropdowns() {
 
 async function addProduct() {
     document.getElementById('addProductForm').reset();
+    document.getElementById('editProdId').value = ''; // Clear ID
+    document.getElementById('productModalTitle').textContent = '✨ Yeni Ürün Ekle';
+    const btnDelete = document.getElementById('btnDeleteProduct');
+    if (btnDelete) btnDelete.style.display = 'none';
+
     document.getElementById('addProductModal').style.display = 'flex';
 }
 
@@ -283,32 +288,82 @@ function closeModals() {
 }
 
 // Listeners
+// Listeners
 document.getElementById('addProductForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const id = document.getElementById('editProdId').value;
     const name = document.getElementById('newProdName').value;
     const barcode = document.getElementById('newProdBarcode').value || null;
     const stock = parseInt(document.getElementById('newProdStock').value) || 0;
 
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `/api/products/${id}` : '/api/products';
+
     try {
-        const response = await fetch('/api/products', {
-            method: 'POST',
+        const response = await fetch(url, {
+            method: method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name, barcode, current_stock: stock })
         });
 
         if (response.ok) {
-            alert('Ürün başarıyla eklendi');
+            alert(id ? 'Ürün güncellendi' : 'Ürün başarıyla eklendi');
             closeModals();
             loadProducts();
         } else {
             const err = await response.json();
-            alert('Hata: ' + (err.error || 'Ürün eklenemedi'));
+            alert('Hata: ' + (err.error || 'İşlem başarısız'));
         }
     } catch (error) {
         console.error(error);
         alert('Hata: ' + error.message);
     }
 });
+
+async function editProduct(id) {
+    const product = products.find(p => p.id === id);
+    if (!product) return;
+
+    document.getElementById('addProductForm').reset();
+    document.getElementById('DataProductTitle') ? document.getElementById('DataProductTitle').textContent = 'Ürün Düzenle' : null;
+    document.getElementById('productModalTitle').textContent = 'Ürün Düzenle';
+
+    document.getElementById('editProdId').value = product.id;
+    document.getElementById('newProdName').value = product.name;
+    document.getElementById('newProdBarcode').value = product.barcode || '';
+    document.getElementById('newProdStock').value = product.current_stock;
+
+    // Show delete button
+    const btnDelete = document.getElementById('btnDeleteProduct');
+    if (btnDelete) btnDelete.style.display = 'block';
+
+    document.getElementById('addProductModal').style.display = 'flex';
+}
+
+async function deleteProduct() {
+    const id = document.getElementById('editProdId').value;
+    if (!id) return;
+
+    if (!confirm('Bu ürünü silmek istediğinize emin misiniz? Bu işlem geri alınamaz!')) return;
+
+    try {
+        const response = await fetch(`/api/products/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            alert('Ürün silindi');
+            closeModals();
+            loadProducts();
+        } else {
+            const err = await response.json();
+            alert('Hata: ' + (err.error || 'Silme işlemi başarısız'));
+        }
+    } catch (error) {
+        console.error(error);
+        alert('Hata: ' + error.message);
+    }
+}
 document.getElementById('stockInForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     await handleTransaction('/api/stock-movements/in', {
