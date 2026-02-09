@@ -122,7 +122,7 @@ function renderProductList() {
         <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
             <td><strong style="color: var(--primary-color); text-decoration: underline;">${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
-            <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
+            <td>${currentUser && currentUser.role === 'admin' ? `${product.current_stock} ${product.unit || ''}` : '***'}</td>
             <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>
         </tr>
     `).join('');
@@ -130,7 +130,7 @@ function renderProductList() {
 
 function renderProductDropdowns() {
     const options = products.map(p =>
-        `<option value="${p.id}">${p.name} (Stok: ${p.current_stock})</option>`
+        `<option value="${p.id}">${p.name} (Stok: ${p.current_stock} ${p.unit || ''})</option>`
     ).join('');
 
     // Safely update if elements exist (Stock tabs content)

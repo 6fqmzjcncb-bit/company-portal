@@ -20,6 +20,11 @@ const Product = sequelize.define('Product', {
         type: DataTypes.INTEGER,
         defaultValue: 0,
         allowNull: false
+    },
+    unit: {
+        type: DataTypes.STRING(20),
+        allowNull: true,
+        defaultValue: 'adet'
     }
 }, {
     tableName: 'products',
