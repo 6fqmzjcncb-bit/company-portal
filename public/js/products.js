@@ -153,6 +153,7 @@ function renderProductList(listToRender = products) {
         <tr onclick="editProduct(${product.id})" style="cursor: pointer;">
             <td><strong style="color: var(--primary-color); text-decoration: underline;">${product.name}</strong></td>
             <td>${product.barcode || '-'}</td>
+            <td>${product.brand || '-'}</td>
             <td>${currentUser && currentUser.role === 'admin' ? product.current_stock : '***'}</td>
             <td>${product.unit || '-'}</td>
             <td>${new Date(product.created_at).toLocaleDateString('tr-TR')}</td>

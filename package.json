@@ -5,8 +5,9 @@
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
-    "setup": "node server/setup.js",
     "dev": "nodemon server/server.js",
+    "seed": "node scripts/seed_brands.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "sync-users": "node scripts/sync_users.js",
     "fix-roles": "node scripts/fix_legacy_roles.js",
     "fix-roles-force": "node variables/fix_roles_force.js"
