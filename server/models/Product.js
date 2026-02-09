@@ -25,6 +25,10 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING(20),
         allowNull: true,
         defaultValue: 'adet'
+    },
+    brand: {
+        type: DataTypes.STRING(100),
+        allowNull: true
     }
 }, {
     tableName: 'products',

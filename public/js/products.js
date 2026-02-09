@@ -10,6 +10,36 @@ setTimeout(() => {
     }
 }, 10000);
 
+// Search & Filter Logic
+let searchTimeout;
+const searchInput = document.getElementById('productSearch');
+const brandFilter = document.getElementById('brandFilter');
+
+function setupFilters() {
+    searchInput?.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(filterProducts, 300);
+    });
+    brandFilter?.addEventListener('change', filterProducts);
+}
+
+function filterProducts() {
+    const query = searchInput.value.toLowerCase().trim();
+    const brand = brandFilter.value;
+
+    const filtered = products.filter(p => {
+        const matchesQuery = !query ||
+            p.name.toLowerCase().includes(query) ||
+            (p.barcode && p.barcode.toLowerCase().includes(query));
+
+        const matchesBrand = !brand || (p.brand === brand);
+
+        return matchesQuery && matchesBrand;
+    });
+
+    renderProductList(filtered);
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
     currentUser = await checkAuth();
@@ -17,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Tabs
     setupTabs();
+    setupFilters(); // Call setupFilters here
 
     // Load Data
     await loadProducts();
