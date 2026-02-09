@@ -177,24 +177,26 @@ body {
 .brand-filter {
   /* FIXED WIDTH & STYLING */
   flex: 0 0 240px;
-  /* Increased from 200px */
   width: 240px;
   min-width: 240px;
   cursor: pointer;
   background-color: white;
+
+  /* HEIGHT & ALIGNMENT FIX */
   height: 45px;
-  line-height: 1.5;
+  line-height: 43px;
+  /* Match height minus 2px border */
 
   /* Fix text clipping */
   padding: 0 40px 0 12px;
-  /* Right padding for arrow */
+  /* NO vertical padding */
   box-sizing: border-box;
   border: 1px solid #d1d5db;
-  /* Ensure border is visible */
   border-radius: 6px;
   font-size: 0.95rem;
+
+  /* Reset browser styles */
   appearance: none;
-  /* Remove native appearance to control padding */
   -webkit-appearance: none;
   -moz-appearance: none;
 
