@@ -694,14 +694,21 @@ async function handleTransaction(url, data) {
         });
 
         if (!response.ok) {
-            let errorMsg = 'İşlem başarısız';
+            let errorDetails = '';
             try {
-                const err = await response.json();
-                errorMsg = err.error || errorMsg;
-            } catch (jsonErr) {
-                errorMsg = `Sunucu hatası: ${response.status} ${response.statusText}`;
+                const text = await response.text();
+                errorDetails = text;
+                const json = JSON.parse(text);
+                if (json.error) {
+                    throw new Error(json.error);
+                }
+            } catch (e) {
+                // If parsing fails or custom error thrown
+                if (e.message && e.message !== 'Unexpected token') {
+                    throw e;
+                }
             }
-            throw new Error(errorMsg);
+            throw new Error(`Sunucu Hatası (${response.status}): ${errorDetails.substring(0, 100)}`);
         }
 
         // Use alert for immediate, guaranteed feedback
