@@ -45,7 +45,7 @@ router.get('/', requireAuth, async (req, res) => {
         res.json(movements);
     } catch (error) {
         console.error('Stok hareket listesi hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({ error: 'Sunucu hatası: ' + error.message });
     }
 });
 
@@ -55,6 +55,10 @@ router.post('/in', requireAuth, async (req, res) => {
 
     try {
         const { product_id, quantity, brought_by, source_location, notes } = req.body;
+
+        if (!product_id || !quantity) {
+            throw new Error('Ürün ID ve miktar gereklidir.');
+        }
 
         // Hareketi kaydet
         const movement = await StockMovement.create({
@@ -74,6 +78,8 @@ router.post('/in', requireAuth, async (req, res) => {
             await product.update({
                 current_stock: parseFloat(product.current_stock) + parseFloat(quantity)
             }, { transaction: t });
+        } else {
+            throw new Error('Ürün bulunamadı (ID: ' + product_id + ')');
         }
 
         await t.commit();
@@ -81,7 +87,7 @@ router.post('/in', requireAuth, async (req, res) => {
     } catch (error) {
         await t.rollback();
         console.error('Stok giriş hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -92,6 +98,10 @@ router.post('/out', requireAuth, async (req, res) => {
     try {
         const { product_id, quantity, taken_by, destination, job_id, reason, notes } = req.body;
 
+        if (!product_id || !quantity) {
+            throw new Error('Ürün ID ve miktar gereklidir.');
+        }
+
         // Yeterli stok kontrolü
         const product = await Product.findByPk(product_id, { transaction: t });
         if (!product) {
@@ -101,7 +111,7 @@ router.post('/out', requireAuth, async (req, res) => {
 
         if (parseFloat(product.current_stock) < parseFloat(quantity)) {
             await t.rollback();
-            return res.status(400).json({ error: 'Yetersiz stok' });
+            return res.status(400).json({ error: 'Yetersiz stok. Mevcut: ' + product.current_stock });
         }
 
         // Hareketi kaydet
@@ -112,8 +122,8 @@ router.post('/out', requireAuth, async (req, res) => {
             taken_by,
             destination,
             job_id,
-            reason,
-            notes,
+            reason: reason || '',
+            notes: notes || '',
             created_by: req.session.userId
         }, { transaction: t });
 
@@ -127,7 +137,7 @@ router.post('/out', requireAuth, async (req, res) => {
     } catch (error) {
         await t.rollback();
         console.error('Stok çıkış hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({ error: error.message });
     }
 });
 
@@ -167,7 +177,7 @@ router.post('/adjust', requireAuth, async (req, res) => {
     } catch (error) {
         await t.rollback();
         console.error('Stok düzenleme hatası:', error);
-        res.status(500).json({ error: 'Sunucu hatası' });
+        res.status(500).json({ error: error.message });
     }
 });
 
