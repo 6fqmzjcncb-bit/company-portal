@@ -399,9 +399,25 @@
                 <!-- STEP 1: SEARCH -->
                 <div class="form-group">
                     <label>Ürün Ara (Barkod veya İsim)</label>
-                    <input type="text" id="unifiedSearchInput" class="form-control"
-                        style="font-size: 1.2rem; padding: 15px;" placeholder="Ürün adı yazın..."
-                        oninput="handleUnifiedSearch(this.value)">
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="unifiedSearchInput" class="form-control"
+                            style="font-size: 1.2rem; padding: 15px; flex: 1;"
+                            placeholder="Ürün adı veya barkod yazın..." oninput="handleUnifiedSearch(this.value)"
+                            autocomplete="off">
+                        <button type="button" onclick="toggleBarcodeScanner()" class="btn" id="scannerToggleBtn"
+                            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; font-size: 1.3rem; min-width: 60px;">
+                            📷
+                        </button>
+                    </div>
+                    <!-- Scanner Container (Hidden by default) -->
+                    <div id="barcodeScannerContainer"
+                        style="display: none; margin-top: 12px; border: 2px solid #667eea; border-radius: 8px; overflow: hidden;">
+                        <div id="barcodeReader" style="width: 100%;"></div>
+                        <div style="padding: 10px; background: #f3f4f6; text-align: center;">
+                            <button type="button" onclick="stopBarcodeScanner()" class="btn btn-sm"
+                                style="background: #ef4444; color: white; border: none;">Kapat</button>
+                        </div>
+                    </div>
                     <div id="unifiedSuggestions" class="autocomplete-items"></div>
                 </div>
 
