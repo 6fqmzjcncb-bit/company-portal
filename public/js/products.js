@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupTabs();
     setupFilters();
     setupModalListeners(); // Ensure listeners are attached
-    setupFormListeners(); // Initialize form submission logic
+    // setupFormListeners(); // Removed in favor of direct onclick
 
     // Load Data
     await loadProducts();
