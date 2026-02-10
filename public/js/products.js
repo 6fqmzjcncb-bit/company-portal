@@ -591,46 +591,63 @@ async function deleteProduct() {
         alert('Hata: ' + error.message);
     }
 }
-document.getElementById('stockInForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+function setupFormListeners() {
+    console.log('Setting up form listeners...');
 
-    const productInput = document.getElementById('inProduct').value;
-    const productId = getProductIdFromInput(productInput);
+    const inForm = document.getElementById('stockInForm');
+    if (inForm) {
+        // Remove existing listeners by cloning (optional but safe)
+        // inForm.replaceWith(inForm.cloneNode(true)); 
+        // Better: just add unique listener
+        inForm.onsubmit = async (e) => {
+            e.preventDefault();
+            console.log('Stock In Submit Triggered');
 
-    if (!productId) {
-        showToast('Lütfen geçerli bir ürün seçin', 'error');
-        return;
-    }
+            const productInput = document.getElementById('inProduct').value;
+            const productId = getProductIdFromInput(productInput);
 
-    await handleTransaction('/api/stock-movements/in', {
-        product_id: productId,
-        quantity: document.getElementById('inQuantity').value,
-        brought_by: document.getElementById('inBroughtBy').value,
-        source_location: document.getElementById('inSource').value,
-        notes: document.getElementById('inNotes').value
-    });
-});
+            if (!productId) {
+                showToast('Lütfen geçerli bir ürün seçin', 'error');
+                return;
+            }
 
-document.getElementById('stockOutForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+            await handleTransaction('/api/stock-movements/in', {
+                product_id: productId,
+                quantity: document.getElementById('inQuantity').value,
+                brought_by: document.getElementById('inBroughtBy').value,
+                source_location: document.getElementById('inSource').value,
+                notes: document.getElementById('inNotes').value
+            });
+        };
+        console.log('Stock In Form Listener Attached');
+    } else console.error('Stock In Form not found');
 
-    const productInput = document.getElementById('outProduct').value;
-    const productId = getProductIdFromInput(productInput);
+    const outForm = document.getElementById('stockOutForm');
+    if (outForm) {
+        outForm.onsubmit = async (e) => {
+            e.preventDefault();
+            console.log('Stock Out Submit Triggered');
 
-    if (!productId) {
-        showToast('Lütfen geçerli bir ürün seçin', 'error');
-        return;
-    }
+            const productInput = document.getElementById('outProduct').value;
+            const productId = getProductIdFromInput(productInput);
 
-    await handleTransaction('/api/stock-movements/out', {
-        product_id: productId,
-        quantity: document.getElementById('outQuantity').value,
-        taken_by: document.getElementById('outTakenBy').value,
-        destination: document.getElementById('outDestination').value,
-        reason: document.getElementById('outReason').value,
-        notes: document.getElementById('outNotes').value
-    });
-});
+            if (!productId) {
+                showToast('Lütfen geçerli bir ürün seçin', 'error');
+                return;
+            }
+
+            await handleTransaction('/api/stock-movements/out', {
+                product_id: productId,
+                quantity: document.getElementById('outQuantity').value,
+                taken_by: document.getElementById('outTakenBy').value,
+                destination: document.getElementById('outDestination').value,
+                reason: document.getElementById('outReason').value,
+                notes: document.getElementById('outNotes').value
+            });
+        };
+        console.log('Stock Out Form Listener Attached');
+    } else console.error('Stock Out Form not found');
+}
 
 async function handleTransaction(url, data) {
     try {
