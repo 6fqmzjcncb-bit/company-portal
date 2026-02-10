@@ -69,8 +69,7 @@ router.post('/in', requireAuth, async (req, res) => {
 
         // Stoğu artır
         const product = await Product.findByPk(product_id, { transaction: t });
-        // Stoğu artır
-        const product = await Product.findByPk(product_id, { transaction: t });
+
         if (product) {
             await product.update({
                 current_stock: parseFloat(product.current_stock) + parseFloat(quantity)
