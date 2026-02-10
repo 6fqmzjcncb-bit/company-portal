@@ -1347,7 +1347,10 @@ let selectedBatchProduct = null;
 
 // Open unified modal (now batch mode)
 window.openUnifiedModal = function () {
-    document.getElementById('unifiedStockModal').style.display = 'block';
+    const modal = document.getElementById('unifiedStockModal');
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
     // Reset state
     batchItems = [];
     batchMode = null;
