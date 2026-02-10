@@ -182,17 +182,15 @@ body {
   cursor: pointer;
   background-color: white;
 
-  /* HEIGHT & ALIGNMENT FIX */
-  height: 45px;
-  /* line-height removed to let padding handle vertical alignment */
-
-  /* Fix text clipping - Use Padding for centering */
-  padding: 0 40px 0 12px;
-  box-sizing: border-box;
-
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 0.95rem;
+  /* EXACT MATCH WITH .form-input */
+  padding: 0.875rem 2.5rem 0.875rem 1rem;
+  /* Right padding for arrow */
+  border: 2px solid var(--gray-200);
+  /* Match form-input border */
+  border-radius: 0.375rem;
+  /* Match radius (radius-md usually 0.375rem or 6px) */
+  font-size: 1rem;
+  font-family: inherit;
   color: #111827;
 
   /* Reset browser styles */
@@ -202,9 +200,12 @@ body {
 
   /* Add custom arrow */
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.75rem center;
+  background-position: right 1rem center;
   background-repeat: no-repeat;
   background-size: 1.25em 1.25em;
+
+  /* Remove explicit height to let padding dictate it */
+  height: auto;
 }
 
 .search-wrapper {
