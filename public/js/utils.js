@@ -112,3 +112,8 @@ function showToast(message, type = 'success') {
         });
     }, 3000);
 }
+
+function capitalizeUnit(unit) {
+    if (!unit) return '';
+    return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+}
