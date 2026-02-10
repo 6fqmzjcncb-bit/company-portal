@@ -592,63 +592,81 @@ async function deleteProduct() {
         alert('Hata: ' + error.message);
     }
 }
-function setupFormListeners() {
-    console.log('Setting up form listeners...');
+// Global submit functions for robust handling
+window.submitStockIn = async () => {
+    console.log('Stock In Submit Triggered (Direct)');
+    const btn = document.querySelector('#stockInForm button.btn-success');
+    if (btn) btn.disabled = true;
 
-    const inForm = document.getElementById('stockInForm');
-    if (inForm) {
-        // Remove existing listeners by cloning (optional but safe)
-        // inForm.replaceWith(inForm.cloneNode(true)); 
-        // Better: just add unique listener
-        inForm.onsubmit = async (e) => {
-            e.preventDefault();
-            console.log('Stock In Submit Triggered');
+    try {
+        const productInput = document.getElementById('inProduct').value;
+        const productId = getProductIdFromInput(productInput);
 
-            const productInput = document.getElementById('inProduct').value;
-            const productId = getProductIdFromInput(productInput);
+        if (!productId) {
+            alert('Hata: Lütfen listeden geçerli bir ürün seçin.\nGirilen: ' + productInput);
+            if (btn) btn.disabled = false;
+            return;
+        }
 
-            if (!productId) {
-                showToast('Lütfen geçerli bir ürün seçin', 'error');
-                return;
-            }
+        const quantity = document.getElementById('inQuantity').value;
+        if (!quantity || quantity <= 0) {
+            alert('Hata: Lütfen geçerli bir miktar girin.');
+            if (btn) btn.disabled = false;
+            return;
+        }
 
-            await handleTransaction('/api/stock-movements/in', {
-                product_id: productId,
-                quantity: document.getElementById('inQuantity').value,
-                brought_by: document.getElementById('inBroughtBy').value,
-                source_location: document.getElementById('inSource').value,
-                notes: document.getElementById('inNotes').value
-            });
-        };
-        console.log('Stock In Form Listener Attached');
-    } else console.error('Stock In Form not found');
+        await handleTransaction('/api/stock-movements/in', {
+            product_id: productId,
+            quantity: quantity,
+            brought_by: document.getElementById('inBroughtBy').value,
+            source_location: document.getElementById('inSource').value,
+            notes: document.getElementById('inNotes').value
+        });
+    } catch (e) {
+        console.error(e);
+        alert('Beklenmeyen hata: ' + e.message);
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+};
 
-    const outForm = document.getElementById('stockOutForm');
-    if (outForm) {
-        outForm.onsubmit = async (e) => {
-            e.preventDefault();
-            console.log('Stock Out Submit Triggered');
+window.submitStockOut = async () => {
+    console.log('Stock Out Submit Triggered (Direct)');
+    const btn = document.querySelector('#stockOutForm button.btn-danger');
+    if (btn) btn.disabled = true;
 
-            const productInput = document.getElementById('outProduct').value;
-            const productId = getProductIdFromInput(productInput);
+    try {
+        const productInput = document.getElementById('outProduct').value;
+        const productId = getProductIdFromInput(productInput);
 
-            if (!productId) {
-                showToast('Lütfen geçerli bir ürün seçin', 'error');
-                return;
-            }
+        if (!productId) {
+            alert('Hata: Lütfen listeden geçerli bir ürün seçin.\nGirilen: ' + productInput);
+            if (btn) btn.disabled = false;
+            return;
+        }
 
-            await handleTransaction('/api/stock-movements/out', {
-                product_id: productId,
-                quantity: document.getElementById('outQuantity').value,
-                taken_by: document.getElementById('outTakenBy').value,
-                destination: document.getElementById('outDestination').value,
-                reason: document.getElementById('outReason').value,
-                notes: document.getElementById('outNotes').value
-            });
-        };
-        console.log('Stock Out Form Listener Attached');
-    } else console.error('Stock Out Form not found');
-}
+        const quantity = document.getElementById('outQuantity').value;
+        if (!quantity || quantity <= 0) {
+            alert('Hata: Lütfen geçerli bir miktar girin.');
+            if (btn) btn.disabled = false;
+            return;
+        }
+
+        await handleTransaction('/api/stock-movements/out', {
+            product_id: productId,
+            quantity: quantity,
+            taken_by: document.getElementById('outTakenBy').value,
+            destination: document.getElementById('outDestination').value,
+            reason: document.getElementById('outReason').value,
+            notes: document.getElementById('outNotes').value
+        });
+    } catch (e) {
+        console.error(e);
+        alert('Beklenmeyen hata: ' + e.message);
+    } finally {
+        if (btn) btn.disabled = false;
+    }
+};
 
 async function handleTransaction(url, data) {
     try {
