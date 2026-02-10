@@ -64,7 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Tabs
     setupTabs();
-    setupFilters(); // Call setupFilters here
+    setupFilters();
+    setupModalListeners(); // Ensure listeners are attached
 
     // Load Data
     await loadProducts();
@@ -357,12 +358,37 @@ function closeModals() {
     document.getElementById('addProductModal').style.display = 'none';
 }
 
-// Expose modal functions to global scope for onclick handlers
+// Event Listeners for Stock Buttons (More robust than onclick)
+function setupModalListeners() {
+    console.log('Setting up modal listeners...');
+
+    const btnIn = document.getElementById('btnStockIn');
+    const btnOut = document.getElementById('btnStockOut');
+    const btnAdd = document.getElementById('addBtn');
+
+    if (btnIn) {
+        btnIn.onclick = showInModal; // Direct assignment is safer than addEventListener for single handlers
+        console.log('Stock In button connected');
+    } else console.error('Stock In button not found');
+
+    if (btnOut) {
+        btnOut.onclick = showOutModal;
+        console.log('Stock Out button connected');
+    } else console.error('Stock Out button not found');
+
+    if (btnAdd) {
+        btnAdd.onclick = addProduct;
+        console.log('Add Product button connected');
+    }
+}
+
+// Call this on load
+document.addEventListener('DOMContentLoaded', setupModalListeners);
+
+// Also expose to global scope just in case (e.g. edit/delete still need it)
 window.showInModal = showInModal;
 window.showOutModal = showOutModal;
 window.closeModals = closeModals;
-
-// Also expose to global scope for HTML onclick (critical!)
 window.addProduct = addProduct;
 window.editProduct = editProduct;
 window.deleteProduct = deleteProduct;
