@@ -386,9 +386,104 @@
         </div>
     </div>
 
-    <!-- Main JS -->
+    <!-- UNIFIED STOCK MODAL -->
+    <div id="unifiedStockModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>⚡ Hızlı Stok İşlemi</h2>
+                <span class="close" onclick="closeModals()">&times;</span>
+            </div>
+
+            <div class="modal-body">
+                <!-- STEP 1: SEARCH -->
+                <div class="form-group">
+                    <label>Ürün Ara (Barkod veya İsim)</label>
+                    <input type="text" id="unifiedSearchInput" class="form-control"
+                        style="font-size: 1.2rem; padding: 15px;" placeholder="Ürün adı yazın..."
+                        oninput="handleUnifiedSearch(this.value)">
+                    <div id="unifiedSuggestions" class="autocomplete-items"></div>
+                </div>
+
+                <!-- STEP 2: ACTION SELECTION (Hidden initially) -->
+                <div id="unifiedActionSection" style="display: none; margin-top: 20px;">
+
+                    <!-- Product Info Bar -->
+                    <div id="productInfoBar"
+                        style="background: #eef2ff; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c7d2fe;">
+                        <h3 id="selectedProductName" style="margin: 0 0 5px 0; color: #3730a3;">Ürün Adı</h3>
+                        <div style="display: flex; gap: 15px; font-size: 0.9rem; color: #5b21b6;">
+                            <span>Mevcut Stok: <strong id="selectedProductStock">0</strong> <span
+                                    id="selectedProductUnit">Adet</span></span>
+                            <span>Marka: <strong id="selectedProductBrand">-</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div id="actionButtons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn btn-success" onclick="setUnifiedMode('in')"
+                            style="flex: 1; padding: 15px;">📥 Stok Ekle</button>
+                        <button class="btn btn-danger" onclick="setUnifiedMode('out')"
+                            style="flex: 1; padding: 15px;">📤 Stok Çıkar</button>
+                    </div>
+
+                    <!-- Transaction Form -->
+                    <form id="unifiedTransactionForm"
+                        style="display: none; background: #f9fafb; padding: 15px; border-radius: 8px;">
+                        <input type="hidden" id="unifiedProductId">
+                        <input type="hidden" id="unifiedTransactionType"> <!-- 'in' or 'out' -->
+
+                        <div class="form-group">
+                            <label>Miktar</label>
+                            <div style="display: flex; align-items: center;">
+                                <input type="number" id="unifiedQuantity" class="form-control" placeholder="0"
+                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                <span id="unifiedUnitLabel"
+                                    style="background: #e5e7eb; padding: 10px 15px; border: 1px solid #d1d5db; border-left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; color: #374151; font-weight: bold;">Adet</span>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields based on Type -->
+                        <div id="unifiedInFields" style="display: none;">
+                            <div class="form-group">
+                                <label>Getiren / Teslim Eden</label>
+                                <input type="text" id="unifiedSource" class="form-control"
+                                    placeholder="Tedarikçi veya Personel">
+                            </div>
+                        </div>
+
+                        <div id="unifiedOutFields" style="display: none;">
+                            <div class="form-group">
+                                <label>Teslim Alan</label>
+                                <input type="text" id="unifiedDestination" class="form-control"
+                                    placeholder="Personel Adı">
+                            </div>
+                            <div class="form-group">
+                                <label>Hangi İş İçin?</label>
+                                <input type="text" id="unifiedReason" class="form-control" placeholder="Proje Adı">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notlar</label>
+                            <textarea id="unifiedNotes" class="form-control"></textarea>
+                        </div>
+
+                        <button type="button" class="btn btn-primary" onclick="submitUnifiedTransaction()"
+                            style="width: 100%; margin-top: 10px;">Kaydet</button>
+                    </form>
+                </div>
+
+                <!-- STEP 3: CREATE NEW (Hidden) -->
+                <div id="unifiedCreateSection" style="display: none; margin-top: 20px; text-align: center;">
+                    <p style="color: #ef4444; font-weight: bold;">Bu ürün sistemde bulunamadı.</p>
+                    <button class="btn btn-primary" onclick="switchToCreateMode()">+ Yeni Ürün Oluştur</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
     <script src="/js/utils.js"></script>
-    <script src="/js/products.js?v=9.19"></script>
+    <script src="/js/products.js?v=9.20"></script>
 </body>
 
 </html>
