@@ -1,4 +1,11 @@
 // Auth & State
+// DEBUGGING: Global Error Handler
+window.onerror = function (msg, url, line) {
+    alert('HATA OLUŞTU:\n' + msg + '\nSatır: ' + line);
+    return false;
+};
+// alert('Versiyon 9.7 Yüklendi - Kontrol'); // Uncomment if needed, but error handler is better
+
 let currentUser = null;
 let products = [];
 
