@@ -3,7 +3,7 @@ const router = express.Router();
 const { StockMovement, Product, JobList } = require('../models');
 const { requireAuth } = require('../middleware/auth');
 const { Op } = require('sequelize');
-const sequelize = require('../config/database');
+const { sequelize } = require('../config/database');
 
 // Stok hareketlerini listele
 router.get('/', requireAuth, async (req, res) => {
