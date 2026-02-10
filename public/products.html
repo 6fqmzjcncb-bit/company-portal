@@ -102,10 +102,11 @@
             <div class="page-header">
                 <h1 class="page-title">Ürün ve Stok Yönetimi</h1>
                 <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <button id="addBtn" class="btn btn-primary" style="display:none;">+ Ürün Ekle</button>
-                    <!-- Stock Buttons -->
-                    <button id="btnStockIn" class="btn btn-success">📥 Stok Giriş</button>
-                    <button id="btnStockOut" class="btn btn-danger">📤 Stok Çıkış</button>
+                    <!-- UNIFIED SINGLE BUTTON -->
+                    <button onclick="openUnifiedModal()" class="btn btn-primary"
+                        style="font-size: 1.1rem; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                        ⚡ Hızlı Stok İşlemi
+                    </button>
                 </div>
             </div>
 
@@ -483,7 +484,7 @@
         </div>
     </div>
     <script src="/js/utils.js"></script>
-    <script src="/js/products_v2.js?v=NewSystem1.0"></script>
+    <script src="/js/products_v2.js?v=9.24"></script>
 </body>
 
 </html>
