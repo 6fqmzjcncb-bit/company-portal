@@ -1351,7 +1351,13 @@ window.openUnifiedModal = function () {
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
     modal.style.justifyContent = 'center';
-    // Reset state
+
+    // FULL RESET
+    resetBatchModal();
+}
+
+// Reset batch modal completely
+function resetBatchModal() {
     batchItems = [];
     batchMode = null;
     selectedBatchProduct = null;
@@ -1365,6 +1371,23 @@ window.openUnifiedModal = function () {
     // Reset buttons
     document.getElementById('batchModeIn').classList.remove('active');
     document.getElementById('batchModeOut').classList.remove('active');
+    document.getElementById('batchModeIn').style.opacity = '1';
+    document.getElementById('batchModeOut').style.opacity = '1';
+    document.getElementById('batchModeIn').style.transform = 'scale(1)';
+    document.getElementById('batchModeOut').style.transform = 'scale(1)';
+
+    // Clear all inputs
+    document.getElementById('batchProductSearch').value = '';
+    document.getElementById('batchQuantity').value = '';
+    document.getElementById('batchEmployee').value = '';
+    document.getElementById('batchSource').value = '';
+    document.getElementById('batchProject').value = '';
+    document.getElementById('batchNotes').value = '';
+    document.getElementById('batchProductSuggestions').innerHTML = '';
+    document.getElementById('batchUnitLabel').textContent = '-';
+
+    // Reset table
+    updateBatchTable();
 }
 
 // Set batch mode (IN or OUT)
@@ -1438,8 +1461,10 @@ async function populateBatchDropdowns() {
 
 // Handle product search for batch
 window.handleBatchProductSearch = function (query) {
-    if (!query || query.length < 2) {
-        document.getElementById('batchProductSuggestions').innerHTML = '';
+    const suggestionsDiv = document.getElementById('batchProductSuggestions');
+
+    if (!query || query.length < 1) {
+        suggestionsDiv.innerHTML = '';
         return;
     }
 
@@ -1448,10 +1473,17 @@ window.handleBatchProductSearch = function (query) {
         (p.barcode && p.barcode.includes(query))
     );
 
-    const suggestionsDiv = document.getElementById('batchProductSuggestions');
-
     if (filtered.length === 0) {
-        suggestionsDiv.innerHTML = '<div style="padding: 10px; color: #9ca3af;">Ürün bulunamadı</div>';
+        // Show "Create New Product" option
+        suggestionsDiv.innerHTML = `
+            <div style="padding: 15px; text-align: center; border: 2px dashed #3b82f6; border-radius: 8px; background: #f0f9ff; margin-top: 8px;">
+                <div style="color: #6b7280; margin-bottom: 8px;">"${query}" bulunamadı</div>
+                <button onclick="createNewProductFromBatch('${query.replace(/'/g, "\\'")}')"
+                    style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                    ➕ Yeni Ürün Olarak Ekle
+                </button>
+            </div>
+        `;
         return;
     }
 
