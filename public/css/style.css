@@ -182,20 +182,11 @@ body {
   cursor: pointer;
   background-color: white;
 
-  /* HEIGHT & ALIGNMENT FIX */
-  height: 45px;
-  /* line-height: normal; */
-  /* Allow text to sit naturally */
-
-  /* PADDING CALCULATION */
-  /* Height: 45px */
-  /* Border: 4px */
-  /* Text space needed: ~20px */
-  /* Padding: (45 - 24) / 2 = ~10.5px. Using 9.5px to be safe. */
-  padding: 9.5px 2.5rem 9.5px 1rem;
-
+  /* Match .form-input styling exactly */
+  padding: 0.875rem 1rem;
+  padding-right: 2.5rem;
   border: 2px solid var(--gray-200);
-  border-radius: 0.375rem;
+  border-radius: var(--radius-md);
   font-size: 1rem;
   font-family: inherit;
   color: #111827;

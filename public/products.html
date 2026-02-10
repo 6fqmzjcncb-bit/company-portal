@@ -295,9 +295,12 @@
             <form id="stockInForm">
                 <div class="form-group">
                     <label class="form-label">Ürün Seçin</label>
-                    <select id="inProduct" class="form-select" required>
+                    <input type="text" id="inProduct" class="form-input"
+                        placeholder="Ürün adı veya barkod ile arayın..." list="productOptions" required
+                        autocomplete="off">
+                    <datalist id="productOptions">
                         <!-- Populated by JS -->
-                    </select>
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Miktar</label>
@@ -305,11 +308,19 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Getiren / Teslim Eden</label>
-                    <input type="text" id="inBroughtBy" class="form-input" placeholder="İsim soyisim" required>
+                    <input type="text" id="inBroughtBy" class="form-input" placeholder="Personel seçin veya isim yazın"
+                        list="employeeOptions" required autocomplete="off">
+                    <datalist id="employeeOptions">
+                        <!-- Populated by JS -->
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Kaynak (Nereden Geldi?)</label>
-                    <input type="text" id="inSource" class="form-input" placeholder="Tedarikçi veya konum">
+                    <input type="text" id="inSource" class="form-input" placeholder="Kaynak seçin veya yazın"
+                        list="sourceOptions" autocomplete="off">
+                    <datalist id="sourceOptions">
+                        <!-- Populated by JS -->
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notlar</label>
@@ -333,9 +344,10 @@
             <form id="stockOutForm">
                 <div class="form-group">
                     <label class="form-label">Ürün Seçin</label>
-                    <select id="outProduct" class="form-select" required>
-                        <!-- Populated by JS -->
-                    </select>
+                    <input type="text" id="outProduct" class="form-input"
+                        placeholder="Ürün adı veya barkod ile arayın..." list="productOptions" required
+                        autocomplete="off">
+                    <!-- Reuses productOptions datalist from stock-in modal -->
                 </div>
                 <div class="form-group">
                     <label class="form-label">Miktar</label>
@@ -351,12 +363,14 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Sebep</label>
-                    <select id="outReason" class="form-select">
-                        <option value="JOB">İş Kullanımı</option>
-                        <option value="SALE">Satış</option>
-                        <option value="WASTE">Fire/Zayi</option>
-                        <option value="OTHER">Diğer</option>
-                    </select>
+                    <input type="text" id="outReason" class="form-input" placeholder="Sebep yazın" list="reasonOptions"
+                        autocomplete="off">
+                    <datalist id="reasonOptions">
+                        <option value="İş Kullanımı">
+                        <option value="Satış">
+                        <option value="Fire/Zayi">
+                        <option value="Diğer">
+                    </datalist>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Notlar</label>

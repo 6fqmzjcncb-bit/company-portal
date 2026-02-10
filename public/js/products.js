@@ -338,11 +338,16 @@ function formatDateTime(dateStr) {
 
 function showInModal() {
     document.getElementById('stockInForm').reset();
+    populateProductAutocomplete();
+    populateEmployeeAutocomplete();
+    populateSourceAutocomplete();
     document.getElementById('stockInModal').style.display = 'flex';
 }
 
 function showOutModal() {
     document.getElementById('stockOutForm').reset();
+    populateProductAutocomplete(); // Reuse for stock out too
+    populateEmployeeAutocomplete();
     document.getElementById('stockOutModal').style.display = 'flex';
 }
 
@@ -350,6 +355,80 @@ function closeModals() {
     document.getElementById('stockInModal').style.display = 'none';
     document.getElementById('stockOutModal').style.display = 'none';
     document.getElementById('addProductModal').style.display = 'none';
+}
+
+// =======================
+// AUTOCOMPLETE HELPERS
+// =======================
+
+function populateProductAutocomplete() {
+    const datalist = document.getElementById('productOptions');
+    if (!datalist) return;
+
+    datalist.innerHTML = products
+        .filter(p => p.stock > 0) // Only show products with stock for stock out
+        .map(p => {
+            const label = `${p.name}${p.barcode ? ' (' + p.barcode + ')' : ''} - Stok: ${p.stock} ${capitalizeUnit(p.unit)}`;
+            return `<option value="${p.name}" data-id="${p.id}">${label}</option>`;
+        })
+        .join('');
+}
+
+async function populateEmployeeAutocomplete() {
+    try {
+        const response = await fetch('/api/employees');
+        if (!response.ok) return;
+
+        const employees = await response.json();
+        const datalist = document.getElementById('employeeOptions');
+        if (!datalist) return;
+
+        datalist.innerHTML = employees
+            .map(emp => `<option value="${emp.name}">`)
+            .join('');
+    } catch (error) {
+        console.error('Employee autocomplete failed:', error);
+    }
+}
+
+async function populateSourceAutocomplete() {
+    try {
+        const response = await fetch('/api/sources');
+        if (!response.ok) return;
+
+        const sources = await response.json();
+        const datalist = document.getElementById('sourceOptions');
+        if (!datalist) return;
+
+        datalist.innerHTML = sources
+            .map(src => `<option value="${src.name}">`)
+            .join('');
+    } catch (error) {
+        console.error('Source autocomplete failed:', error);
+    }
+}
+
+// Helper: Find product ID from autocomplete input (by name or barcode)
+function getProductIdFromInput(inputValue) {
+    if (!inputValue) return null;
+
+    const trimmed = inputValue.trim();
+
+    // Try exact name match
+    let product = products.find(p => p.name === trimmed);
+
+    // Try barcode match
+    if (!product) {
+        product = products.find(p => p.barcode && p.barcode === trimmed);
+    }
+
+    // Try partial name match (case-insensitive)
+    if (!product) {
+        const lower = trimmed.toLowerCase();
+        product = products.find(p => p.name.toLowerCase() === lower);
+    }
+
+    return product ? product.id : null;
 }
 
 // Listeners
@@ -471,8 +550,17 @@ async function deleteProduct() {
 }
 document.getElementById('stockInForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const productInput = document.getElementById('inProduct').value;
+    const productId = getProductIdFromInput(productInput);
+
+    if (!productId) {
+        showToast('Lütfen geçerli bir ürün seçin', 'error');
+        return;
+    }
+
     await handleTransaction('/api/stock-movements/in', {
-        product_id: document.getElementById('inProduct').value,
+        product_id: productId,
         quantity: document.getElementById('inQuantity').value,
         brought_by: document.getElementById('inBroughtBy').value,
         source_location: document.getElementById('inSource').value,
@@ -482,8 +570,17 @@ document.getElementById('stockInForm')?.addEventListener('submit', async (e) => 
 
 document.getElementById('stockOutForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const productInput = document.getElementById('outProduct').value;
+    const productId = getProductIdFromInput(productInput);
+
+    if (!productId) {
+        showToast('Lütfen geçerli bir ürün seçin', 'error');
+        return;
+    }
+
     await handleTransaction('/api/stock-movements/out', {
-        product_id: document.getElementById('outProduct').value,
+        product_id: productId,
         quantity: document.getElementById('outQuantity').value,
         taken_by: document.getElementById('outTakenBy').value,
         destination: document.getElementById('outDestination').value,
@@ -505,14 +602,15 @@ async function handleTransaction(url, data) {
             throw new Error(err.error || 'İşlem başarısız');
         }
 
-        alert('İşlem başarılı');
+        showToast('İşlem başarıyla tamamlandı!', 'success');
         closeModals();
         loadProducts(); // Update stocks
         if (document.getElementById('tab-movements').style.display !== 'none') {
             loadMovements(); // Update table if visible
         }
     } catch (error) {
-        alert('Hata: ' + error.message);
+        console.error('Transaction error:', error);
+        showToast('Hata: ' + error.message, 'error');
     }
 }
 
