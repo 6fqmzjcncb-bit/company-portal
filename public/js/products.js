@@ -592,8 +592,16 @@ async function deleteProduct() {
     }
 }
 // Global submit functions for robust handling
+// Global submit functions for robust handling
 window.submitStockIn = async () => {
     console.log('Stock In Submit Triggered (Direct)');
+
+    // Check if products loaded
+    if (!products || products.length === 0) {
+        alert('KRİTİK HATA: Ürün listesi yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+        return;
+    }
+
     const btn = document.querySelector('#stockInForm button.btn-success');
     if (btn) btn.disabled = true;
 
@@ -601,8 +609,10 @@ window.submitStockIn = async () => {
         const productInput = document.getElementById('inProduct').value;
         const productId = getProductIdFromInput(productInput);
 
+        console.log(`Input: ${productInput}, ID: ${productId}`);
+
         if (!productId) {
-            alert('Hata: Lütfen listeden geçerli bir ürün seçin.\nGirilen: ' + productInput);
+            alert(`HATA: "${productInput}" adlı ürün sistemde bulunamadı.\nLütfen listeden seçtiğinize emin olun.`);
             if (btn) btn.disabled = false;
             return;
         }
@@ -623,7 +633,7 @@ window.submitStockIn = async () => {
         });
     } catch (e) {
         console.error(e);
-        alert('Beklenmeyen hata: ' + e.message);
+        alert('BEKLENMEYEN HATA: ' + e.message);
     } finally {
         if (btn) btn.disabled = false;
     }
@@ -631,6 +641,12 @@ window.submitStockIn = async () => {
 
 window.submitStockOut = async () => {
     console.log('Stock Out Submit Triggered (Direct)');
+
+    if (!products || products.length === 0) {
+        alert('KRİTİK HATA: Ürün listesi yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
+        return;
+    }
+
     const btn = document.querySelector('#stockOutForm button.btn-danger');
     if (btn) btn.disabled = true;
 
@@ -638,8 +654,10 @@ window.submitStockOut = async () => {
         const productInput = document.getElementById('outProduct').value;
         const productId = getProductIdFromInput(productInput);
 
+        console.log(`Input: ${productInput}, ID: ${productId}`);
+
         if (!productId) {
-            alert('Hata: Lütfen listeden geçerli bir ürün seçin.\nGirilen: ' + productInput);
+            alert(`HATA: "${productInput}" adlı ürün sistemde bulunamadı.\nLütfen listeden seçtiğinize emin olun.`);
             if (btn) btn.disabled = false;
             return;
         }
@@ -661,7 +679,7 @@ window.submitStockOut = async () => {
         });
     } catch (e) {
         console.error(e);
-        alert('Beklenmeyen hata: ' + e.message);
+        alert('BEKLENMEYEN HATA: ' + e.message);
     } finally {
         if (btn) btn.disabled = false;
     }
