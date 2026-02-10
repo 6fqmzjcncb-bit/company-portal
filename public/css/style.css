@@ -184,10 +184,15 @@ body {
 
   /* HEIGHT & ALIGNMENT FIX */
   height: 45px;
-  line-height: 41px;
-  /* 45px - 4px border */
-  padding: 0 2.5rem 0 1rem;
-  /* Zero vertical padding */
+  /* line-height: normal; */
+  /* Allow text to sit naturally */
+
+  /* PADDING CALCULATION */
+  /* Height: 45px */
+  /* Border: 4px */
+  /* Text space needed: ~20px */
+  /* Padding: (45 - 24) / 2 = ~10.5px. Using 9.5px to be safe. */
+  padding: 9.5px 2.5rem 9.5px 1rem;
 
   border: 2px solid var(--gray-200);
   border-radius: 0.375rem;
