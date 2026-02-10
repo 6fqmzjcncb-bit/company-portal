@@ -1,11 +1,4 @@
 // Auth & State
-// DEBUGGING: Global Error Handler
-window.onerror = function (msg, url, line) {
-    alert('HATA OLUŞTU:\n' + msg + '\nSatır: ' + line);
-    return false;
-};
-alert('Versiyon 9.9 Yüklendi - Kontrol'); // ENABLED FOR DEBUGGING
-
 let currentUser = null;
 let products = [];
 
@@ -600,7 +593,6 @@ async function deleteProduct() {
 }
 // Global submit functions for robust handling
 window.submitStockIn = async () => {
-    alert('Stok Giriş Butonuna Basıldı');
     console.log('Stock In Submit Triggered (Direct)');
     const btn = document.querySelector('#stockInForm button.btn-success');
     if (btn) btn.disabled = true;
@@ -638,7 +630,6 @@ window.submitStockIn = async () => {
 };
 
 window.submitStockOut = async () => {
-    alert('Stok Çıkış Butonuna Basıldı');
     console.log('Stock Out Submit Triggered (Direct)');
     const btn = document.querySelector('#stockOutForm button.btn-danger');
     if (btn) btn.disabled = true;
