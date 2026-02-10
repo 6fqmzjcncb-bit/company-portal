@@ -69,9 +69,11 @@ router.post('/in', requireAuth, async (req, res) => {
 
         // Stoğu artır
         const product = await Product.findByPk(product_id, { transaction: t });
+        // Stoğu artır
+        const product = await Product.findByPk(product_id, { transaction: t });
         if (product) {
             await product.update({
-                stock_quantity: parseFloat(product.stock_quantity) + parseFloat(quantity)
+                current_stock: parseFloat(product.current_stock) + parseFloat(quantity)
             }, { transaction: t });
         }
 
@@ -98,7 +100,7 @@ router.post('/out', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Ürün bulunamadı' });
         }
 
-        if (parseFloat(product.stock_quantity) < parseFloat(quantity)) {
+        if (parseFloat(product.current_stock) < parseFloat(quantity)) {
             await t.rollback();
             return res.status(400).json({ error: 'Yetersiz stok' });
         }
@@ -118,7 +120,7 @@ router.post('/out', requireAuth, async (req, res) => {
 
         // Stoğu azalt
         await product.update({
-            stock_quantity: parseFloat(product.stock_quantity) - parseFloat(quantity)
+            current_stock: parseFloat(product.current_stock) - parseFloat(quantity)
         }, { transaction: t });
 
         await t.commit();
@@ -143,7 +145,7 @@ router.post('/adjust', requireAuth, async (req, res) => {
             return res.status(404).json({ error: 'Ürün bulunamadı' });
         }
 
-        const oldQuantity = parseFloat(product.stock_quantity);
+        const oldQuantity = parseFloat(product.current_stock);
         const difference = parseFloat(new_quantity) - oldQuantity;
 
         // Hareketi kaydet
@@ -158,7 +160,7 @@ router.post('/adjust', requireAuth, async (req, res) => {
 
         // Stoğu güncelle
         await product.update({
-            stock_quantity: new_quantity
+            current_stock: new_quantity
         }, { transaction: t });
 
         await t.commit();
