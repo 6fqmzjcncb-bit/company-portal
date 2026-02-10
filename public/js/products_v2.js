@@ -1336,3 +1336,320 @@ window.processCart = async function () {
         showCustomAlert('Kısmi Başarı', `${successCount} başarılı, ${failCount} başarısız.`, '⚠️', false);
     }
 }
+
+// =======================
+// BATCH PROCESSING SYSTEM (Invoice Style)
+// =======================
+
+let batchItems = [];
+let batchMode = null; // 'in' or 'out'
+let selectedBatchProduct = null;
+
+// Open unified modal (now batch mode)
+window.openUnifiedModal = function () {
+    document.getElementById('unifiedStockModal').style.display = 'block';
+    // Reset state
+    batchItems = [];
+    batchMode = null;
+    selectedBatchProduct = null;
+
+    // Hide all sections except mode selection
+    document.getElementById('batchCommonFields').style.display = 'none';
+    document.getElementById('batchProductsSection').style.display = 'none';
+    document.getElementById('batchAddSection').style.display = 'none';
+    document.getElementById('batchSaveSection').style.display = 'none';
+
+    // Reset buttons
+    document.getElementById('batchModeIn').classList.remove('active');
+    document.getElementById('batchModeOut').classList.remove('active');
+}
+
+// Set batch mode (IN or OUT)
+window.setBatchMode = async function (mode) {
+    batchMode = mode;
+
+    // Update button styles
+    const btnIn = document.getElementById('batchModeIn');
+    const btnOut = document.getElementById('batchModeOut');
+
+    if (mode === 'in') {
+        btnIn.style.opacity = '1';
+        btnIn.style.transform = 'scale(1.05)';
+        btnOut.style.opacity = '0.5';
+        btnOut.style.transform = 'scale(1)';
+
+        // Show source field, hide project field
+        document.getElementById('batchSourceField').style.display = 'block';
+        document.getElementById('batchProjectField').style.display = 'none';
+    } else {
+        btnOut.style.opacity = '1';
+        btnOut.style.transform = 'scale(1.05)';
+        btnIn.style.opacity = '0.5';
+        btnIn.style.transform = 'scale(1)';
+
+        // Hide source field, show project field
+        document.getElementById('batchSourceField').style.display = 'none';
+        document.getElementById('batchProjectField').style.display = 'block';
+    }
+
+    // Show sections
+    document.getElementById('batchCommonFields').style.display = 'block';
+    document.getElementById('batchProductsSection').style.display = 'block';
+    document.getElementById('batchAddSection').style.display = 'block';
+    document.getElementById('batchSaveSection').style.display = 'block';
+
+    // Load dropdowns
+    await populateBatchDropdowns();
+
+    // Focus on product search
+    setTimeout(() => document.getElementById('batchProductSearch').focus(), 100);
+}
+
+// Populate employee and source dropdowns
+async function populateBatchDropdowns() {
+    try {
+        // Fetch employees
+        const empResponse = await fetch('/api/employees');
+        if (empResponse.ok) {
+            const employees = await empResponse.json();
+            const datalist = document.getElementById('batchEmployeeOptions');
+            const empOptions = employees.map(emp => `<option value="${emp.full_name}">`).join('');
+            if (datalist) datalist.innerHTML = empOptions;
+        }
+
+        // Fetch sources (for IN only)
+        if (batchMode === 'in') {
+            const srcResponse = await fetch('/api/sources');
+            if (srcResponse.ok) {
+                const sources = await srcResponse.json();
+                const datalist = document.getElementById('batchSourceOptions');
+                if (datalist) {
+                    datalist.innerHTML = sources.map(src => `<option value="${src.name}">`).join('');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error loading dropdowns:', error);
+    }
+}
+
+// Handle product search for batch
+window.handleBatchProductSearch = function (query) {
+    if (!query || query.length < 2) {
+        document.getElementById('batchProductSuggestions').innerHTML = '';
+        return;
+    }
+
+    const filtered = products.filter(p =>
+        p.name.toLowerCase().includes(query.toLowerCase()) ||
+        (p.barcode && p.barcode.includes(query))
+    );
+
+    const suggestionsDiv = document.getElementById('batchProductSuggestions');
+
+    if (filtered.length === 0) {
+        suggestionsDiv.innerHTML = '<div style="padding: 10px; color: #9ca3af;">Ürün bulunamadı</div>';
+        return;
+    }
+
+    suggestionsDiv.innerHTML = filtered.slice(0, 8).map(p => `
+        <div class="autocomplete-item" onclick="selectBatchProduct(${p.id})">
+            <strong>${p.name}</strong>
+            <div style="font-size: 0.85rem; color: #6b7280;">
+                Stok: ${p.quantity} ${p.unit} • Marka: ${p.brand || '-'}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Select product for batch
+window.selectBatchProduct = function (productId) {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+
+    selectedBatchProduct = product;
+
+    // Update UI
+    document.getElementById('batchProductSearch').value = product.name;
+    document.getElementById('batchProductSuggestions').innerHTML = '';
+    document.getElementById('batchUnitLabel').textContent = product.unit;
+
+    // Focus quantity
+    setTimeout(() => document.getElementById('batchQuantity').focus(), 100);
+}
+
+// Add product to batch
+window.addProductToBatch = function () {
+    if (!selectedBatchProduct) {
+        showCustomAlert('Ürün Seçilmedi', 'Lütfen önce bir ürün seçin.', '⚠️', false);
+        return;
+    }
+
+    const qty = document.getElementById('batchQuantity').value;
+    if (!qty || qty <= 0) {
+        showCustomAlert('Geçersiz Miktar', 'Lütfen geçerli bir miktar girin.', '⚠️', false);
+        return;
+    }
+
+    // Add to batch
+    batchItems.push({
+        product: {
+            id: selectedBatchProduct.id,
+            name: selectedBatchProduct.name,
+            unit: selectedBatchProduct.unit
+        },
+        quantity: parseInt(qty)
+    });
+
+    // Update table
+    updateBatchTable();
+
+    // Reset product selection
+    document.getElementById('batchProductSearch').value = '';
+    document.getElementById('batchQuantity').value = '';
+    document.getElementById('batchUnitLabel').textContent = '-';
+    selectedBatchProduct = null;
+
+    // Focus search for next product
+    setTimeout(() => document.getElementById('batchProductSearch').focus(), 100);
+}
+
+// Update batch products table
+function updateBatchTable() {
+    const tbody = document.getElementById('batchProductsTable');
+    const countSpan = document.getElementById('batchCount');
+    const saveCountSpan = document.getElementById('batchSaveCount');
+
+    countSpan.textContent = batchItems.length;
+    saveCountSpan.textContent = batchItems.length;
+
+    if (batchItems.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="4" style="padding: 40px; text-align: center; color: #9ca3af;">
+                    Henüz ürün eklenmedi
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = batchItems.map((item, index) => `
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+            <td style="padding: 12px;">
+                <strong style="color: #1f2937;">${item.product.name}</strong>
+            </td>
+            <td style="padding: 12px; text-align: center; font-weight: 600; color: #3b82f6;">
+                ${item.quantity}
+            </td>
+            <td style="padding: 12px; text-align: center; color: #6b7280;">
+                ${item.product.unit}
+            </td>
+            <td style="padding: 12px; text-align: center;">
+                <button onclick="removeFromBatch(${index})" style="background: #ef4444; color: white; border: none; border-radius: 4px; padding: 6px 10px; cursor: pointer; font-size: 0.9rem;">
+                    🗑️
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+// Remove item from batch
+window.removeFromBatch = function (index) {
+    batchItems.splice(index, 1);
+    updateBatchTable();
+}
+
+// Submit batch
+window.submitBatch = async function () {
+    if (batchItems.length === 0) {
+        showCustomAlert('Sepet Boş', 'Lütfen önce ürün ekleyin.', '⚠️', false);
+        return;
+    }
+
+    // Get common fields
+    const employee = document.getElementById('batchEmployee').value;
+    if (!employee || !employee.trim()) {
+        showCustomAlert('Personel Seçilmedi', 'Lütfen personel seçin.', '⚠️', false);
+        return;
+    }
+
+    let source = '';
+    let project = '';
+
+    if (batchMode === 'in') {
+        source = document.getElementById('batchSource').value;
+        if (!source || !source.trim()) {
+            showCustomAlert('Kaynak Seçilmedi', 'Lütfen kaynak seçin.', '⚠️', false);
+            return;
+        }
+    } else {
+        project = document.getElementById('batchProject').value;
+        if (!project || !project.trim()) {
+            showCustomAlert('Proje Girilmedi', 'Lütfen proje adı girin.', '⚠️', false);
+            return;
+        }
+    }
+
+    const notes = document.getElementById('batchNotes').value;
+
+    // Show processing
+    showCustomAlert('İşleniyor...', `${batchItems.length} ürün kaydediliyor...`, '⏳', false);
+
+    let successCount = 0;
+    let failCount = 0;
+
+    // Process each item
+    for (const item of batchItems) {
+        try {
+            const endpoint = batchMode === 'in' ? '/api/stock-movements/in' : '/api/stock-movements/out';
+
+            const body = {
+                product_id: item.product.id,
+                quantity: item.quantity,
+                notes: notes
+            };
+
+            if (batchMode === 'in') {
+                body.brought_by = employee;
+                body.source_location = source;
+
+                // Auto-create source if needed
+                if (source && source.trim()) {
+                    await ensureSourceExists(source.trim());
+                }
+            } else {
+                body.taken_by = employee;
+                body.destination = project;
+                body.reason = project;
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            if (response.ok) {
+                successCount++;
+            } else {
+                failCount++;
+                console.error('Failed to process:', item.product.name);
+            }
+        } catch (error) {
+            failCount++;
+            console.error('Error processing:', item.product.name, error);
+        }
+    }
+
+    // Refresh products
+    await loadProducts();
+
+    // Show result
+    if (failCount === 0) {
+        showCustomAlert('Tamamlandı! ✅', `${successCount} ürün başarıyla kaydedildi.`, '✅', true);
+        // Reset will happen via auto-close
+    } else {
+        showCustomAlert('Kısmi Başarı', `${successCount} başarılı, ${failCount} başarısız.`, '⚠️', false);
+    }
+}
