@@ -51,9 +51,9 @@ router.get('/', requireAuth, async (req, res) => {
 
 // Stok giriş kaydı
 router.post('/in', requireAuth, async (req, res) => {
-    const t = await sequelize.transaction();
-
+    let t;
     try {
+        t = await sequelize.transaction();
         const { product_id, quantity, brought_by, source_location, notes } = req.body;
 
         if (!product_id || !quantity) {
@@ -85,7 +85,7 @@ router.post('/in', requireAuth, async (req, res) => {
         await t.commit();
         res.status(201).json(movement);
     } catch (error) {
-        await t.rollback();
+        if (t) await t.rollback();
         console.error('Stok giriş hatası:', error);
         res.status(500).json({ error: error.message });
     }
@@ -93,9 +93,9 @@ router.post('/in', requireAuth, async (req, res) => {
 
 // Stok çıkış kaydı
 router.post('/out', requireAuth, async (req, res) => {
-    const t = await sequelize.transaction();
-
+    let t;
     try {
+        t = await sequelize.transaction();
         const { product_id, quantity, taken_by, destination, job_id, reason, notes } = req.body;
 
         if (!product_id || !quantity) {
@@ -105,7 +105,7 @@ router.post('/out', requireAuth, async (req, res) => {
         // Yeterli stok kontrolü
         const product = await Product.findByPk(product_id, { transaction: t });
         if (!product) {
-            await t.rollback();
+            await t.rollback(); // Rollback explicitly here if we return early, though throw is safer
             return res.status(404).json({ error: 'Ürün bulunamadı' });
         }
 
@@ -135,7 +135,7 @@ router.post('/out', requireAuth, async (req, res) => {
         await t.commit();
         res.status(201).json(movement);
     } catch (error) {
-        await t.rollback();
+        if (t) await t.rollback();
         console.error('Stok çıkış hatası:', error);
         res.status(500).json({ error: error.message });
     }
@@ -143,9 +143,9 @@ router.post('/out', requireAuth, async (req, res) => {
 
 // Stok düzenleme (manuel ayarlama)
 router.post('/adjust', requireAuth, async (req, res) => {
-    const t = await sequelize.transaction();
-
+    let t;
     try {
+        t = await sequelize.transaction();
         const { product_id, new_quantity, reason, notes } = req.body;
 
         const product = await Product.findByPk(product_id, { transaction: t });
@@ -175,7 +175,7 @@ router.post('/adjust', requireAuth, async (req, res) => {
         await t.commit();
         res.status(201).json(movement);
     } catch (error) {
-        await t.rollback();
+        if (t) await t.rollback();
         console.error('Stok düzenleme hatası:', error);
         res.status(500).json({ error: error.message });
     }
