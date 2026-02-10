@@ -357,6 +357,11 @@ function closeModals() {
     document.getElementById('addProductModal').style.display = 'none';
 }
 
+// Expose modal functions to global scope for onclick handlers
+window.showInModal = showInModal;
+window.showOutModal = showOutModal;
+window.closeModals = closeModals;
+
 // =======================
 // AUTOCOMPLETE HELPERS
 // =======================

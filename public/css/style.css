@@ -181,6 +181,8 @@ body {
   min-width: 240px;
   cursor: pointer;
   background-color: white;
+  position: relative;
+  z-index: 1;
 
   /* Match .form-input styling exactly */
   padding: 0.875rem 1rem;
