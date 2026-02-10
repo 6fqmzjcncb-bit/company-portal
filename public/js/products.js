@@ -451,24 +451,23 @@ function getProductIdFromInput(inputValue) {
     if (!inputValue) return null;
 
     const trimmed = inputValue.trim();
+    const lower = trimmed.toLowerCase();
 
     // Try exact name match (case-sensitive first)
     let product = products.find(p => p.name === trimmed);
 
     // Try exact name match (case-insensitive)
     if (!product) {
-        const lower = trimmed.toLowerCase();
         product = products.find(p => p.name.toLowerCase() === lower);
     }
 
     // Try barcode match
     if (!product) {
-        product = products.find(p => p.barcode && p.barcode.toLowerCase() === lower || p.barcode === trimmed);
+        product = products.find(p => p.barcode && (p.barcode.toLowerCase() === lower || p.barcode === trimmed));
     }
 
     // Try partial name match (starts with)
     if (!product) {
-        const lower = trimmed.toLowerCase();
         product = products.find(p => p.name.toLowerCase().startsWith(lower));
     }
 
