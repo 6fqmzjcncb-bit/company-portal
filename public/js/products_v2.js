@@ -936,12 +936,12 @@ window.submitUnifiedTransaction = async () => {
             await ensureSourceExists(source.trim());
         }
     } else {
-        const employee = document.getElementById('unifiedEmployeeOut').value;
-        const project = document.getElementById('unifiedProjectName').value;
+        const employee = document.getElementById('unifiedDestination').value; // Has datalist now
+        const project = document.getElementById('unifiedReason').value; // Project field
 
         body.taken_by = employee;
-        body.destination = project; // Project name goes to destination
-        body.reason = project; // Also store in reason for clarity
+        body.destination = project;
+        body.reason = project;
     }
 
     await handleTransaction(endpoint, body);
