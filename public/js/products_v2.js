@@ -1,15 +1,20 @@
 // Auth & State
+window.onerror = function (msg, url, line) {
+    alert('JS HATA: ' + msg + '\nSatır: ' + line);
+    return false;
+};
+
 // DEBUG: Confirm file load
-alert('✅ YENİ SİSTEM YÜKLENDİ v9.25');
+console.log('products_v2.js loaded');
 
 let currentUser = null;
 let products = [];
 
 // Watchdog
 setTimeout(() => {
-    const tbody = document.getElementById('movementList');
-    if (tbody && tbody.innerHTML.includes('loader') && document.getElementById('tab-movements').style.display !== 'none') {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">⚠️ Yanıt alınamadı (Watchdog). Lütfen sayfayı yenileyin.</td></tr>';
+    const tbody = document.getElementById('productsContainer');
+    if (tbody && tbody.innerHTML.includes('loader')) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">⚠️ Yükleme zaman aşımı (10sn). Lütfen sayfayı yenileyin.</td></tr>';
     }
 }, 10000);
 
@@ -27,14 +32,17 @@ function setupFilters() {
 }
 
 function populateBrandFilter() {
+    if (!products) return;
     const brands = [...new Set(products.map(p => p.brand).filter(b => b))].sort();
-    const currentVal = brandFilter.value;
+    const currentVal = brandFilter ? brandFilter.value : '';
 
-    // Filter dropdown
-    brandFilter.innerHTML = '<option value="">Tüm Markalar</option>' +
-        brands.map(b => `<option value="${b}">${b}</option>`).join('');
+    if (brandFilter) {
+        // Filter dropdown
+        brandFilter.innerHTML = '<option value="">Tüm Markalar</option>' +
+            brands.map(b => `<option value="${b}">${b}</option>`).join('');
 
-    if (brands.includes(currentVal)) brandFilter.value = currentVal;
+        if (brands.includes(currentVal)) brandFilter.value = currentVal;
+    }
 
     // Autocomplete datalist for Add/Edit form
     const datalist = document.getElementById('brandOptions');
@@ -44,8 +52,9 @@ function populateBrandFilter() {
 }
 
 function filterProducts() {
+    if (!searchInput) return;
     const query = searchInput.value.toLowerCase().trim();
-    const brand = brandFilter.value;
+    const brand = brandFilter ? brandFilter.value : '';
 
     const filtered = products.filter(p => {
         const matchesQuery = !query ||
@@ -62,17 +71,24 @@ function filterProducts() {
 
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
-    currentUser = await checkAuth();
-    if (!currentUser) return;
+    console.log('DOM Ready');
+    try {
+        currentUser = await checkAuth();
+        if (!currentUser) {
+            console.log('No user, redirecting...');
+            return;
+        }
 
-    // Tabs
-    setupTabs();
-    setupFilters();
-    setupModalListeners(); // Ensure listeners are attached
-    // setupFormListeners(); // Removed in favor of direct onclick
+        // Tabs
+        setupTabs();
+        setupFilters();
+        setupModalListeners();
 
-    // Load Data
-    await loadProducts();
+        // Load Data
+        await loadProducts();
+    } catch (e) {
+        alert('Init Hata: ' + e.message);
+    }
 });
 
 async function checkAuth() {
@@ -104,13 +120,16 @@ async function checkAuth() {
 
 function updateUserInterface(user) {
     if (!user) return;
-    document.getElementById('userName').textContent = user.full_name;
-    document.getElementById('userRole').textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+    const nameEl = document.getElementById('userName');
+    if (nameEl) nameEl.textContent = user.full_name;
+
+    const roleEl = document.getElementById('userRole');
+    if (roleEl) roleEl.textContent = user.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
 
     if (user.role === 'admin') {
         const adminLink = document.getElementById('adminLink');
         if (adminLink) adminLink.style.display = 'block';
-        if (addBtn) addBtn.style.display = 'inline-block';
+        if (typeof addBtn !== 'undefined' && addBtn) addBtn.style.display = 'inline-block';
     }
 }
 
@@ -150,18 +169,26 @@ function setupTabs() {
 // =======================
 
 async function loadProducts() {
+    console.log('Loading products...');
+    const container = document.getElementById('productsContainer');
     try {
-        const response = await fetchWithTimeout('/api/products');
-        if (!response.ok) throw new Error('Ürün verisi alınamadı');
+        // Direct fetch to avoid utilities issues
+        const response = await fetch('/api/products?t=' + Date.now());
+
+        if (!response.ok) throw new Error('Sunucudan veri alınamadı: ' + response.status);
+
         products = await response.json();
+        console.log('Products loaded:', products.length);
 
         renderProductList();
         renderProductDropdowns();
         populateBrandFilter();
     } catch (error) {
         console.error('Ürün yükleme hatası:', error);
-        document.getElementById('productsContainer').innerHTML =
-            `<tr><td colspan="6" class="text-center text-danger">Hata: ${error.message}</td></tr>`;
+        if (container) {
+            container.innerHTML =
+                `<tr><td colspan="6" class="text-center text-danger">Hata: ${error.message} <br> <button class="btn btn-sm btn-outline-primary" onclick="loadProducts()">Tekrar Dene</button></td></tr>`;
+        }
     }
 }
 
