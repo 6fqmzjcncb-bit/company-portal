@@ -864,13 +864,44 @@ window.setUnifiedMode = function (mode) {
     if (mode === 'in') {
         document.getElementById('unifiedInFields').style.display = 'block';
         document.getElementById('unifiedOutFields').style.display = 'none';
+        populateUnifiedDropdowns(); // Load employees and sources
     } else {
         document.getElementById('unifiedInFields').style.display = 'none';
         document.getElementById('unifiedOutFields').style.display = 'block';
+        populateUnifiedDropdowns(); // Load employees
     }
 
     // Focus Quantity
     setTimeout(() => document.getElementById('unifiedQuantity').focus(), 100);
+}
+
+// Populate employee and source dropdowns
+async function populateUnifiedDropdowns() {
+    try {
+        // Fetch employees
+        const empResponse = await fetch('/api/employees');
+        if (empResponse.ok) {
+            const employees = await empResponse.json();
+            const datalistIn = document.getElementById('unifiedEmployeeOptions');
+            const datalistOut = document.getElementById('unifiedEmployeeOptionsOut');
+
+            const empOptions = employees.map(emp => `<option value="${emp.full_name}">`).join('');
+            if (datalistIn) datalistIn.innerHTML = empOptions;
+            if (datalistOut) datalistOut.innerHTML = empOptions;
+        }
+
+        // Fetch sources (for IN only)
+        const srcResponse = await fetch('/api/sources');
+        if (srcResponse.ok) {
+            const sources = await srcResponse.json();
+            const datalistSrc = document.getElementById('unifiedSourceOptions');
+            if (datalistSrc) {
+                datalistSrc.innerHTML = sources.map(src => `<option value="${src.name}">`).join('');
+            }
+        }
+    } catch (error) {
+        console.error('Error loading dropdowns:', error);
+    }
 }
 
 window.submitUnifiedTransaction = async () => {
@@ -894,15 +925,53 @@ window.submitUnifiedTransaction = async () => {
 
     // Add specific fields
     if (type === 'in') {
-        body.brought_by = document.getElementById('unifiedSource').value;
-        body.source_location = document.getElementById('unifiedSource').value;
+        const employee = document.getElementById('unifiedEmployee').value;
+        const source = document.getElementById('unifiedSourceIn').value;
+
+        body.brought_by = employee;
+        body.source_location = source;
+
+        // Auto-create source if new
+        if (source && source.trim()) {
+            await ensureSourceExists(source.trim());
+        }
     } else {
-        body.taken_by = document.getElementById('unifiedDestination').value;
-        body.destination = document.getElementById('unifiedDestination').value;
-        body.reason = document.getElementById('unifiedReason').value;
+        const employee = document.getElementById('unifiedEmployeeOut').value;
+        const project = document.getElementById('unifiedProjectName').value;
+
+        body.taken_by = employee;
+        body.destination = project; // Project name goes to destination
+        body.reason = project; // Also store in reason for clarity
     }
 
     await handleTransaction(endpoint, body);
+}
+
+// Ensure source exists, create if not
+async function ensureSourceExists(sourceName) {
+    try {
+        const response = await fetch('/api/sources');
+        if (response.ok) {
+            const sources = await response.json();
+            const exists = sources.some(s => s.name.toLowerCase() === sourceName.toLowerCase());
+
+            if (!exists) {
+                // Create new source
+                const createResponse = await fetch('/api/sources', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: sourceName })
+                });
+
+                if (createResponse.ok) {
+                    console.log('New source created:', sourceName);
+                    showToast('Yeni kaynak eklendi: ' + sourceName, 'success');
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error checking/creating source:', error);
+    }
 }
 
 window.switchToCreateMode = function () {

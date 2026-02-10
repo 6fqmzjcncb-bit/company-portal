@@ -435,12 +435,13 @@
                         </div>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div id="actionButtons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <!-- Action Buttons (Centered) -->
+                    <div id="actionButtons"
+                        style="display: flex; gap: 15px; margin-bottom: 20px; justify-content: center;">
                         <button class="btn btn-success" onclick="setUnifiedMode('in')"
-                            style="flex: 1; padding: 15px;">📥 Stok Ekle</button>
+                            style="padding: 18px 40px; font-size: 1.1rem; font-weight: 600;">📥 Ürün Giriş</button>
                         <button class="btn btn-danger" onclick="setUnifiedMode('out')"
-                            style="flex: 1; padding: 15px;">📤 Stok Çıkar</button>
+                            style="padding: 18px 40px; font-size: 1.1rem; font-weight: 600;">📤 Ürün Çıkış</button>
                     </div>
 
                     <!-- Transaction Form -->
@@ -462,9 +463,17 @@
                         <!-- Dynamic Fields based on Type -->
                         <div id="unifiedInFields" style="display: none;">
                             <div class="form-group">
-                                <label>Getiren / Teslim Eden</label>
-                                <input type="text" id="unifiedSource" class="form-control"
-                                    placeholder="Tedarikçi veya Personel">
+                                <label>Ürünü Teslim Alan (Personel)</label>
+                                <input type="text" id="unifiedEmployee" class="form-control"
+                                    list="unifiedEmployeeOptions" placeholder="Personel adı seçin veya yazın..."
+                                    autocomplete="off">
+                                <datalist id="unifiedEmployeeOptions"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label>Kaynak (Tedarikçi/Firma)</label>
+                                <input type="text" id="unifiedSourceIn" class="form-control" list="unifiedSourceOptions"
+                                    placeholder="Kaynak seçin veya yeni kaynak yazın..." autocomplete="off">
+                                <datalist id="unifiedSourceOptions"></datalist>
                             </div>
                         </div>
 
