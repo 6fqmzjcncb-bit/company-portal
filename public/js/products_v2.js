@@ -299,7 +299,7 @@ function clearFilters() {
 // UTILS
 // =======================
 
-const fetchWithTimeout = async (resource, options = {}) => {
+async function fetchWithTimeout(resource, options = {}) {
     const { timeout = 8000 } = options;
     let url = resource;
     url += (url.includes('?') ? '&' : '?') + `_t=${Date.now()}`;
@@ -319,7 +319,7 @@ const fetchWithTimeout = async (resource, options = {}) => {
         clearTimeout(id);
         throw error;
     }
-};
+}
 
 function getMovementTypeInfo(type) {
     const types = {
