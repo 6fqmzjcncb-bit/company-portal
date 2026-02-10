@@ -676,11 +676,18 @@ async function handleTransaction(url, data) {
         });
 
         if (!response.ok) {
-            const err = await response.json();
-            throw new Error(err.error || 'İşlem başarısız');
+            let errorMsg = 'İşlem başarısız';
+            try {
+                const err = await response.json();
+                errorMsg = err.error || errorMsg;
+            } catch (jsonErr) {
+                errorMsg = `Sunucu hatası: ${response.status} ${response.statusText}`;
+            }
+            throw new Error(errorMsg);
         }
 
-        showToast('İşlem başarıyla tamamlandı!', 'success');
+        // Use alert for immediate, guaranteed feedback
+        alert('✅ İşlem başarıyla tamamlandı!');
         closeModals();
         loadProducts(); // Update stocks
         if (document.getElementById('tab-movements').style.display !== 'none') {
@@ -688,7 +695,8 @@ async function handleTransaction(url, data) {
         }
     } catch (error) {
         console.error('Transaction error:', error);
-        showToast('Hata: ' + error.message, 'error');
+        // Fallback to alert if toast fails or is invisible
+        alert('❌ Hata: ' + error.message);
     }
 }
 
