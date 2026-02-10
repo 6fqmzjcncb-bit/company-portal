@@ -408,29 +408,39 @@
                     </button>
                 </div>
 
-                <!-- COMMON FIELDS -->
-                <div id="batchCommonFields"
-                    style="display: none; background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
-                    <h4 style="margin: 0 0 15px 0; color: #374151; font-size: 1.1rem;">Ortak Bilgiler (Tüm Ürünler İçin)
-                    </h4>
+                <!-- ADD PRODUCT SECTION (MOVED TO TOP) -->
+                <div id="batchAddSection"
+                    style="display: none; background: #f0f9ff; padding: 20px; border-radius: 10px; border: 2px dashed #3b82f6; margin-bottom: 20px;">
+                    <h4 style="margin: 0 0 15px 0; color: #1e40af; font-size: 1.05rem;">➕ Yeni Ürün Ekle</h4>
 
                     <div class="form-group">
-                        <label>Personel</label>
-                        <input type="text" id="batchEmployee" class="form-control" list="batchEmployeeOptions"
-                            placeholder="Personel adı seçin..." autocomplete="off">
-                        <datalist id="batchEmployeeOptions"></datalist>
+                        <label>Ürün Ara</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="batchProductSearch" class="form-control"
+                                placeholder="Ürün adı veya barkod..." autocomplete="off"
+                                oninput="handleBatchProductSearch(this.value)">
+                            <button type="button" onclick="toggleBarcodeScanner()" class="btn" id="batchScannerBtn"
+                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; font-size: 1.3rem; min-width: 60px;">
+                                📷
+                            </button>
+                        </div>
+                        <div id="batchProductSuggestions" class="autocomplete-items"></div>
                     </div>
 
-                    <div id="batchSourceField" class="form-group" style="display: none;">
-                        <label>Kaynak (Tedarikçi/Firma)</label>
-                        <input type="text" id="batchSource" class="form-control" list="batchSourceOptions"
-                            placeholder="Kaynak seçin veya yeni kaynak yazın..." autocomplete="off">
-                        <datalist id="batchSourceOptions"></datalist>
-                    </div>
-
-                    <div id="batchProjectField" class="form-group" style="display: none;">
-                        <label>Proje Adı</label>
-                        <input type="text" id="batchProject" class="form-control" placeholder="Hangi iş için?">
+                    <div style="display: flex; gap: 12px; align-items: end;">
+                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                            <label>Miktar</label>
+                            <div style="display: flex; align-items: center;">
+                                <input type="number" id="batchQuantity" class="form-control" placeholder="0"
+                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                                <span id="batchUnitLabel"
+                                    style="background: #e5e7eb; padding: 10px 15px; border: 1px solid #d1d5db; border-left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; color: #374151; font-weight: bold; min-width: 70px; text-align: center;">-</span>
+                            </div>
+                        </div>
+                        <button type="button" onclick="addProductToBatch()" class="btn btn-primary"
+                            style="padding: 10px 25px; font-weight: 600;">
+                            ➕ Ekle
+                        </button>
                     </div>
                 </div>
 
@@ -468,43 +478,33 @@
                     </div>
                 </div>
 
-                <!-- ADD PRODUCT SECTION -->
-                <div id="batchAddSection"
-                    style="display: none; background: #f0f9ff; padding: 20px; border-radius: 10px; border: 2px dashed #3b82f6; margin-bottom: 20px;">
-                    <h4 style="margin: 0 0 15px 0; color: #1e40af; font-size: 1.05rem;">➕ Yeni Ürün Ekle</h4>
+                <!-- COMMON FIELDS -->
+                <div id="batchCommonFields"
+                    style="display: none; background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
+                    <h4 style="margin: 0 0 15px 0; color: #374151; font-size: 1.1rem;">Ortak Bilgiler (Tüm Ürünler İçin)
+                    </h4>
 
                     <div class="form-group">
-                        <label>Ürün Ara</label>
-                        <div style="display: flex; gap: 8px;">
-                            <input type="text" id="batchProductSearch" class="form-control"
-                                placeholder="Ürün adı veya barkod..." autocomplete="off"
-                                oninput="handleBatchProductSearch(this.value)">
-                            <button type="button" onclick="toggleBarcodeScanner()" class="btn" id="batchScannerBtn"
-                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; font-size: 1.3rem; min-width: 60px;">
-                                📷
-                            </button>
-                        </div>
-                        <div id="batchProductSuggestions" class="autocomplete-items"></div>
+                        <label>Personel</label>
+                        <input type="text" id="batchEmployee" class="form-control" list="batchEmployeeOptions"
+                            placeholder="Personel adı seçin..." autocomplete="off">
+                        <datalist id="batchEmployeeOptions"></datalist>
                     </div>
 
-                    <div style="display: flex; gap: 12px; align-items: end;">
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label>Miktar</label>
-                            <div style="display: flex; align-items: center;">
-                                <input type="number" id="batchQuantity" class="form-control" placeholder="0"
-                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
-                                <span id="batchUnitLabel"
-                                    style="background: #e5e7eb; padding: 10px 15px; border: 1px solid #d1d5db; border-left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; color: #374151; font-weight: bold; min-width: 70px; text-align: center;">-</span>
-                            </div>
-                        </div>
-                        <button type="button" onclick="addProductToBatch()" class="btn btn-primary"
-                            style="padding: 10px 25px; font-weight: 600;">
-                            ➕ Ekle
-                        </button>
+                    <div id="batchSourceField" class="form-group" style="display: none;">
+                        <label>Kaynak (Tedarikçi/Firma)</label>
+                        <input type="text" id="batchSource" class="form-control" list="batchSourceOptions"
+                            placeholder="Kaynak seçin veya yeni kaynak yazın..." autocomplete="off">
+                        <datalist id="batchSourceOptions"></datalist>
+                    </div>
+
+                    <div id="batchProjectField" class="form-group" style="display: none;">
+                        <label>Proje Adı</label>
+                        <input type="text" id="batchProject" class="form-control" placeholder="Hangi iş için?">
                     </div>
                 </div>
 
-                <!-- NOTES & SAVE -->
+                <!-- NOTES & SAVE (AT BOTTOM) -->
                 <div id="batchSaveSection" style="display: none;">
                     <div class="form-group">
                         <label>Notlar (Opsiyonel)</label>
@@ -512,10 +512,12 @@
                             placeholder="Tüm ürünler için ortak not..."></textarea>
                     </div>
 
-                    <button type="button" onclick="submitBatch()" class="btn btn-success"
-                        style="width: 100%; padding: 16px; font-size: 1.15rem; font-weight: 600; margin-top: 10px;">
-                        💾 Tümünü Kaydet (<span id="batchSaveCount">0</span> ürün)
-                    </button>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="button" onclick="submitBatch()" class="btn btn-success"
+                            style="padding: 16px 50px; font-size: 1.15rem; font-weight: 600;">
+                            💾 Kaydet (<span id="batchSaveCount">0</span> ürün)
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Scanner Container (Shared) -->

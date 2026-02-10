@@ -1542,8 +1542,12 @@ function updateBatchTable() {
             <td style="padding: 12px;">
                 <strong style="color: #1f2937;">${item.product.name}</strong>
             </td>
-            <td style="padding: 12px; text-align: center; font-weight: 600; color: #3b82f6;">
-                ${item.quantity}
+            <td style="padding: 12px; text-align: center;">
+                <input type="number" 
+                    value="${item.quantity}" 
+                    onchange="updateBatchQuantity(${index}, this.value)"
+                    style="width: 80px; padding: 6px; text-align: center; border: 1px solid #d1d5db; border-radius: 4px; font-weight: 600; color: #3b82f6;"
+                    min="1">
             </td>
             <td style="padding: 12px; text-align: center; color: #6b7280;">
                 ${item.product.unit}
@@ -1555,6 +1559,19 @@ function updateBatchTable() {
             </td>
         </tr>
     `).join('');
+}
+
+// Update quantity for a specific batch item
+window.updateBatchQuantity = function (index, newQuantity) {
+    const qty = parseInt(newQuantity);
+    if (qty && qty > 0) {
+        batchItems[index].quantity = qty;
+        // Update save count
+        document.getElementById('batchSaveCount').textContent = batchItems.length;
+    } else {
+        // Reset to previous value if invalid
+        updateBatchTable();
+    }
 }
 
 // Remove item from batch
