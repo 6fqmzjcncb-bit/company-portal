@@ -1341,9 +1341,15 @@ window.processCart = async function () {
 // BATCH PROCESSING SYSTEM (Invoice Style)
 // =======================
 
-let batchItems = [];
-let batchMode = null; // 'in' or 'out'
+let batchItemsIn = [];  // Separate storage for IN mode
+let batchItemsOut = []; // Separate storage for OUT mode
+let batchItems = [];    // Active items (points to IN or OUT)
+let batchMode = null;   // 'in' or 'out'
 let selectedBatchProduct = null;
+
+// Separate form data for each mode
+let batchDataIn = { employee: '', source: '', notes: '' };
+let batchDataOut = { employee: '', project: '', notes: '' };
 
 // Open unified modal (now batch mode)
 window.openUnifiedModal = function () {
@@ -1358,9 +1364,14 @@ window.openUnifiedModal = function () {
 
 // Reset batch modal completely
 function resetBatchModal() {
+    // Clear ALL data (both modes)
+    batchItemsIn = [];
+    batchItemsOut = [];
     batchItems = [];
     batchMode = null;
     selectedBatchProduct = null;
+    batchDataIn = { employee: '', source: '', notes: '' };
+    batchDataOut = { employee: '', project: '', notes: '' };
 
     // Hide all sections except mode selection
     document.getElementById('batchCommonFields').style.display = 'none';
@@ -1392,7 +1403,34 @@ function resetBatchModal() {
 
 // Set batch mode (IN or OUT)
 window.setBatchMode = async function (mode) {
+    // Save current mode data before switching
+    if (batchMode === 'in') {
+        batchDataIn.employee = document.getElementById('batchEmployee').value;
+        batchDataIn.source = document.getElementById('batchSource').value;
+        batchDataIn.notes = document.getElementById('batchNotes').value;
+        batchItemsIn = [...batchItems];
+    } else if (batchMode === 'out') {
+        batchDataOut.employee = document.getElementById('batchEmployee').value;
+        batchDataOut.project = document.getElementById('batchProject').value;
+        batchDataOut.notes = document.getElementById('batchNotes').value;
+        batchItemsOut = [...batchItems];
+    }
+
+    // Switch mode
     batchMode = mode;
+
+    // Load saved data for new mode
+    if (mode === 'in') {
+        batchItems = [...batchItemsIn];
+        document.getElementById('batchEmployee').value = batchDataIn.employee;
+        document.getElementById('batchSource').value = batchDataIn.source;
+        document.getElementById('batchNotes').value = batchDataIn.notes;
+    } else {
+        batchItems = [...batchItemsOut];
+        document.getElementById('batchEmployee').value = batchDataOut.employee;
+        document.getElementById('batchProject').value = batchDataOut.project;
+        document.getElementById('batchNotes').value = batchDataOut.notes;
+    }
 
     // Update button styles
     const btnIn = document.getElementById('batchModeIn');
@@ -1507,7 +1545,14 @@ window.selectBatchProduct = function (productId) {
     // Update UI
     document.getElementById('batchProductSearch').value = product.name;
     document.getElementById('batchProductSuggestions').innerHTML = '';
-    document.getElementById('batchUnitLabel').textContent = product.unit;
+
+    // Show stock info for admin, just unit for regular users
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner');
+    if (isAdmin) {
+        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.quantity})`;
+    } else {
+        document.getElementById('batchUnitLabel').textContent = product.unit;
+    }
 
     // Focus quantity
     setTimeout(() => document.getElementById('batchQuantity').focus(), 100);
@@ -1520,10 +1565,19 @@ window.addProductToBatch = function () {
         return;
     }
 
-    const qty = document.getElementById('batchQuantity').value;
+    const qty = parseInt(document.getElementById('batchQuantity').value);
     if (!qty || qty <= 0) {
         showCustomAlert('Geçersiz Miktar', 'Lütfen geçerli bir miktar girin.', '⚠️', false);
         return;
+    }
+
+    // Stock validation for OUT mode
+    if (batchMode === 'out') {
+        const currentStock = selectedBatchProduct.quantity || 0;
+        if (qty > currentStock) {
+            showCustomAlert('Yetersiz Stok', `Stokta sadece ${currentStock} ${selectedBatchProduct.unit} var. Daha fazla çıkış yapamazsınız.`, '⚠️', false);
+            return;
+        }
     }
 
     // Add to batch
@@ -1531,9 +1585,10 @@ window.addProductToBatch = function () {
         product: {
             id: selectedBatchProduct.id,
             name: selectedBatchProduct.name,
-            unit: selectedBatchProduct.unit
+            unit: selectedBatchProduct.unit,
+            currentStock: selectedBatchProduct.quantity
         },
-        quantity: parseInt(qty)
+        quantity: qty
     });
 
     // Update table
@@ -1569,17 +1624,21 @@ function updateBatchTable() {
         return;
     }
 
+    const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner');
+
     tbody.innerHTML = batchItems.map((item, index) => `
         <tr style="border-bottom: 1px solid #f3f4f6;">
             <td style="padding: 12px;">
                 <strong style="color: #1f2937;">${item.product.name}</strong>
+                ${isAdmin ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 2px;">Stok: ${item.product.currentStock} ${item.product.unit}</div>` : ''}
             </td>
             <td style="padding: 12px; text-align: center;">
                 <input type="number" 
                     value="${item.quantity}" 
                     onchange="updateBatchQuantity(${index}, this.value)"
                     style="width: 80px; padding: 6px; text-align: center; border: 1px solid #d1d5db; border-radius: 4px; font-weight: 600; color: #3b82f6;"
-                    min="1">
+                    min="1"
+                    ${batchMode === 'out' ? `max="${item.product.currentStock}"` : ''}>
             </td>
             <td style="padding: 12px; text-align: center; color: #6b7280;">
                 ${item.product.unit}
