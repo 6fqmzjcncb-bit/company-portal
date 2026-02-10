@@ -733,3 +733,158 @@ async function handleTransaction(url, data) {
 window.onclick = function (event) {
     if (event.target.classList.contains('modal')) closeModals();
 }
+
+// --- UNIFIED MODAL LOGIC (ADDED v9.22) ---
+
+let selectedUnifiedProduct = null;
+let unifiedTransactionType = 'in'; // Default
+
+window.openUnifiedModal = function () {
+    // Reset State
+    const searchInput = document.getElementById('unifiedSearchInput');
+    const suggestions = document.getElementById('unifiedSuggestions');
+    const actionSection = document.getElementById('unifiedActionSection');
+    const createSection = document.getElementById('unifiedCreateSection');
+    const formSection = document.getElementById('unifiedTransactionForm');
+    const actionButtons = document.getElementById('actionButtons');
+
+    if (searchInput) searchInput.value = '';
+    if (suggestions) suggestions.innerHTML = '';
+    if (actionSection) actionSection.style.display = 'none';
+    if (createSection) createSection.style.display = 'none';
+    if (formSection) formSection.style.display = 'none';
+    if (actionButtons) actionButtons.style.display = 'none';
+
+    document.getElementById('unifiedStockModal').style.display = 'flex';
+    setTimeout(() => {
+        if (searchInput) searchInput.focus();
+    }, 100);
+}
+
+window.handleUnifiedSearch = function (val) {
+    const suggestions = document.getElementById('unifiedSuggestions');
+    suggestions.innerHTML = '';
+
+    document.getElementById('unifiedActionSection').style.display = 'none';
+    document.getElementById('unifiedCreateSection').style.display = 'none';
+
+    if (!val || val.length < 2) return;
+
+    const lowerVal = val.toLocaleLowerCase('tr-TR');
+
+    // Ensure products is loaded
+    if (!products) {
+        console.error('Products not loaded yet');
+        return;
+    }
+
+    const matches = products.filter(p =>
+        p.name.toLocaleLowerCase('tr-TR').includes(lowerVal) ||
+        (p.barcode && p.barcode.includes(val))
+    );
+
+    if (matches.length === 0) {
+        document.getElementById('unifiedCreateSection').style.display = 'block';
+    } else {
+        // Show suggestions
+        matches.slice(0, 5).forEach(p => {
+            const div = document.createElement('div');
+            // Style suggestions
+            div.style.padding = '10px';
+            div.style.cursor = 'pointer';
+            div.style.borderBottom = '1px solid #eee';
+            div.onmouseover = () => div.style.background = '#f0f9ff';
+            div.onmouseout = () => div.style.background = 'white';
+
+            div.innerHTML = `<strong>${p.name}</strong> <small style="color:#666">(${p.current_stock} ${p.unit || 'adet'})</small>`;
+            div.onclick = () => selectUnifiedProduct(p);
+            suggestions.appendChild(div);
+        });
+    }
+}
+
+window.selectUnifiedProduct = function (product) {
+    selectedUnifiedProduct = product;
+
+    // Fill Info
+    document.getElementById('selectedProductName').textContent = product.name;
+    document.getElementById('selectedProductStock').textContent = product.current_stock;
+    document.getElementById('selectedProductUnit').textContent = capitalizeUnit(product.unit || 'adet');
+    document.getElementById('selectedProductBrand').textContent = product.brand || '-';
+
+    // Show Unit in Form
+    document.getElementById('unifiedUnitLabel').textContent = capitalizeUnit(product.unit || 'adet');
+    document.getElementById('unifiedProductId').value = product.id;
+
+    // UI Updates
+    document.getElementById('unifiedSearchInput').value = product.name;
+    document.getElementById('unifiedSuggestions').innerHTML = '';
+    document.getElementById('unifiedActionSection').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'flex';
+    document.getElementById('unifiedTransactionForm').style.display = 'none';
+}
+
+window.setUnifiedMode = function (mode) {
+    unifiedTransactionType = mode;
+    document.getElementById('unifiedTransactionType').value = mode;
+    document.getElementById('unifiedTransactionForm').style.display = 'block';
+
+    // Toggle Fields
+    if (mode === 'in') {
+        document.getElementById('unifiedInFields').style.display = 'block';
+        document.getElementById('unifiedOutFields').style.display = 'none';
+    } else {
+        document.getElementById('unifiedInFields').style.display = 'none';
+        document.getElementById('unifiedOutFields').style.display = 'block';
+    }
+
+    // Focus Quantity
+    setTimeout(() => document.getElementById('unifiedQuantity').focus(), 100);
+}
+
+window.submitUnifiedTransaction = async () => {
+    const type = document.getElementById('unifiedTransactionType').value;
+    const qty = document.getElementById('unifiedQuantity').value;
+    const productId = document.getElementById('unifiedProductId').value;
+
+    if (!qty || qty <= 0) {
+        alert('Lütfen geçerli bir miktar girin.');
+        return;
+    }
+
+    const endpoint = type === 'in' ? '/api/stock-movements/in' : '/api/stock-movements/out';
+
+    // Build Base Body
+    const body = {
+        product_id: productId,
+        quantity: qty,
+        notes: document.getElementById('unifiedNotes').value
+    };
+
+    // Add specific fields
+    if (type === 'in') {
+        body.brought_by = document.getElementById('unifiedSource').value;
+        body.source_location = document.getElementById('unifiedSource').value;
+    } else {
+        body.taken_by = document.getElementById('unifiedDestination').value;
+        body.destination = document.getElementById('unifiedDestination').value;
+        body.reason = document.getElementById('unifiedReason').value;
+    }
+
+    await handleTransaction(endpoint, body);
+}
+
+window.switchToCreateMode = function () {
+    const name = document.getElementById('unifiedSearchInput').value;
+    closeModals();
+    showAddModal();
+    setTimeout(() => {
+        const nameInput = document.getElementById('productName');
+        if (nameInput) nameInput.value = name;
+    }, 200);
+}
+
+function capitalizeUnit(unit) {
+    if (!unit) return '';
+    return unit.charAt(0).toUpperCase() + unit.slice(1);
+}
