@@ -365,11 +365,11 @@ function populateProductAutocomplete() {
     const datalist = document.getElementById('productOptions');
     if (!datalist) return;
 
+    // Show ALL products (don't filter by stock)
     datalist.innerHTML = products
-        .filter(p => p.stock > 0) // Only show products with stock for stock out
         .map(p => {
             const label = `${p.name}${p.barcode ? ' (' + p.barcode + ')' : ''} - Stok: ${p.stock} ${capitalizeUnit(p.unit)}`;
-            return `<option value="${p.name}" data-id="${p.id}">${label}</option>`;
+            return `<option value="${p.name}">${label}</option>`;
         })
         .join('');
 }
@@ -414,18 +414,24 @@ function getProductIdFromInput(inputValue) {
 
     const trimmed = inputValue.trim();
 
-    // Try exact name match
+    // Try exact name match (case-sensitive first)
     let product = products.find(p => p.name === trimmed);
 
-    // Try barcode match
-    if (!product) {
-        product = products.find(p => p.barcode && p.barcode === trimmed);
-    }
-
-    // Try partial name match (case-insensitive)
+    // Try exact name match (case-insensitive)
     if (!product) {
         const lower = trimmed.toLowerCase();
         product = products.find(p => p.name.toLowerCase() === lower);
+    }
+
+    // Try barcode match
+    if (!product) {
+        product = products.find(p => p.barcode && p.barcode.toLowerCase() === lower || p.barcode === trimmed);
+    }
+
+    // Try partial name match (starts with)
+    if (!product) {
+        const lower = trimmed.toLowerCase();
+        product = products.find(p => p.name.toLowerCase().startsWith(lower));
     }
 
     return product ? product.id : null;
