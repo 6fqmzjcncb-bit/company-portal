@@ -422,7 +422,7 @@ async function populateEmployeeAutocomplete() {
         if (!datalist) return;
 
         datalist.innerHTML = employees
-            .map(emp => `<option value="${emp.name}">`)
+            .map(emp => `<option value="${emp.full_name}">`)
             .join('');
     } catch (error) {
         console.error('Employee autocomplete failed:', error);
