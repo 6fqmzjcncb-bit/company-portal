@@ -642,6 +642,7 @@ window.submitStockIn = async () => {
 window.submitStockOut = async () => {
     console.log('Stock Out Submit Triggered (Direct)');
 
+    // 1. Check if products loaded
     if (!products || products.length === 0) {
         alert('KRİTİK HATA: Ürün listesi yüklenemedi. Sayfayı yenileyip tekrar deneyin.');
         return;
@@ -651,10 +652,11 @@ window.submitStockOut = async () => {
     if (btn) btn.disabled = true;
 
     try {
+        // 2. Product Validation
         const productInput = document.getElementById('outProduct').value;
         const productId = getProductIdFromInput(productInput);
 
-        console.log(`Input: ${productInput}, ID: ${productId}`);
+        console.log(`Out Input: ${productInput}, ID: ${productId}`);
 
         if (!productId) {
             alert(`HATA: "${productInput}" adlı ürün sistemde bulunamadı.\nLütfen listeden seçtiğinize emin olun.`);
@@ -662,6 +664,7 @@ window.submitStockOut = async () => {
             return;
         }
 
+        // 3. Quantity Validation
         const quantity = document.getElementById('outQuantity').value;
         if (!quantity || quantity <= 0) {
             alert('Hata: Lütfen geçerli bir miktar girin.');
@@ -669,6 +672,7 @@ window.submitStockOut = async () => {
             return;
         }
 
+        // 4. Send Request
         await handleTransaction('/api/stock-movements/out', {
             product_id: productId,
             quantity: quantity,
@@ -677,6 +681,7 @@ window.submitStockOut = async () => {
             reason: document.getElementById('outReason').value,
             notes: document.getElementById('outNotes').value
         });
+
     } catch (e) {
         console.error(e);
         alert('BEKLENMEYEN HATA: ' + e.message);
