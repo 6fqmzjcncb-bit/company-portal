@@ -1,6 +1,6 @@
 // Auth & State
 // DEBUG: Confirm file load
-// alert('YENİ SİSTEM (Tek Buton) YÜKLENDİ! ✅');
+alert('✅ YENİ SİSTEM YÜKLENDİ v9.25');
 
 let currentUser = null;
 let products = [];
@@ -881,9 +881,9 @@ window.submitUnifiedTransaction = async () => {
 window.switchToCreateMode = function () {
     const name = document.getElementById('unifiedSearchInput').value;
     closeModals();
-    showAddModal();
+    addProduct(); // FIX: Was showAddModal() which doesn't exist
     setTimeout(() => {
-        const nameInput = document.getElementById('productName');
+        const nameInput = document.getElementById('newProdName');
         if (nameInput) nameInput.value = name;
     }, 200);
 }
