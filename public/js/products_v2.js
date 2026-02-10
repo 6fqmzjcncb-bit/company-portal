@@ -790,7 +790,7 @@ window.openUnifiedModal = function () {
     if (formSection) formSection.style.display = 'none';
     if (actionButtons) actionButtons.style.display = 'none';
 
-    document.getElementById('unifiedStockModal').style.display = 'flex';
+    document.getElementById('unifiedStockModal').style.display = 'flex'; // Changed to flex for centering
     setTimeout(() => {
         if (searchInput) searchInput.focus();
     }, 100);
