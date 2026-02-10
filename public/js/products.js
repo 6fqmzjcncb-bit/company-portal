@@ -362,6 +362,12 @@ window.showInModal = showInModal;
 window.showOutModal = showOutModal;
 window.closeModals = closeModals;
 
+// Also expose to global scope for HTML onclick (critical!)
+window.addProduct = addProduct;
+window.editProduct = editProduct;
+window.deleteProduct = deleteProduct;
+window.logout = logout;
+
 // =======================
 // AUTOCOMPLETE HELPERS
 // =======================
