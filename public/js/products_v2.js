@@ -919,3 +919,102 @@ function capitalizeUnit(unit) {
     if (!unit) return '';
     return unit.charAt(0).toUpperCase() + unit.slice(1);
 }
+
+// =======================
+// BARCODE SCANNER
+// =======================
+
+let html5QrcodeScanner = null;
+let isScannerActive = false;
+
+window.toggleBarcodeScanner = function () {
+    const container = document.getElementById('barcodeScannerContainer');
+    const btn = document.getElementById('scannerToggleBtn');
+
+    if (isScannerActive) {
+        stopBarcodeScanner();
+    } else {
+        // Show container
+        container.style.display = 'block';
+        btn.style.background = '#ef4444'; // Red when active
+        btn.textContent = '⏹️';
+
+        // Start scanner
+        startBarcodeScanner();
+    }
+}
+
+function startBarcodeScanner() {
+    if (typeof Html5Qrcode === 'undefined') {
+        alert('Barkod okuyucu kütüphanesi yüklenemedi. Lütfen sayfayı yenileyin.');
+        return;
+    }
+
+    html5QrcodeScanner = new Html5Qrcode("barcodeReader");
+
+    const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 150 },
+        aspectRatio: 1.777778
+    };
+
+    html5QrcodeScanner.start(
+        { facingMode: "environment" }, // Use back camera on mobile
+        config,
+        onScanSuccess,
+        onScanError
+    ).then(() => {
+        isScannerActive = true;
+        console.log('Scanner started');
+    }).catch(err => {
+        console.error('Scanner start error:', err);
+        alert('Kamera erişimi reddedildi veya kullanılamıyor.');
+        stopBarcodeScanner();
+    });
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+    console.log('Barcode scanned:', decodedText);
+
+    // Fill search input
+    const searchInput = document.getElementById('unifiedSearchInput');
+    if (searchInput) {
+        searchInput.value = decodedText;
+        handleUnifiedSearch(decodedText);
+    }
+
+    // Stop scanner
+    stopBarcodeScanner();
+
+    // Visual feedback
+    showToast('Barkod okundu: ' + decodedText, 'success');
+}
+
+function onScanError(errorMessage) {
+    // Ignore frequent scan errors (normal when no barcode in view)
+    // console.log('Scan error:', errorMessage);
+}
+
+window.stopBarcodeScanner = function () {
+    if (html5QrcodeScanner && isScannerActive) {
+        html5QrcodeScanner.stop().then(() => {
+            console.log('Scanner stopped');
+            html5QrcodeScanner.clear();
+            html5QrcodeScanner = null;
+            isScannerActive = false;
+
+            // Hide container
+            const container = document.getElementById('barcodeScannerContainer');
+            if (container) container.style.display = 'none';
+
+            // Reset button
+            const btn = document.getElementById('scannerToggleBtn');
+            if (btn) {
+                btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                btn.textContent = '📷';
+            }
+        }).catch(err => {
+            console.error('Error stopping scanner:', err);
+        });
+    }
+}
