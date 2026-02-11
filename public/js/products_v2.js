@@ -547,6 +547,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
                 await loadProducts();
             }
 
+
             // Select new product if returning to batch
             if (window.returnToBatchAfterCreate && !id) {
                 window.returnToBatchAfterCreate = false;
@@ -556,7 +557,11 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
                 setTimeout(() => {
                     const newProduct = products.find(p => p.name === productName);
                     if (newProduct) {
-                        selectBatchProduct(newProduct.id);
+                        // Trigger search to show autocomplete dropdown
+                        const searchInput = document.getElementById('batchProductSearch');
+                        searchInput.value = productName;
+                        handleBatchProductSearch(productName);
+                        searchInput.focus();
                     }
                 }, 500);
             }
