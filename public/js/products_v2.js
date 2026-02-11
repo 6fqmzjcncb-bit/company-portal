@@ -306,11 +306,19 @@ function renderMovements(movements) {
         const location = mov.movement_type === 'IN' ? mov.source_location :
             mov.movement_type === 'OUT' ? mov.destination : '-';
 
+        // Format date safely
+        const dateStr = mov.created_at ? formatDateTime(mov.created_at) : '-';
+
+        // Make product name clickable
+        const productName = mov.product ?
+            `<a href="#" onclick="event.preventDefault(); editProduct(${mov.product.id})" style="color: #3b82f6; text-decoration: none; font-weight: 600; cursor: pointer;">${mov.product.name}</a>` :
+            'Silinmiş Ürün';
+
         return `
             <tr>
-                <td>${formatDateTime(mov.created_at)}</td>
+                <td>${dateStr}</td>
                 <td><span class="badge ${typeInfo.class}">${typeInfo.icon} ${typeInfo.text}</span></td>
-                <td><strong>${mov.product ? mov.product.name : 'Silinmiş Ürün'}</strong></td>
+                <td>${productName}</td>
                 <td>${mov.quantity}</td>
                 <td>${person || '-'}</td>
                 <td>${location || '-'}</td>
@@ -578,6 +586,9 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
 async function editProduct(id) {
     const product = products.find(p => p.id === id);
     if (!product) return;
+
+    // Track current editing product for "Show All Movements" feature
+    window.currentEditingProductId = id;
 
     document.getElementById('addProductForm').reset();
     document.getElementById('DataProductTitle') ? document.getElementById('DataProductTitle').textContent = 'Ürün Düzenle' : null;
