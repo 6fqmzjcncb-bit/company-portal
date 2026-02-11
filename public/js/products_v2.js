@@ -1778,8 +1778,16 @@ window.submitBatch = async function () {
         }
     }
 
+    const employee = document.getElementById('batchEmployee').value;
+    const source = document.getElementById('batchSource').value;
+    const project = document.getElementById('batchProject').value;
     const notes = document.getElementById('batchNotes').value;
-    const movementDate = document.getElementById('batchDate').value; // Added movementDate
+
+    // Get date from Flatpickr - it stores in the original input, not altInput
+    const dateInput = document.getElementById('batchDate');
+    const movementDate = dateInput.value;
+
+    console.log('Batch Date Value:', movementDate); // Debug
 
     // Show processing
     showCustomAlert('İşleniyor...', `${batchItems.length} ürün kaydediliyor...`, '⏳', false);
