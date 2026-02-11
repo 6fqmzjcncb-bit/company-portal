@@ -1580,11 +1580,13 @@ window.selectBatchProduct = function (productId) {
     if (isAdmin) {
         document.getElementById('batchUnitLabel').textContent = `Stok: ${product.current_stock || 0} ${product.unit}`;
     } else {
-        document.getElementById('batchUnitLabel').textContent = '-';
+        document.getElementById('batchUnitLabel').textContent = 'Stok: -';
     }
 
-    // Show unit next to quantity input
-    document.getElementById('batchQuantityUnit').textContent = product.unit;
+
+    // Show unit next to quantity input (capitalized)
+    const unitName = product.unit.charAt(0).toUpperCase() + product.unit.slice(1);
+    document.getElementById('batchQuantityUnit').textContent = unitName;
 
     // Focus quantity
     setTimeout(() => document.getElementById('batchQuantity').focus(), 100);
