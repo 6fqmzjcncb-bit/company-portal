@@ -1705,7 +1705,7 @@ window.createNewProductFromBatch = function (productName) {
     window.newProductNameToSelect = productName;
 
     // Don't close batch modal, just hide it temporarily
-    document.getElementById('unifiedStockModal').style.display = 'none'; \n
+    document.getElementById('unifiedStockModal').style.display = 'none';
     // Open add product modal with pre-filled name
     setTimeout(() => {
         addProduct();
