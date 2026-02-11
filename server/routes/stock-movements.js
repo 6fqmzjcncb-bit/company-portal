@@ -79,10 +79,12 @@ router.post('/in', requireAuth, async (req, res) => {
             console.log('Setting custom date:', customDate);
         }
 
-        // Hareketi kaydet - use silent to prevent Sequelize from overriding timestamps
+        // Hareketi kaydet - explicitly include created_at/updated_at in fields
         const movement = await StockMovement.create(movementData, {
             transaction: t,
-            silent: false // Keep hooks but allow manual timestamps
+            fields: movement_date ?
+                ['product_id', 'movement_type', 'quantity', 'brought_by', 'source_location', 'notes', 'created_by', 'created_at', 'updated_at'] :
+                ['product_id', 'movement_type', 'quantity', 'brought_by', 'source_location', 'notes', 'created_by']
         });
 
         console.log('Created movement:', movement.id, 'with created_at:', movement.created_at);
@@ -151,10 +153,12 @@ router.post('/out', requireAuth, async (req, res) => {
             console.log('Setting custom date:', customDate);
         }
 
-        // Hareketi kaydet
+        // Hareketi kaydet - explicitly include created_at/updated_at in fields
         const movement = await StockMovement.create(movementData, {
             transaction: t,
-            silent: false
+            fields: movement_date ?
+                ['product_id', 'movement_type', 'quantity', 'taken_by', 'destination', 'job_id', 'reason', 'notes', 'created_by', 'created_at', 'updated_at'] :
+                ['product_id', 'movement_type', 'quantity', 'taken_by', 'destination', 'job_id', 'reason', 'notes', 'created_by']
         });
 
         console.log('Created movement:', movement.id, 'with created_at:', movement.created_at);
