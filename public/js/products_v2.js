@@ -315,8 +315,9 @@ function renderMovements(movements) {
         const location = mov.movement_type === 'IN' ? mov.source_location :
             mov.movement_type === 'OUT' ? mov.destination : '-';
 
-        // Format date safely
-        const dateStr = mov.created_at ? formatDateTime(mov.created_at) : '-';
+        // Format date safely - check both created_at (DB column) and createdAt (Sequelize model field)
+        const rawDate = mov.created_at || mov.createdAt;
+        const dateStr = rawDate ? formatDateTime(rawDate) : '-';
 
         // Make product name clickable
         const productName = mov.product ?
