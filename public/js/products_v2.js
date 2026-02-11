@@ -547,27 +547,17 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
                 await loadProducts();
             }
 
-            // Check if we need to return to batch modal
+            // Select new product if returning to batch
             if (window.returnToBatchAfterCreate && !id) {
                 window.returnToBatchAfterCreate = false;
-                const modeToRestore = window.batchModeToRestore;
                 const productName = window.newProductNameToSelect;
 
-                // Reopen batch modal after a short delay
                 setTimeout(() => {
-                    openUnifiedModal();
-
-                    // Restore mode and select the newly created product
-                    setTimeout(async () => {
-                        await setBatchMode(modeToRestore);
-
-                        // Find and select the newly created product
-                        const newProduct = products.find(p => p.name === productName);
-                        if (newProduct) {
-                            selectBatchProduct(newProduct.id);
-                        }
-                    }, 300);
-                }, 500);
+                    const newProduct = products.find(p => p.name === productName);
+                    if (newProduct) {
+                        selectBatchProduct(newProduct.id);
+                    }
+                }, 300);
             }
         } else {
             const err = await response.json();
