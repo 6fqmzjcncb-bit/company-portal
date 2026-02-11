@@ -244,9 +244,16 @@
                     <input type="text" id="newProdBarcode" class="form-input" placeholder="Barkod okutun veya yazın">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Başlangıç Stok</label>
-                    <input type="number" id="newProdStock" class="form-input" placeholder="0" min="0">
+                    <label for="newProdStock">Başlangıç Stok</label>
+                    <input type="number" id="newProdStock" class="form-input" step="0.01" required>
                 </div>
+
+                <div class="form-group">
+                    <label for="newProdDate">Kayıt Tarihi</label>
+                    <input type="date" id="newProdDate" class="form-input" required
+                        style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
+                </div>
+
                 <div class="form-group">
                     <label class="form-label">Birim</label>
                     <select id="newProdUnit" class="form-input">
@@ -643,9 +650,9 @@
             if (batchDateInput) {
                 flatpickr(batchDateInput, {
                     locale: 'tr',
-                    dateFormat: 'd F Y', // Turkish format: 11 Şubat 2026
+                    dateFormat: 'Y-m-d', // Backend format
                     altInput: true,
-                    altFormat: 'd F Y', // Display format
+                    altFormat: 'd F Y', // Display format: 11 Şubat 2026
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
@@ -664,3 +671,24 @@
 </body>
 
 </html>
+<script>
+// Initialize Flatpickr for product registration date
+document.addEventListener('DOMContentLoaded', function() {
+    const newProdDateInput = document.getElementById('newProdDate');
+    if (newProdDateInput) {
+        flatpickr(newProdDateInput, {
+            locale: 'tr',
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd F Y',
+            defaultDate: 'today',
+            allowInput: true,
+            clickOpens: true,
+            static: true,
+            monthSelectorType: 'static',
+            inline: false,
+            position: 'below left'
+        });
+    }
+});
+</script>

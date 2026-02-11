@@ -529,6 +529,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
     const brand = document.getElementById('newProdBrand').value || null;
     const stock = parseInt(document.getElementById('newProdStock').value) || 0;
     const unit = document.getElementById('newProdUnit').value;
+    const registrationDate = document.getElementById('newProdDate').value;
 
     const method = id ? 'PUT' : 'POST';
     const url = id ? `/api/products/${id}` : '/api/products';
@@ -537,7 +538,7 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
         const response = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, barcode, brand, stock, unit })
+            body: JSON.stringify({ name, barcode, brand, stock, unit, registration_date: registrationDate })
         });
 
         if (response.ok) {
