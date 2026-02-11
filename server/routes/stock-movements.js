@@ -71,13 +71,21 @@ router.post('/in', requireAuth, async (req, res) => {
             created_by: req.session.userId
         };
 
-        // If custom date provided, use it as created_at
+        // If custom date provided, use it as created_at AND updated_at
         if (movement_date) {
-            movementData.created_at = new Date(movement_date);
+            const customDate = new Date(movement_date);
+            movementData.created_at = customDate;
+            movementData.updated_at = customDate;
+            console.log('Setting custom date:', customDate);
         }
 
-        // Hareketi kaydet
-        const movement = await StockMovement.create(movementData, { transaction: t });
+        // Hareketi kaydet - use silent to prevent Sequelize from overriding timestamps
+        const movement = await StockMovement.create(movementData, {
+            transaction: t,
+            silent: false // Keep hooks but allow manual timestamps
+        });
+
+        console.log('Created movement:', movement.id, 'with created_at:', movement.created_at);
 
         // Stoğu artır
         const product = await Product.findByPk(product_id, { transaction: t });
@@ -135,13 +143,21 @@ router.post('/out', requireAuth, async (req, res) => {
             created_by: req.session.userId
         };
 
-        // If custom date provided, use it as created_at
+        // If custom date provided, use it as created_at AND updated_at
         if (movement_date) {
-            movementData.created_at = new Date(movement_date);
+            const customDate = new Date(movement_date);
+            movementData.created_at = customDate;
+            movementData.updated_at = customDate;
+            console.log('Setting custom date:', customDate);
         }
 
         // Hareketi kaydet
-        const movement = await StockMovement.create(movementData, { transaction: t });
+        const movement = await StockMovement.create(movementData, {
+            transaction: t,
+            silent: false
+        });
+
+        console.log('Created movement:', movement.id, 'with created_at:', movement.created_at);
 
         // Stoğu azalt
         await product.update({
