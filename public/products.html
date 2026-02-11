@@ -124,7 +124,8 @@
             <div id="tab-products" class="tab-content" style="display: block;">
 
                 <div class="filter-container">
-                    <select id="brandFilter" class="form-select brand-filter">
+                    <select id="brandFilter" class="form-select brand-filter" data-custom-dropdown
+                        data-searchable="true" data-placeholder="Tüm Markalar">
                         <option value="">Tüm Markalar</option>
                         <!-- Populated by JS -->
                     </select>
@@ -176,7 +177,8 @@
                             </div>
                             <div class="col" style="flex: 1; min-width: 150px;">
                                 <label class="form-label">İşlem Tipi</label>
-                                <select id="filterType" class="form-select">
+                                <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
+                                    data-placeholder="Tümü">
                                     <option value="">Tümü</option>
                                     <option value="IN">Stok Girişi</option>
                                     <option value="OUT">Stok Çıkışı</option>

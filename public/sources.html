@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kaynaklar - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
     <script>
         let currentUser = null;
 
@@ -187,6 +188,7 @@
     </div>
 
     <script src="/js/utils.js?v=1.0"></script>
+    <script src="/js/custom-dropdown.js"></script>
     <!-- NEW SOURCE MODAL -->
     <div id="addSourceModal" class="modal">
         <div class="modal-content">
@@ -210,7 +212,8 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tür</label>
-                    <select id="sourceType" class="form-select">
+                    <select id="sourceType" class="form-select" data-custom-dropdown data-searchable="false"
+                        data-placeholder="Tür Seçiniz">
                         <option value="external">Dış Tedarikçi</option>
                         <option value="internal">İç Depo</option>
                     </select>
