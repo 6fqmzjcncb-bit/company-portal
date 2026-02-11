@@ -649,15 +649,12 @@
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
-                    // Position to left and below
+                    // Position to left and below input
                     position: 'below left',
-                    // Prevent calendar from being cut off
+                    // Keep calendar positioned relative to input, not fixed to viewport
                     static: false,
                     monthSelectorType: 'static',
-                    // Ensure full width for all days including Sunday
-                    inline: false,
-                    // Add padding to prevent cutoff
-                    appendTo: document.body
+                    inline: false
                 });
             }
         });
