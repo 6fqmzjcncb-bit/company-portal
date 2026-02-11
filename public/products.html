@@ -672,23 +672,33 @@
 
 </html>
 <script>
-// Initialize Flatpickr for product registration date
-document.addEventListener('DOMContentLoaded', function() {
-    const newProdDateInput = document.getElementById('newProdDate');
-    if (newProdDateInput) {
-        flatpickr(newProdDateInput, {
-            locale: 'tr',
-            dateFormat: 'Y-m-d',
-            altInput: true,
-            altFormat: 'd F Y',
-            defaultDate: 'today',
-            allowInput: true,
-            clickOpens: true,
-            static: true,
-            monthSelectorType: 'static',
-            inline: false,
-            position: 'below left'
-        });
-    }
-});
+    // Initialize Flatpickr for product registration date
+    document.addEventListener('DOMContentLoaded', function () {
+        const newProdDateInput = document.getElementById('newProdDate');
+        if (newProdDateInput) {
+            flatpickr(newProdDateInput, {
+                locale: 'tr',
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd F Y',
+                defaultDate: 'today',
+                allowInput: true,
+                clickOpens: true,
+                static: true,
+                monthSelectorType: 'static',
+                inline: false,
+                position: 'below left',
+                onChange: function (selectedDates, dateStr, instance) {
+                    // Ensure date is set
+                    if (!dateStr) {
+                        instance.setDate('today');
+                    }
+                }
+            });
+
+            // Set today's date immediately
+            const today = new Date().toISOString().split('T')[0];
+            newProdDateInput.value = today;
+        }
+    });
 </script>
