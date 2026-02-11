@@ -1782,15 +1782,34 @@ window.submitBatch = async function () {
 
     const notes = document.getElementById('batchNotes').value;
 
-    // Get date from native input (no Flatpickr)
+    // Get date from Flatpickr instance
     const dateInput = document.getElementById('batchDate');
-    const movementDate = dateInput.value;
+    let movementDate = null;
 
-    console.log('=== BATCH SUBMISSION DEBUG ===');
-    console.log('Movement Date:', movementDate);
-    console.log('Date Input Element:', dateInput);
-    console.log('Input type:', dateInput.type);
+    // Flatpickr stores instance in _flatpickr property
+    if (dateInput._flatpickr) {
+        const selectedDates = dateInput._flatpickr.selectedDates;
+        if (selectedDates && selectedDates.length > 0) {
+            // Format date as Y-m-d
+            const date = selectedDates[0];
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            movementDate = `${year}-${month}-${day}`;
+        }
+    }
+
+    // Fallback to input value if Flatpickr not found
+    if (!movementDate) {
+        movementDate = dateInput.value;
+    }
+
+    console.log('=== MOVEMENT DATE DEBUG ===');
+    console.log('Flatpickr instance:', dateInput._flatpickr);
+    console.log('Selected dates:', dateInput._flatpickr?.selectedDates);
     console.log('Input value:', dateInput.value);
+    console.log('Final movement date:', movementDate);
+    console.log('===========================');
 
     // Validate date
     if (!movementDate) {
