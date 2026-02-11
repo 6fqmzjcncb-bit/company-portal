@@ -534,8 +534,18 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
 
         if (response.ok) {
             showToast(id ? 'Ürün başarıyla güncellendi' : 'Ürün başarıyla eklendi', 'success');
-            closeModals();
-            await loadProducts();
+
+            // Check if returning to batch modal
+            if (window.returnToBatchAfterCreate && !id) {
+                // Only close add product modal
+                document.getElementById('addProductModal').style.display = 'none';
+                // Show batch modal (was hidden)
+                document.getElementById('unifiedStockModal').style.display = 'flex';
+                await loadProducts();
+            } else {
+                closeModals();
+                await loadProducts();
+            }
 
             // Check if we need to return to batch modal
             if (window.returnToBatchAfterCreate && !id) {
