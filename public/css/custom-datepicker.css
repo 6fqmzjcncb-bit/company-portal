@@ -137,3 +137,14 @@ input[type="date"]::-webkit-clear-button {
 .flatpickr-day.today:hover {
     background-color: rgba(59, 130, 246, 0.1);
 }
+/* Force static positioning for calendar */
+.flatpickr-calendar.static {
+    position: absolute !important;
+    top: auto !important;
+    left: auto !important;
+}
+
+/* Ensure calendar doesn't use fixed positioning */
+.flatpickr-calendar:not(.inline) {
+    position: absolute !important;
+}

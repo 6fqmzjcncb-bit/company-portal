@@ -649,12 +649,14 @@
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
-                    // Position to left and below input
-                    position: 'below left',
-                    // Keep calendar positioned relative to input, not fixed to viewport
-                    static: false,
+                    // Use static positioning - calendar won't follow scroll
+                    static: true,
                     monthSelectorType: 'static',
-                    inline: false
+                    inline: false,
+                    // Position below and to the left
+                    position: 'below left',
+                    // Prevent repositioning on scroll
+                    positionElement: batchDateInput
                 });
             }
         });
