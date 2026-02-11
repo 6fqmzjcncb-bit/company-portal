@@ -648,13 +648,15 @@
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
-                    // Make calendar larger and more visible
+                    // Position to left and below
+                    position: 'below left',
+                    // Prevent calendar from being cut off
                     static: false,
                     monthSelectorType: 'static',
-                    // Custom positioning
-                    position: 'auto center',
-                    // Larger calendar
-                    inline: false
+                    // Ensure full width for all days including Sunday
+                    inline: false,
+                    // Add padding to prevent cutoff
+                    appendTo: document.body
                 });
             }
         });

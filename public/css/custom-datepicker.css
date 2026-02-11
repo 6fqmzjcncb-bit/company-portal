@@ -58,6 +58,17 @@ input[type="date"]::-webkit-clear-button {
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
     font-family: inherit;
     padding: 10px;
+    min-width: 320px !important;
+    /* Prevent Sunday cutoff */
+    width: auto !important;
+}
+
+.flatpickr-innerContainer {
+    min-width: 300px !important;
+}
+
+.flatpickr-rContainer {
+    min-width: 300px !important;
 }
 
 .flatpickr-months {
