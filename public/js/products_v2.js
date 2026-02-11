@@ -1,3 +1,4 @@
+let allMovements = [];
 // Auth & State
 window.onerror = function (msg, url, line) {
     console.error('JS ERROR:', msg, 'Line:', line);
@@ -76,100 +77,32 @@ function filterProducts() {
 }
 
 // Stock Movements Autocomplete Logic
+// Stock Movements Client-Side Search (Matches Product List behavior)
 function setupProductSearchMovements() {
     const input = document.getElementById('productSearchMovements');
-    const hiddenInput = document.getElementById('filterProduct');
-    const suggestions = document.getElementById('productSearchSuggestions');
     const clearBtn = document.getElementById('clearProductSearchBtn');
 
-    if (!input || !hiddenInput || !suggestions) return;
+    if (!input) return;
 
-    // Filter Logic
+    // Filter as you type
     input.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
-
-        // Show/Hide clear button based on value
-        if (clearBtn) clearBtn.style.display = input.value ? 'block' : 'none';
-
-        // If empty, clear ID but keep input empty
-        if (!query) {
-            hiddenInput.value = '';
-            suggestions.innerHTML = '';
-            // If user cleared manually, trigger reload
-            if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
-                // loadMovements(); // Optional
-            }
-            return;
-        }
-
-        if (!products || products.length === 0) return;
-
-        const matches = products.filter(p =>
-            p.name.toLowerCase().includes(query) ||
-            (p.barcode && p.barcode.toLowerCase().includes(query))
-        ).slice(0, 10); // Limit to 10 suggestions
-
-        suggestions.innerHTML = ''; // Clear previous
-
-        if (matches.length > 0) {
-            matches.forEach(p => {
-                const item = document.createElement('div');
-                item.className = 'autocomplete-item';
-                item.innerHTML = `
-                    <div style="font-weight: bold;">${p.name}</div>
-                    <div style="font-size: 0.8rem; color: #666;">
-                        ${p.barcode ? 'Barkod: ' + p.barcode : 'Barkod: -'} | Stok: ${p.current_stock}
-                    </div>
-                `;
-                item.onclick = () => {
-                    input.value = p.name;
-                    hiddenInput.value = p.id;
-                    suggestions.style.display = 'none';
-                    if (clearBtn) clearBtn.style.display = 'block';
-                    loadMovements(); // Trigger filter
-                };
-                suggestions.appendChild(item);
-            });
-            suggestions.style.display = 'block';
-        } else {
-            const noRes = document.createElement('div');
-            noRes.className = 'autocomplete-item';
-            noRes.style.color = '#999';
-            noRes.style.cursor = 'default';
-            noRes.textContent = 'Ürün bulunamadı';
-            suggestions.appendChild(noRes);
-            suggestions.style.display = 'block';
-        }
+        if (clearBtn) clearBtn.style.display = query ? 'block' : 'none';
+        filterMovements(query);
     });
 
-    // Clear Button Logic
+    // Clear Button
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             input.value = '';
-            hiddenInput.value = '';
             clearBtn.style.display = 'none';
-            suggestions.style.display = 'none';
+            filterMovements('');
             input.focus();
-            loadMovements(); // Reload with no product filter
         });
     }
-
-    // Hide suggestions on click outside
-    document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !suggestions.contains(e.target) && (!clearBtn || !clearBtn.contains(e.target))) {
-            suggestions.style.display = 'none';
-        }
-    });
-
-    // Show suggestions on focus if there is value
-    input.addEventListener('focus', () => {
-        if (input.value.trim().length > 0) {
-            input.dispatchEvent(new Event('input'));
-        }
-    });
 }
-window.selectMovementProduct = null;
 
+// Client-Side Filter Function
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM Ready');
