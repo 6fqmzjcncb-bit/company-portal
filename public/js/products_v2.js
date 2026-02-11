@@ -1778,9 +1778,6 @@ window.submitBatch = async function () {
         }
     }
 
-    const employee = document.getElementById('batchEmployee').value;
-    const source = document.getElementById('batchSource').value;
-    const project = document.getElementById('batchProject').value;
     const notes = document.getElementById('batchNotes').value;
 
     // Get date from Flatpickr - it stores in the original input, not altInput
