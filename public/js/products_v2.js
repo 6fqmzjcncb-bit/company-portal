@@ -1558,7 +1558,7 @@ window.handleBatchProductSearch = function (query) {
         <div class="autocomplete-item" onclick="selectBatchProduct(${p.id})">
             <strong>${p.name}</strong>
             <div style="font-size: 0.85rem; color: #6b7280;">
-                Stok: ${p.quantity} ${p.unit} • Marka: ${p.brand || '-'}
+                Stok: ${p.quantity || 0} ${p.unit} • Marka: ${p.brand || '-'}
             </div>
         </div>
     `).join('');
@@ -1659,7 +1659,7 @@ function updateBatchTable() {
         <tr style="border-bottom: 1px solid #f3f4f6;">
             <td style="padding: 12px;">
                 <strong style="color: #1f2937;">${item.product.name}</strong>
-                ${isAdmin ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 2px;">Stok: ${item.product.currentStock} ${item.product.unit}</div>` : ''}
+                ${isAdmin ? `<div style="font-size: 0.8rem; color: #6b7280; margin-top: 2px;">Stok: ${item.product.currentStock || 0} ${item.product.unit}</div>` : ''}
             </td>
             <td style="padding: 12px; text-align: center;">
                 <input type="number" 
@@ -1667,7 +1667,7 @@ function updateBatchTable() {
                     onchange="updateBatchQuantity(${index}, this.value)"
                     style="width: 80px; padding: 6px; text-align: center; border: 1px solid #d1d5db; border-radius: 4px; font-weight: 600; color: #3b82f6;"
                     min="1"
-                    ${batchMode === 'out' ? `max="${item.product.currentStock}"` : ''}>
+                    ${batchMode === 'out' ? `max="${item.product.currentStock || 0}"` : ''}>
             </td>
             <td style="padding: 12px; text-align: center; color: #6b7280;">
                 ${item.product.unit}
