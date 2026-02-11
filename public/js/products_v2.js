@@ -1578,7 +1578,7 @@ window.selectBatchProduct = function (productId) {
     // Show stock info for admin, just unit for regular users
     const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner');
     if (isAdmin) {
-        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.quantity})`;
+        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.quantity || 0})`;
     } else {
         document.getElementById('batchUnitLabel').textContent = product.unit;
     }
