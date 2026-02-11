@@ -454,10 +454,50 @@ select {
 /* Only add arrow to selects */
 select,
 .form-select {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%232563eb' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 16px 12px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Modern dropdown styling - match Flatpickr theme */
+select option,
+.form-select option {
+  padding: 12px 16px;
+  font-size: 1rem;
+  background-color: white;
+  color: #374151;
+  font-weight: 400;
+}
+
+/* Hover effect for options (limited browser support) */
+select option:hover,
+.form-select option:hover {
+  background-color: #eff6ff;
+  color: #2563eb;
+}
+
+/* Checked/selected option */
+select option:checked,
+.form-select option:checked {
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+}
+
+/* Enhanced select box styling */
+select:hover,
+.form-select:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+}
+
+select:focus,
+.form-select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1), 0 4px 12px rgba(37, 99, 235, 0.15);
 }
 
 .form-input:focus,
