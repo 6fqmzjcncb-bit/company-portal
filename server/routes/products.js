@@ -70,15 +70,23 @@ router.get('/search', requireAuth, async (req, res) => {
 // Yeni ürün ekle (Admin veya Yetkili)
 router.post('/', requirePermission('view_products'), async (req, res) => {
     try {
-        const { name, stock, min_stock, unit, brand, barcode } = req.body;
-        const product = await Product.create({
+        const { name, stock, min_stock, unit, brand, barcode, registration_date } = req.body;
+
+        const productData = {
             name,
             current_stock: stock || 0, // Map 'stock' to 'current_stock'
             min_stock,
             unit,
             brand,
             barcode
-        });
+        };
+
+        // If registration_date provided, use it as created_at
+        if (registration_date) {
+            productData.created_at = new Date(registration_date);
+        }
+
+        const product = await Product.create(productData);
         res.status(201).json(product);
     } catch (error) {
         res.status(400).json({ error: error.message });
