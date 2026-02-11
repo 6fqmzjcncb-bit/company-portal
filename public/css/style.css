@@ -225,11 +225,19 @@ body {
     align-items: stretch;
   }
 
-  .brand-filter {
-    width: 100%;
-    flex: auto;
-    /* Reset flex for mobile */
+  .brand-filter,
+  .filter-container .custom-dropdown {
+    width: 100% !important;
+    min-width: 100% !important;
+    flex: auto !important;
+    margin-bottom: 10px;
   }
+}
+
+.filter-container .custom-dropdown {
+  flex: 0 0 240px;
+  width: 240px;
+  min-width: 240px;
 }
 
 .app-container {
