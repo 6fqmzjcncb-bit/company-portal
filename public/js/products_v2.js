@@ -1786,8 +1786,17 @@ window.submitBatch = async function () {
     const dateInput = document.getElementById('batchDate');
     const movementDate = dateInput.value;
 
+    console.log('=== BATCH SUBMISSION DEBUG ===');
     console.log('Movement Date:', movementDate);
     console.log('Date Input Element:', dateInput);
+    console.log('Input type:', dateInput.type);
+    console.log('Input value:', dateInput.value);
+
+    // Validate date
+    if (!movementDate) {
+        showCustomAlert('Tarih Seçilmedi', 'Lütfen işlem tarihini seçin.', '⚠️', false);
+        return;
+    }
 
     // Show processing
     showCustomAlert('İşleniyor...', `${batchItems.length} ürün kaydediliyor...`, '⏳', false);
@@ -1806,6 +1815,8 @@ window.submitBatch = async function () {
                 notes: notes,
                 movement_date: movementDate  // Add custom date
             };
+
+            console.log('Sending to backend:', body);
 
             if (batchMode === 'in') {
                 body.brought_by = employee;
