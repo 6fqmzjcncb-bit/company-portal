@@ -1461,17 +1461,10 @@ window.setBatchMode = async function (mode) {
     batchMode = mode;
     batchItems = [];
 
-    // Set today's date
+    // Set today's date in native input
     const today = new Date().toISOString().split('T')[0];
     const batchDateInput = document.getElementById('batchDate');
-
-    // Set the value directly
     batchDateInput.value = today;
-
-    // If Flatpickr is initialized, set its date too
-    if (window.batchDateFlatpickr) {
-        window.batchDateFlatpickr.setDate(today);
-    }
 
     // Load saved data for new mode
     if (mode === 'in') {
@@ -1789,26 +1782,12 @@ window.submitBatch = async function () {
 
     const notes = document.getElementById('batchNotes').value;
 
-    // Get date from Flatpickr with multiple fallback methods
+    // Get date from native input (no Flatpickr)
     const dateInput = document.getElementById('batchDate');
-    let movementDate = null;
+    const movementDate = dateInput.value;
 
-    // Method 1: Get from Flatpickr instance
-    if (window.batchDateFlatpickr && window.batchDateFlatpickr.selectedDates.length > 0) {
-        movementDate = window.batchDateFlatpickr.selectedDates[0].toISOString().split('T')[0];
-    }
-    // Method 2: Get from input value
-    else if (dateInput.value) {
-        movementDate = dateInput.value;
-    }
-    // Method 3: Get from _flatpickr property
-    else if (dateInput._flatpickr && dateInput._flatpickr.selectedDates.length > 0) {
-        movementDate = dateInput._flatpickr.selectedDates[0].toISOString().split('T')[0];
-    }
-
-    console.log('Movement Date (final):', movementDate);
-    console.log('Input value:', dateInput.value);
-    console.log('Flatpickr instance:', window.batchDateFlatpickr);
+    console.log('Movement Date:', movementDate);
+    console.log('Date Input Element:', dateInput);
 
     // Show processing
     showCustomAlert('İşleniyor...', `${batchItems.length} ürün kaydediliyor...`, '⏳', false);

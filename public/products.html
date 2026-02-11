@@ -644,30 +644,31 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // Initialize Flatpickr for batch date input
+        // REMOVED: Flatpickr for batch date - using native date input instead
+        // Flatpickr's altInput was causing value retrieval issues
+        // Native HTML5 date input is simpler and more reliable
+
+        /*
         document.addEventListener('DOMContentLoaded', function () {
             const batchDateInput = document.getElementById('batchDate');
             if (batchDateInput) {
-                // Store instance globally for easy access
                 window.batchDateFlatpickr = flatpickr(batchDateInput, {
                     locale: 'tr',
-                    dateFormat: 'Y-m-d', // Backend format
+                    dateFormat: 'Y-m-d',
                     altInput: true,
-                    altFormat: 'd F Y', // Display format: 11 Şubat 2026
+                    altFormat: 'd F Y',
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
-                    // Use static positioning - calendar won't follow scroll
                     static: true,
                     monthSelectorType: 'static',
                     inline: false,
-                    // Position below and to the left
                     position: 'below left',
-                    // Prevent repositioning on scroll
                     positionElement: batchDateInput
                 });
             }
         });
+        */
     </script>
 </body>
 
