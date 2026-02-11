@@ -167,7 +167,8 @@
                         <div class="row" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
                             <div class="col" style="flex: 1; min-width: 200px;">
                                 <label class="form-label">Ürün</label>
-                                <select id="filterProduct" class="form-select">
+                                <select id="filterProduct" class="form-select" data-custom-dropdown
+                                    data-searchable="true" data-placeholder="Tümü">
                                     <option value="">Tümü</option>
                                     <!-- Populated by JS -->
                                 </select>
@@ -637,6 +638,8 @@
     </style>
 
     <script src="/js/utils.js?v=7.3"></script>
+    <!-- Custom Dropdown Component -->
+    <script src="/js/custom-dropdown.js"></script>
     <!-- Barcode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="/js/products_v2.js?v=7.5"></script>
