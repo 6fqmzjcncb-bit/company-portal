@@ -535,7 +535,30 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
         if (response.ok) {
             showToast(id ? 'Ürün başarıyla güncellendi' : 'Ürün başarıyla eklendi', 'success');
             closeModals();
-            loadProducts();
+            await loadProducts();
+
+            // Check if we need to return to batch modal
+            if (window.returnToBatchAfterCreate && !id) {
+                window.returnToBatchAfterCreate = false;
+                const modeToRestore = window.batchModeToRestore;
+                const productName = window.newProductNameToSelect;
+
+                // Reopen batch modal after a short delay
+                setTimeout(() => {
+                    openUnifiedModal();
+
+                    // Restore mode and select the newly created product
+                    setTimeout(async () => {
+                        await setBatchMode(modeToRestore);
+
+                        // Find and select the newly created product
+                        const newProduct = products.find(p => p.name === productName);
+                        if (newProduct) {
+                            selectBatchProduct(newProduct.id);
+                        }
+                    }, 300);
+                }, 500);
+            }
         } else {
             const err = await response.json();
             showToast('Hata: ' + (err.error || 'İşlem başarısız'), 'error');
@@ -1673,9 +1696,16 @@ window.removeFromBatch = function (index) {
 
 // Create new product from batch search
 window.createNewProductFromBatch = function (productName) {
-    // Close batch modal
-    closeModals();
+    // Store current batch state
+    const currentMode = batchMode;
 
+    // Set flag to return to batch after product creation
+    window.returnToBatchAfterCreate = true;
+    window.batchModeToRestore = currentMode;
+    window.newProductNameToSelect = productName;
+
+    // Don't close batch modal, just hide it temporarily
+    document.getElementById('unifiedStockModal').style.display = 'none'; \n
     // Open add product modal with pre-filled name
     setTimeout(() => {
         addProduct();
@@ -1683,7 +1713,7 @@ window.createNewProductFromBatch = function (productName) {
             const nameInput = document.getElementById('newProdName');
             if (nameInput) nameInput.value = productName;
         }, 100);
-    }, 200);
+    }, 100);
 }
 
 // Submit batch
