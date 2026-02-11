@@ -1532,6 +1532,10 @@ window.handleBatchProductSearch = function (query) {
 
     if (!query || query.length < 1) {
         suggestionsDiv.innerHTML = '';
+        selectedBatchProduct = null;
+        // Reset unit and stock labels when input is cleared
+        document.getElementById('batchQuantityUnit').textContent = '-';
+        document.getElementById('batchUnitLabel').textContent = 'Stok: -';
         return;
     }
 
