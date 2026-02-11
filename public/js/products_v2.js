@@ -1671,6 +1671,21 @@ window.removeFromBatch = function (index) {
     updateBatchTable();
 }
 
+// Create new product from batch search
+window.createNewProductFromBatch = function (productName) {
+    // Close batch modal
+    closeModals();
+
+    // Open add product modal with pre-filled name
+    setTimeout(() => {
+        addProduct();
+        setTimeout(() => {
+            const nameInput = document.getElementById('newProdName');
+            if (nameInput) nameInput.value = productName;
+        }, 100);
+    }, 200);
+}
+
 // Submit batch
 window.submitBatch = async function () {
     if (batchItems.length === 0) {
