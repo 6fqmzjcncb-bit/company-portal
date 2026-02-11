@@ -80,7 +80,7 @@ function setupProductSearchMovements() {
     const input = document.getElementById('productSearchMovements');
     const hiddenInput = document.getElementById('filterProduct');
     const suggestions = document.getElementById('productSearchSuggestions');
-    const label = document.getElementById('selectedProductLabel');
+    const clearBtn = document.getElementById('clearProductSearchBtn');
 
     if (!input || !hiddenInput || !suggestions) return;
 
@@ -88,11 +88,17 @@ function setupProductSearchMovements() {
     input.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
 
+        // Show/Hide clear button based on value
+        if (clearBtn) clearBtn.style.display = input.value ? 'block' : 'none';
+
         // If empty, clear ID but keep input empty
         if (!query) {
             hiddenInput.value = '';
-            label.style.display = 'none';
             suggestions.innerHTML = '';
+            // If user cleared manually, trigger reload
+            if (e.inputType === 'deleteContentBackward' || e.inputType === 'deleteContentForward') {
+                // loadMovements(); // Optional
+            }
             return;
         }
 
@@ -103,25 +109,54 @@ function setupProductSearchMovements() {
             (p.barcode && p.barcode.toLowerCase().includes(query))
         ).slice(0, 10); // Limit to 10 suggestions
 
+        suggestions.innerHTML = ''; // Clear previous
+
         if (matches.length > 0) {
-            suggestions.innerHTML = matches.map(p => `
-                <div class="autocomplete-item" onclick="selectMovementProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')">
+            matches.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'autocomplete-item';
+                item.innerHTML = `
                     <div style="font-weight: bold;">${p.name}</div>
                     <div style="font-size: 0.8rem; color: #666;">
                         ${p.barcode ? 'Barkod: ' + p.barcode : 'Barkod: -'} | Stok: ${p.current_stock}
                     </div>
-                </div>
-            `).join('');
+                `;
+                item.onclick = () => {
+                    input.value = p.name;
+                    hiddenInput.value = p.id;
+                    suggestions.style.display = 'none';
+                    if (clearBtn) clearBtn.style.display = 'block';
+                    loadMovements(); // Trigger filter
+                };
+                suggestions.appendChild(item);
+            });
             suggestions.style.display = 'block';
         } else {
-            suggestions.innerHTML = '<div class="autocomplete-item" style="color: #999; cursor: default;">Ürün bulunamadı</div>';
+            const noRes = document.createElement('div');
+            noRes.className = 'autocomplete-item';
+            noRes.style.color = '#999';
+            noRes.style.cursor = 'default';
+            noRes.textContent = 'Ürün bulunamadı';
+            suggestions.appendChild(noRes);
             suggestions.style.display = 'block';
         }
     });
 
+    // Clear Button Logic
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            input.value = '';
+            hiddenInput.value = '';
+            clearBtn.style.display = 'none';
+            suggestions.style.display = 'none';
+            input.focus();
+            loadMovements(); // Reload with no product filter
+        });
+    }
+
     // Hide suggestions on click outside
     document.addEventListener('click', (e) => {
-        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+        if (!input.contains(e.target) && !suggestions.contains(e.target) && (!clearBtn || !clearBtn.contains(e.target))) {
             suggestions.style.display = 'none';
         }
     });
@@ -133,8 +168,6 @@ function setupProductSearchMovements() {
         }
     });
 }
-
-// Global function removed (logic moved to setupProductSearchMovements)
 window.selectMovementProduct = null;
 
 // Init
