@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>İş Listesi Detay - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
     <style>
         /* Tag Input Styles */
         .tag-container {
@@ -229,7 +231,8 @@
 
                 <div class="form-group">
                     <label for="editSource" class="form-label">Kaynak</label>
-                    <select id="editSource" class="form-select" required>
+                    <select id="editSource" class="form-select" required data-custom-dropdown data-searchable="true"
+                        data-placeholder="Kaynak Seçiniz">
                         <option value="">Kaynak seçin...</option>
                     </select>
                 </div>
@@ -284,6 +287,8 @@
 
     <script src="/js/utils.js?v=1.0"></script>
     <script src="/js/job-detail.js"></script>
+    <script src="/js/custom-dropdown.js"></script>
+    <script src="/js/custom-dropdown.js"></script>
 </body>
 
 </html>

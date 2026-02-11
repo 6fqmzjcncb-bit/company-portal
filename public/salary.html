@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maaş Yönetimi - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
     <link rel="stylesheet" href="/css/modal.css">
     <!-- Flatpickr Date Picker Library -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -137,7 +139,8 @@
 
                             <div class="form-group">
                                 <label>Personel</label>
-                                <select id="employeeSelect" onchange="updateEmployeeContext()" required>
+                                <select id="employeeSelect" onchange="updateEmployeeContext()" required
+                                    data-custom-dropdown data-searchable="true" data-placeholder="Personel Seçiniz">
                                     <option value="">Seçiniz...</option>
                                 </select>
                                 <div id="financialSummary" class="financial-summary hidden"
@@ -201,7 +204,8 @@
 
                             <div class="form-group" id="accountGroup">
                                 <label>Ödeme Yöntemi</label>
-                                <select id="accountSelect" class="form-control" required>
+                                <select id="accountSelect" class="form-control" required data-custom-dropdown
+                                    data-searchable="true" data-placeholder="Hesap Seçiniz">
                                     <option value="">Seçiniz...</option>
                                     <!-- Dynamic options from /api/sources -->
                                 </select>
@@ -266,7 +270,8 @@
                     <div class="form-group"
                         style="background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px dashed #bae6fd;">
                         <label for="systemRole">Sistem Yetkisi (Portal Erişimi)</label>
-                        <select id="systemRole" class="form-control" required>
+                        <select id="systemRole" class="form-control" required data-custom-dropdown
+                            data-searchable="false" data-placeholder="Rol Seçiniz">
                             <option value="">Yükleniyor...</option>
                         </select>
                         <small class="text-muted">Personel portala giriş yaptığında sahip olacağı yetki.</small>
@@ -497,6 +502,8 @@
     </script>
 
     <script src="js/salary.js"></script>
+    <script src="/js/custom-dropdown.js"></script>
+    <script src="/js/custom-dropdown.js"></script>
 </body>
 
 </html>

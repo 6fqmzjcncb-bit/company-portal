@@ -143,7 +143,8 @@
 
                     <div class="form-group">
                         <label for="role">Rol *</label>
-                        <select id="role" required>
+                        <select id="role" required data-custom-dropdown data-searchable="false"
+                            data-placeholder="Rol Seçiniz">
                             <option value="worker">İşçi</option>
                             <option value="supervisor">Ustabaşı</option>
                             <option value="manager">Yönetici</option>
@@ -206,6 +207,7 @@
         });
     </script>
 
+    <script src="/js/custom-dropdown.js"></script>
     <script src="/js/employees.js?v=6"></script>
 </body>
 

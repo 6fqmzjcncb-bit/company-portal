@@ -10,6 +10,7 @@
     <meta http-equiv="Expires" content="0">
     <title>Yönetim Paneli - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css?v=2.5">
+    <link rel="stylesheet" href="/css/custom-dropdown.css">
     <script>
         // FAILSAFE: Global Error Handler
         window.onerror = function (msg, url, line) {
@@ -645,7 +646,8 @@
                     <input type="hidden" id="editUserRoleId">
                     <div class="form-group">
                         <label>Yeni Rol Seçin</label>
-                        <select id="updateRoleSelect" class="form-control" required>
+                        <select id="updateRoleSelect" class="form-control" required data-custom-dropdown
+                            data-searchable="false" data-placeholder="Rol Seçiniz">
                             <!-- Populated via JS -->
                         </select>
                     </div>
@@ -802,7 +804,8 @@
 
                             <div class="form-group">
                                 <label>Hesap Tipi</label>
-                                <select id="accType" class="form-control">
+                                <select id="accType" class="form-control" data-custom-dropdown data-searchable="false"
+                                    data-placeholder="Tür Seçiniz">
                                     <option value="bank">Banka</option>
                                     <option value="cash">Nakit Kasa</option>
                                     <option value="credit_card">Kredi Kartı</option>
@@ -847,7 +850,8 @@
 
                             <div class="form-group">
                                 <label>Rol</label>
-                                <select id="newRole">
+                                <select id="newRole" data-custom-dropdown data-searchable="false"
+                                    data-placeholder="Rol Seçiniz">
                                     <option value="staff">Personel</option>
                                     <option value="admin">Yönetici</option>
                                 </select>
@@ -941,7 +945,8 @@
                         </div>
                         <div class="form-group">
                             <label>Bağlanacak Personel</label>
-                            <select id="linkEmployeeSelect" class="form-control">
+                            <select id="linkEmployeeSelect" class="form-control" data-custom-dropdown
+                                data-searchable="true" data-placeholder="Personel Seçiniz">
                                 <option value="">Seçiniz...</option>
                             </select>
                         </div>
@@ -991,6 +996,8 @@
         </div>
         </div>
         <script src="/js/utils.js?v=1.0"></script>
+        <script src="/js/custom-dropdown.js"></script>
+        <script src="/js/custom-dropdown.js"></script>
     </body>
 
 </html>
