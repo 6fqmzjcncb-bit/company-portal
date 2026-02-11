@@ -75,6 +75,83 @@ function filterProducts() {
     renderProductList(filtered);
 }
 
+// Stock Movements Autocomplete Logic
+function setupProductSearchMovements() {
+    const input = document.getElementById('productSearchMovements');
+    const hiddenInput = document.getElementById('filterProduct');
+    const suggestions = document.getElementById('productSearchSuggestions');
+    const label = document.getElementById('selectedProductLabel');
+
+    if (!input || !hiddenInput || !suggestions) return;
+
+    // Filter Logic
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+
+        // If empty, clear ID but keep input empty
+        if (!query) {
+            hiddenInput.value = '';
+            label.style.display = 'none';
+            suggestions.innerHTML = '';
+            return;
+        }
+
+        if (!products || products.length === 0) return;
+
+        const matches = products.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            (p.barcode && p.barcode.toLowerCase().includes(query))
+        ).slice(0, 10); // Limit to 10 suggestions
+
+        if (matches.length > 0) {
+            suggestions.innerHTML = matches.map(p => `
+                <div class="autocomplete-item" onclick="selectMovementProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')">
+                    <div style="font-weight: bold;">${p.name}</div>
+                    <div style="font-size: 0.8rem; color: #666;">
+                        ${p.barcode ? 'Barkod: ' + p.barcode : 'Barkod: -'} | Stok: ${p.current_stock}
+                    </div>
+                </div>
+            `).join('');
+            suggestions.style.display = 'block';
+        } else {
+            suggestions.innerHTML = '<div class="autocomplete-item" style="color: #999; cursor: default;">Ürün bulunamadı</div>';
+            suggestions.style.display = 'block';
+        }
+    });
+
+    // Hide suggestions on click outside
+    document.addEventListener('click', (e) => {
+        if (!input.contains(e.target) && !suggestions.contains(e.target)) {
+            suggestions.style.display = 'none';
+        }
+    });
+
+    // Show suggestions on focus if there is value
+    input.addEventListener('focus', () => {
+        if (input.value.trim().length > 0) {
+            input.dispatchEvent(new Event('input'));
+        }
+    });
+}
+
+// Global function for onclick in HTML string
+window.selectMovementProduct = function (id, name) {
+    const input = document.getElementById('productSearchMovements');
+    const hiddenInput = document.getElementById('filterProduct');
+    const suggestions = document.getElementById('productSearchSuggestions');
+    const label = document.getElementById('selectedProductLabel');
+
+    if (input) input.value = name;
+    if (hiddenInput) hiddenInput.value = id;
+    if (suggestions) suggestions.style.display = 'none';
+
+    // Show "Selected" label
+    if (label) label.style.display = 'block';
+
+    // Trigger Filter
+    loadMovements(); // Auto-load when selected
+};
+
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM Ready');
@@ -87,7 +164,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Tabs
         setupTabs();
-        setupFilters();
+        setupFilters(); // Product List filters
+        setupProductSearchMovements(); // Stock Movements Autocomplete
         setupModalListeners();
 
         // Load Data
@@ -238,10 +316,7 @@ function renderProductDropdowns() {
         outEl.innerHTML = '<option value="">Seçiniz...</option>' + options;
         if (outEl.customDropdown) outEl.customDropdown.refresh();
     }
-    if (filterEl) {
-        filterEl.innerHTML = '<option value="">Ürün Ara...</option>' + options;
-        if (filterEl.customDropdown) filterEl.customDropdown.refresh();
-    }
+    // filterProduct is now an input, handled by autocomplete
 }
 
 async function addProduct() {
@@ -348,7 +423,15 @@ function renderMovements(movements) {
 }
 
 function clearFilters() {
-    document.getElementById('filterProduct').value = '';
+    // Clear Autocomplete Input
+    const searchInput = document.getElementById('productSearchMovements');
+    const hiddenInput = document.getElementById('filterProduct');
+    const label = document.getElementById('selectedProductLabel');
+
+    if (searchInput) searchInput.value = '';
+    if (hiddenInput) hiddenInput.value = '';
+    if (label) label.style.display = 'none';
+
     document.getElementById('filterType').value = '';
     document.getElementById('filterStartDate').value = '';
     document.getElementById('filterEndDate').value = '';
