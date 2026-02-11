@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ürünler ve Stok - Şirket Portalı</title>
+    <title>Ürün ve Stok Yönetimi</title>
     <link rel="stylesheet" href="/css/style.css">
+    <!-- Flatpickr Date Picker -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="css/custom-datepicker.css">
     <link rel="stylesheet" href="/css/modal.css">
     <!-- Inline CSS for Tabs -->
     <style>
@@ -628,7 +631,34 @@
     <script src="/js/utils.js"></script>
     <!-- Barcode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <script src="/js/products_v2.js?v=9.31"></script>
+    <script src="/js/products_v2.js"></script>
+
+    <!-- Flatpickr Date Picker Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+
+    <script>
+        // Initialize Flatpickr for batch date input
+        document.addEventListener('DOMContentLoaded', function () {
+            const batchDateInput = document.getElementById('batchDate');
+            if (batchDateInput) {
+                flatpickr(batchDateInput, {
+                    locale: 'tr',
+                    dateFormat: 'Y-m-d',
+                    defaultDate: 'today',
+                    allowInput: true,
+                    clickOpens: true,
+                    // Make calendar larger and more visible
+                    static: false,
+                    monthSelectorType: 'static',
+                    // Custom positioning
+                    position: 'auto center',
+                    // Larger calendar
+                    inline: false
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
