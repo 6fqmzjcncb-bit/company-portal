@@ -1424,7 +1424,7 @@ function resetBatchModal() {
     document.getElementById('batchProject').value = '';
     document.getElementById('batchNotes').value = '';
     document.getElementById('batchProductSuggestions').innerHTML = '';
-    document.getElementById('batchUnitLabel').textContent = '-';
+    document.getElementById('batchUnitLabel').textContent = 'Stok: -';
 
     // Reset table
     updateBatchTable();
