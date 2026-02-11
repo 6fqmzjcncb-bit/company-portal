@@ -1811,6 +1811,9 @@ window.submitBatch = async function () {
     console.log('Final movement date:', movementDate);
     console.log('===========================');
 
+    // SHOW DATE TO USER WITH ALERT
+    alert('TARIH DEBUG:\n\nFlatpickr var mı? ' + (dateInput._flatpickr ? 'EVET' : 'HAYIR') + '\n\nSeçilen tarih: ' + movementDate);
+
     // Validate date
     if (!movementDate) {
         showCustomAlert('Tarih Seçilmedi', 'Lütfen işlem tarihini seçin.', '⚠️', false);
