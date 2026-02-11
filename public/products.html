@@ -164,41 +164,46 @@
             <!-- TAB 2: Stock Movements -->
             <div id="tab-movements" class="tab-content">
                 <!-- Filters -->
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="row" style="display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;">
-                            <div class="col" style="flex: 1; min-width: 200px;">
-                                <label class="form-label">Ürün</label>
-                                <select id="filterProduct" class="form-select" data-custom-dropdown
-                                    data-searchable="true" data-placeholder="Ürün Ara...">
-                                    <option value="">Tümü</option>
-                                    <!-- Populated by JS -->
-                                </select>
-                            </div>
-                            <div class="col" style="flex: 1; min-width: 150px;">
-                                <label class="form-label">İşlem Tipi</label>
-                                <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
-                                    data-placeholder="Tümü">
-                                    <option value="">Tümü</option>
-                                    <option value="IN">Stok Girişi</option>
-                                    <option value="OUT">Stok Çıkışı</option>
-                                </select>
-                            </div>
-                            <div class="col" style="flex: 1; min-width: 150px;">
-                                <label class="form-label">Başlangıç</label>
-                                <input type="date" id="filterStartDate" class="form-input"
-                                    style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
-                            </div>
-                            <div class="col" style="flex: 1; min-width: 150px;">
-                                <label class="form-label">Bitiş</label>
-                                <input type="date" id="filterEndDate" class="form-input"
-                                    style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
-                            </div>
-                            <div class="col">
-                                <button class="btn btn-primary" onclick="loadMovements()">Filtrele</button>
-                                <button class="btn btn-secondary" onclick="clearFilters()">Temizle</button>
-                            </div>
-                        </div>
+                <!-- Filters -->
+                <div class="filter-container" style="flex-wrap: wrap; align-items: center;">
+                    <!-- 1. Transaction Type -->
+                    <div style="flex: 1; min-width: 140px;">
+                        <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
+                            data-placeholder="İşlem Tipi">
+                            <option value="">Tümü</option>
+                            <option value="IN">Stok Girişi</option>
+                            <option value="OUT">Stok Çıkışı</option>
+                        </select>
+                    </div>
+
+                    <!-- 2. Product Search (Wider) -->
+                    <div style="flex: 2; min-width: 200px;">
+                        <select id="filterProduct" class="form-select" data-custom-dropdown data-searchable="true"
+                            data-placeholder="🔍 Ürün Ara...">
+                            <option value="">Tümü</option>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+
+                    <!-- 3. Start Date -->
+                    <div style="flex: 1; min-width: 140px;">
+                        <input type="date" id="filterStartDate" class="form-input" placeholder="Başlangıç">
+                    </div>
+
+                    <!-- 4. End Date -->
+                    <div style="flex: 1; min-width: 140px;">
+                        <input type="date" id="filterEndDate" class="form-input" placeholder="Bitiş">
+                    </div>
+
+                    <!-- 5. Buttons -->
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn btn-primary" onclick="loadMovements()" style="padding: 10px 20px;">
+                            <span style="font-size: 1.1rem;">🔍</span>
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearFilters()" style="padding: 10px 15px;"
+                            title="Temizle">
+                            🗑️
+                        </button>
                     </div>
                 </div>
 
