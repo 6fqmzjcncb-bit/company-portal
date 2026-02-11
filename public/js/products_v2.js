@@ -387,16 +387,33 @@ async function loadMovements() {
         if (!response.ok) throw new Error('Veri alınamadı');
 
         const movements = await response.json();
-        renderMovements(movements);
+        allMovements = movements; // Cache for client-side search
+
+        // Apply current filter if any
+        const query = document.getElementById('productSearchMovements')?.value.toLowerCase().trim() || '';
+        filterMovements(query);
     } catch (error) {
         console.error(error);
         tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger">⚠️ Hata: ${error.message}</td></tr>`;
     }
 }
 
+function filterMovements(query) {
+    if (!allMovements) return;
+
+    let filtered = allMovements;
+    if (query) {
+        filtered = allMovements.filter(m =>
+            (m.product_name && m.product_name.toLowerCase().includes(query)) ||
+            (m.product_barcode && m.product_barcode.toLowerCase().includes(query))
+        );
+    }
+    renderMovements(filtered);
+}
+
 function renderMovements(movements) {
     const tbody = document.getElementById('movementList');
-    if (movements.length === 0) {
+    if (!movements || movements.length === 0) {
         tbody.innerHTML = '<tr><td colspan="7" class="text-center">Kayıt bulunamadı</td></tr>';
         return;
     }
