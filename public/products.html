@@ -176,13 +176,16 @@
                         </select>
                     </div>
 
-                    <!-- 2. Product Search (Wider) -->
-                    <div style="flex: 2; min-width: 200px;">
-                        <select id="filterProduct" class="form-select" data-custom-dropdown data-searchable="true"
-                            data-placeholder="🔍 Ürün Ara...">
-                            <option value="">Tümü</option>
-                            <!-- Populated by JS -->
-                        </select>
+                    <!-- 2. Product Search (Autocomplete) -->
+                    <div style="flex: 2; min-width: 200px; position: relative;">
+                        <input type="text" id="productSearchMovements" class="form-input"
+                            placeholder="🔍 Ürün Ara (Ad veya Barkod)..." autocomplete="off"
+                            style="padding-left: 35px; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%239ca3af\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: 10px center; background-size: 18px;">
+                        <input type="hidden" id="filterProduct">
+                        <small id="selectedProductLabel"
+                            style="display: none; color: #2563eb; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; background: rgba(37,99,235,0.1); padding: 2px 6px; border-radius: 4px;">Seçildi</small>
+                        <div id="productSearchSuggestions" class="autocomplete-items"
+                            style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
 
                     <!-- 3. Start Date -->
