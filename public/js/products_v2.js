@@ -1578,10 +1578,13 @@ window.selectBatchProduct = function (productId) {
     // Show stock info for admin, just unit for regular users
     const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner');
     if (isAdmin) {
-        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.current_stock || 0})`;
+        document.getElementById('batchUnitLabel').textContent = `Stok: ${product.current_stock || 0} ${product.unit}`;
     } else {
-        document.getElementById('batchUnitLabel').textContent = product.unit;
+        document.getElementById('batchUnitLabel').textContent = '-';
     }
+
+    // Show unit next to quantity input
+    document.getElementById('batchQuantityUnit').textContent = product.unit;
 
     // Focus quantity
     setTimeout(() => document.getElementById('batchQuantity').focus(), 100);
