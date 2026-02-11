@@ -1459,6 +1459,10 @@ window.setBatchMode = async function (mode) {
     // Switch mode
     batchMode = mode;
 
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('batchDate').value = today;
+
     // Load saved data for new mode
     if (mode === 'in') {
         batchItems = [...batchItemsIn];
@@ -1774,6 +1778,7 @@ window.submitBatch = async function () {
     }
 
     const notes = document.getElementById('batchNotes').value;
+    const movementDate = document.getElementById('batchDate').value; // Added movementDate
 
     // Show processing
     showCustomAlert('İşleniyor...', `${batchItems.length} ürün kaydediliyor...`, '⏳', false);
@@ -1789,7 +1794,8 @@ window.submitBatch = async function () {
             const body = {
                 product_id: item.product.id,
                 quantity: item.quantity,
-                notes: notes
+                notes: notes,
+                movement_date: movementDate  // Add custom date
             };
 
             if (batchMode === 'in') {
@@ -1837,21 +1843,21 @@ window.submitBatch = async function () {
 }
 
 // Show all movements for current product
-window.showAllProductMovements = function() {
+window.showAllProductMovements = function () {
     if (!window.currentEditingProductId) {
         showToast('⚠️ Ürün seçilmedi', 'warning');
         return;
     }
-    
+
     // Close product modal
     closeModals();
-    
+
     // Switch to stock movements tab
     const movementsTab = document.querySelector('[data-tab="tab-movements"]');
     if (movementsTab) {
         movementsTab.click();
     }
-    
+
     // Set filter to current product
     setTimeout(() => {
         const productFilter = document.getElementById('filterProduct');

@@ -54,14 +54,14 @@ router.post('/in', requireAuth, async (req, res) => {
     let t;
     try {
         t = await sequelize.transaction();
-        const { product_id, quantity, brought_by, source_location, notes } = req.body;
+        const { product_id, quantity, brought_by, source_location, notes, movement_date } = req.body;
 
         if (!product_id || !quantity) {
             throw new Error('Ürün ID ve miktar gereklidir.');
         }
 
-        // Hareketi kaydet
-        const movement = await StockMovement.create({
+        // Prepare movement data
+        const movementData = {
             product_id,
             movement_type: 'IN',
             quantity,
@@ -69,7 +69,15 @@ router.post('/in', requireAuth, async (req, res) => {
             source_location,
             notes,
             created_by: req.session.userId
-        }, { transaction: t });
+        };
+
+        // If custom date provided, use it as created_at
+        if (movement_date) {
+            movementData.created_at = new Date(movement_date);
+        }
+
+        // Hareketi kaydet
+        const movement = await StockMovement.create(movementData, { transaction: t });
 
         // Stoğu artır
         const product = await Product.findByPk(product_id, { transaction: t });
@@ -96,7 +104,7 @@ router.post('/out', requireAuth, async (req, res) => {
     let t;
     try {
         t = await sequelize.transaction();
-        const { product_id, quantity, taken_by, destination, job_id, reason, notes } = req.body;
+        const { product_id, quantity, taken_by, destination, job_id, reason, notes, movement_date } = req.body;
 
         if (!product_id || !quantity) {
             throw new Error('Ürün ID ve miktar gereklidir.');
@@ -114,18 +122,26 @@ router.post('/out', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Yetersiz stok. Mevcut: ' + product.current_stock });
         }
 
-        // Hareketi kaydet
-        const movement = await StockMovement.create({
+        // Prepare movement data
+        const movementData = {
             product_id,
             movement_type: 'OUT',
             quantity,
             taken_by,
             destination,
             job_id,
-            reason: reason || '',
-            notes: notes || '',
+            reason,
+            notes,
             created_by: req.session.userId
-        }, { transaction: t });
+        };
+
+        // If custom date provided, use it as created_at
+        if (movement_date) {
+            movementData.created_at = new Date(movement_date);
+        }
+
+        // Hareketi kaydet
+        const movement = await StockMovement.create(movementData, { transaction: t });
 
         // Stoğu azalt
         await product.update({
