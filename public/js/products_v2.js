@@ -1558,7 +1558,7 @@ window.handleBatchProductSearch = function (query) {
         <div class="autocomplete-item" onclick="selectBatchProduct(${p.id})">
             <strong>${p.name}</strong>
             <div style="font-size: 0.85rem; color: #6b7280;">
-                Stok: ${p.quantity || 0} ${p.unit} • Marka: ${p.brand || '-'}
+                Stok: ${p.current_stock || 0} ${p.unit} • Marka: ${p.brand || '-'}
             </div>
         </div>
     `).join('');
@@ -1578,7 +1578,7 @@ window.selectBatchProduct = function (productId) {
     // Show stock info for admin, just unit for regular users
     const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner');
     if (isAdmin) {
-        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.quantity || 0})`;
+        document.getElementById('batchUnitLabel').textContent = `${product.unit} (Stok: ${product.current_stock || 0})`;
     } else {
         document.getElementById('batchUnitLabel').textContent = product.unit;
     }
@@ -1602,7 +1602,7 @@ window.addProductToBatch = function () {
 
     // Stock validation for OUT mode
     if (batchMode === 'out') {
-        const currentStock = selectedBatchProduct.quantity || 0;
+        const currentStock = selectedBatchProduct.current_stock || 0;
         if (qty > currentStock) {
             showCustomAlert('Yetersiz Stok', `Stokta sadece ${currentStock} ${selectedBatchProduct.unit} var. Daha fazla çıkış yapamazsınız.`, '⚠️', false);
             return;
@@ -1615,7 +1615,7 @@ window.addProductToBatch = function () {
             id: selectedBatchProduct.id,
             name: selectedBatchProduct.name,
             unit: selectedBatchProduct.unit,
-            currentStock: selectedBatchProduct.quantity
+            currentStock: selectedBatchProduct.current_stock || 0
         },
         quantity: qty
     });
