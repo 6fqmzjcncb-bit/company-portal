@@ -1853,3 +1853,52 @@ input[type=number] {
   -moz-appearance: textfield;
   /* Firefox */
 }
+/* ===========================
+   DATE PICKER IMPROVEMENTS
+   =========================== */
+
+/* Make date input larger and more visible */
+input[type="date"] {
+    font-size: 1.1rem !important;
+    padding: 12px 16px !important;
+    min-height: 48px !important;
+    font-weight: 600 !important;
+    color: #1f2937 !important;
+    border: 2px solid #d1d5db !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+}
+
+input[type="date"]:hover {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+input[type="date"]:focus {
+    outline: none !important;
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* Make calendar icon larger */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 8px;
+    margin-right: 4px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: rgba(59, 130, 246, 0.1);
+    border-radius: 6px;
+}
+
+/* Firefox date picker */
+input[type="date"]::-moz-calendar-picker-indicator {
+    cursor: pointer;
+    font-size: 1.5rem;
+    padding: 8px;
+}
