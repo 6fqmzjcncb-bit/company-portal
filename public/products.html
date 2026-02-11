@@ -645,7 +645,9 @@
             if (batchDateInput) {
                 flatpickr(batchDateInput, {
                     locale: 'tr',
-                    dateFormat: 'Y-m-d',
+                    dateFormat: 'd F Y', // Turkish format: 11 Şubat 2026
+                    altInput: true,
+                    altFormat: 'd F Y', // Display format
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
