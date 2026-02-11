@@ -173,8 +173,7 @@ function createCustomDropdown(selectElement, options = {}) {
         trigger.querySelector('.custom-dropdown-value').textContent = selectedOption.textContent;
     }
 
-    // Return API for programmatic control
-    return {
+    const api = {
         refresh: () => populateOptions(),
         open: openDropdown,
         close: closeDropdown,
@@ -182,8 +181,13 @@ function createCustomDropdown(selectElement, options = {}) {
             wrapper.parentNode.insertBefore(selectElement, wrapper);
             wrapper.remove();
             selectElement.style.display = '';
+            delete selectElement.customDropdown;
         }
     };
+
+    selectElement.customDropdown = api;
+
+    return api;
 }
 
 // Auto-initialize all selects with data-custom-dropdown attribute

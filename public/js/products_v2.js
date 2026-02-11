@@ -230,9 +230,18 @@ function renderProductDropdowns() {
     const outEl = document.getElementById('outProduct');
     const filterEl = document.getElementById('filterProduct');
 
-    if (inEl) inEl.innerHTML = '<option value="">Seçiniz...</option>' + options;
-    if (outEl) outEl.innerHTML = '<option value="">Seçiniz...</option>' + options;
-    if (filterEl) filterEl.innerHTML = '<option value="">Tümü</option>' + options;
+    if (inEl) {
+        inEl.innerHTML = '<option value="">Seçiniz...</option>' + options;
+        if (inEl.customDropdown) inEl.customDropdown.refresh();
+    }
+    if (outEl) {
+        outEl.innerHTML = '<option value="">Seçiniz...</option>' + options;
+        if (outEl.customDropdown) outEl.customDropdown.refresh();
+    }
+    if (filterEl) {
+        filterEl.innerHTML = '<option value="">Ürün Ara...</option>' + options;
+        if (filterEl.customDropdown) filterEl.customDropdown.refresh();
+    }
 }
 
 async function addProduct() {
