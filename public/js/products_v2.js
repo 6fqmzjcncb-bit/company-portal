@@ -552,12 +552,13 @@ document.getElementById('addProductForm')?.addEventListener('submit', async (e) 
                 window.returnToBatchAfterCreate = false;
                 const productName = window.newProductNameToSelect;
 
+                // Wait a bit longer for products to fully load
                 setTimeout(() => {
                     const newProduct = products.find(p => p.name === productName);
                     if (newProduct) {
                         selectBatchProduct(newProduct.id);
                     }
-                }, 300);
+                }, 500);
             }
         } else {
             const err = await response.json();
