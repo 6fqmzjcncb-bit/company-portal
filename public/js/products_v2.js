@@ -299,6 +299,15 @@ function renderMovements(movements) {
         return;
     }
 
+    // DEBUG: Show first movement data to user
+    // Only show if it's a new movement to avoid spamming
+    // Check local storage to see if we already showed debugging for this session
+    if (!sessionStorage.getItem('dateDebugShown')) {
+        const firstMov = movements[0];
+        alert(`API RESPONSE DEBUG:\n\nID: ${firstMov.id}\nCreated At: ${firstMov.created_at}\nFormatDateTime Var mı? ${typeof formatDateTime === 'function' ? 'EVET' : 'HAYIR'}`);
+        sessionStorage.setItem('dateDebugShown', 'true');
+    }
+
     tbody.innerHTML = movements.map(mov => {
         const typeInfo = getMovementTypeInfo(mov.movement_type);
         const person = mov.movement_type === 'IN' ? mov.brought_by :

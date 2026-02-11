@@ -113,7 +113,30 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-function capitalizeUnit(unit) {
-    if (!unit) return '';
-    return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+if (!unit) return '';
+return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+}
+
+// Date Formatting
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+
+    // Check if it's already formatted (simple check)
+    if (dateString.includes('Şubat') || dateString.includes('Ocak')) return dateString;
+
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) return dateString; // Invalid date
+
+        return new Intl.DateTimeFormat('tr-TR', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        }).format(date);
+    } catch (e) {
+        console.error('Date parsing error:', e);
+        return dateString;
+    }
 }
