@@ -648,7 +648,8 @@
         document.addEventListener('DOMContentLoaded', function () {
             const batchDateInput = document.getElementById('batchDate');
             if (batchDateInput) {
-                flatpickr(batchDateInput, {
+                // Store instance globally for easy access
+                window.batchDateFlatpickr = flatpickr(batchDateInput, {
                     locale: 'tr',
                     dateFormat: 'Y-m-d', // Backend format
                     altInput: true,
