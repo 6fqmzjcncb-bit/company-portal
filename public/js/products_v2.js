@@ -134,23 +134,8 @@ function setupProductSearchMovements() {
     });
 }
 
-// Global function for onclick in HTML string
-window.selectMovementProduct = function (id, name) {
-    const input = document.getElementById('productSearchMovements');
-    const hiddenInput = document.getElementById('filterProduct');
-    const suggestions = document.getElementById('productSearchSuggestions');
-    const label = document.getElementById('selectedProductLabel');
-
-    if (input) input.value = name;
-    if (hiddenInput) hiddenInput.value = id;
-    if (suggestions) suggestions.style.display = 'none';
-
-    // Show "Selected" label
-    if (label) label.style.display = 'block';
-
-    // Trigger Filter
-    loadMovements(); // Auto-load when selected
-};
+// Global function removed (logic moved to setupProductSearchMovements)
+window.selectMovementProduct = null;
 
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
