@@ -644,19 +644,15 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
 
     <script>
-        // REMOVED: Flatpickr for batch date - using native date input instead
-        // Flatpickr's altInput was causing value retrieval issues
-        // Native HTML5 date input is simpler and more reliable
-
-        /*
+        // Initialize Flatpickr for batch date input
         document.addEventListener('DOMContentLoaded', function () {
             const batchDateInput = document.getElementById('batchDate');
             if (batchDateInput) {
                 window.batchDateFlatpickr = flatpickr(batchDateInput, {
                     locale: 'tr',
-                    dateFormat: 'Y-m-d',
+                    dateFormat: 'Y-m-d', // Backend format (hidden input)
                     altInput: true,
-                    altFormat: 'd F Y',
+                    altFormat: 'd F Y', // Display format: 11 Şubat 2026
                     defaultDate: 'today',
                     allowInput: true,
                     clickOpens: true,
@@ -668,18 +664,35 @@
                 });
             }
         });
-        */
     </script>
 </body>
 
 </html>
 <script>
-    // Native date input for product registration - NO Flatpickr
-    // User requested to remove Flatpickr calendar
+    // Initialize Flatpickr for product registration date
     document.addEventListener('DOMContentLoaded', function () {
         const newProdDateInput = document.getElementById('newProdDate');
         if (newProdDateInput) {
-            // Set today's date immediately
+            window.newProdDateFlatpickr = flatpickr(newProdDateInput, {
+                locale: 'tr',
+                dateFormat: 'Y-m-d', // Backend format
+                altInput: true,
+                altFormat: 'd F Y', // Display: 11 Şubat 2026
+                defaultDate: 'today',
+                allowInput: true,
+                clickOpens: true,
+                static: true,
+                monthSelectorType: 'static',
+                inline: false,
+                position: 'below left',
+                onChange: function (selectedDates, dateStr, instance) {
+                    if (!dateStr) {
+                        instance.setDate('today');
+                    }
+                }
+            });
+
+            // Set today's date
             const today = new Date().toISOString().split('T')[0];
             newProdDateInput.value = today;
         }
