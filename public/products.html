@@ -427,18 +427,21 @@
                         <div id="batchProductSuggestions" class="autocomplete-items"></div>
                     </div>
 
-                    <div style="display: flex; gap: 12px; align-items: end;">
-                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                            <label>Miktar</label>
-                            <div style="display: flex; align-items: center;">
-                                <input type="number" id="batchQuantity" class="form-control" placeholder="0"
-                                    style="border-top-right-radius: 0; border-bottom-right-radius: 0;">
-                                <span id="batchUnitLabel"
-                                    style="background: #e5e7eb; padding: 10px 15px; border: 1px solid #d1d5db; border-left: 0; border-top-right-radius: 4px; border-bottom-right-radius: 4px; color: #374151; font-weight: bold; min-width: 120px; text-align: center; white-space: nowrap; font-size: 0.85rem;">-</span>
-                            </div>
+                    <div class="form-group">
+                        <label>Miktar</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="number" id="batchQuantity" class="form-control" placeholder="0"
+                                style="width: 100px; flex-shrink: 0;">
+                            <span id="batchQuantityUnit"
+                                style="color: #6b7280; font-weight: 600; min-width: 40px;">-</span>
+                            <span id="batchUnitLabel"
+                                style="margin-left: auto; background: #f0f9ff; padding: 8px 12px; border-radius: 6px; color: #1e40af; font-weight: 600; font-size: 0.85rem; white-space: nowrap;">-</span>
                         </div>
+                    </div>
+
+                    <div style="text-align: right;">
                         <button type="button" onclick="addProductToBatch()" class="btn btn-primary"
-                            style="padding: 10px 25px; font-weight: 600;">
+                            style="padding: 10px 25px; font-weight: 600; width: 100%;">
                             ➕ Ekle
                         </button>
                     </div>
