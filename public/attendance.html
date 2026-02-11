@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Çalışma Kaydı - Şirket Portalı</title>
     <link rel="stylesheet" href="/css/style.css">
+    <!-- Flatpickr Date Picker Library -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 
 <body>
@@ -80,7 +82,8 @@
                 <h1 class="page-title">📅 Çalışma Kaydı</h1>
                 <div style="display: flex; gap: 10px; align-items: center;">
                     <button class="btn btn-secondary btn-icon" id="prevDayBtn">❮</button>
-                    <input type="date" id="selectedDate" class="date-input">
+                    <input type="date" id="selectedDate" class="date-input"
+                        style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
                     <button class="btn btn-secondary btn-icon" id="nextDayBtn">❯</button>
 
                     <button class="btn btn-primary" onclick="loadAttendance()">Tarihi
@@ -131,6 +134,32 @@
             </div>
         </main>
     </div>
+
+    <!-- Flatpickr Date Picker Library -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/tr.js"></script>
+
+    <script>
+        // Initialize Flatpickr for attendance date
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectedDateInput = document.getElementById('selectedDate');
+            if (selectedDateInput) {
+                flatpickr(selectedDateInput, {
+                    locale: 'tr',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd F Y',
+                    defaultDate: 'today',
+                    allowInput: true,
+                    clickOpens: true,
+                    static: true,
+                    monthSelectorType: 'static',
+                    inline: false,
+                    position: 'below left'
+                });
+            }
+        });
+    </script>
 
     <script src="/js/utils.js?v=1.0"></script>
     <script src="/js/attendance.js?v=4.1"></script>

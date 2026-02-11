@@ -182,11 +182,13 @@
                             </div>
                             <div class="col" style="flex: 1; min-width: 150px;">
                                 <label class="form-label">Başlangıç</label>
-                                <input type="date" id="filterStartDate" class="form-input">
+                                <input type="date" id="filterStartDate" class="form-input"
+                                    style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
                             </div>
                             <div class="col" style="flex: 1; min-width: 150px;">
                                 <label class="form-label">Bitiş</label>
-                                <input type="date" id="filterEndDate" class="form-input">
+                                <input type="date" id="filterEndDate" class="form-input"
+                                    style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
                             </div>
                             <div class="col">
                                 <button class="btn btn-primary" onclick="loadMovements()">Filtrele</button>
@@ -661,6 +663,39 @@
                     inline: false,
                     position: 'below left',
                     positionElement: batchDateInput
+                });
+            }
+
+            // Initialize Flatpickr for filter dates
+            const filterStartInput = document.getElementById('filterStartDate');
+            if (filterStartInput) {
+                flatpickr(filterStartInput, {
+                    locale: 'tr',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd F Y',
+                    allowInput: true,
+                    clickOpens: true,
+                    static: true,
+                    monthSelectorType: 'static',
+                    inline: false,
+                    position: 'below left'
+                });
+            }
+
+            const filterEndInput = document.getElementById('filterEndDate');
+            if (filterEndInput) {
+                flatpickr(filterEndInput, {
+                    locale: 'tr',
+                    dateFormat: 'Y-m-d',
+                    altInput: true,
+                    altFormat: 'd F Y',
+                    allowInput: true,
+                    clickOpens: true,
+                    static: true,
+                    monthSelectorType: 'static',
+                    inline: false,
+                    position: 'below left'
                 });
             }
         });
