@@ -1835,3 +1835,29 @@ window.submitBatch = async function () {
         showCustomAlert('Kısmi Başarı', `${successCount} başarılı, ${failCount} başarısız.`, '⚠️', false);
     }
 }
+
+// Show all movements for current product
+window.showAllProductMovements = function() {
+    if (!window.currentEditingProductId) {
+        showToast('⚠️ Ürün seçilmedi', 'warning');
+        return;
+    }
+    
+    // Close product modal
+    closeModals();
+    
+    // Switch to stock movements tab
+    const movementsTab = document.querySelector('[data-tab="tab-movements"]');
+    if (movementsTab) {
+        movementsTab.click();
+    }
+    
+    // Set filter to current product
+    setTimeout(() => {
+        const productFilter = document.getElementById('filterProduct');
+        if (productFilter) {
+            productFilter.value = window.currentEditingProductId;
+            loadMovements();
+        }
+    }, 300);
+};
