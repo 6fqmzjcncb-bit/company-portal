@@ -258,6 +258,7 @@ body {
 
 .sidebar {
   width: 280px;
+  flex: 0 0 280px;
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   color: white;
   padding: 2rem;
