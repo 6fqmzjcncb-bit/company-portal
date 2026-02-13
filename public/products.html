@@ -227,13 +227,28 @@
                         /* gray-300 */
                         margin-right: 15px !important;
                         background-color: #fff !important;
+                        height: 48px !important;
+                        /* Force equal height */
+                        display: flex;
+                        align-items: center;
                     }
 
                     .stock-filters-wrapper #productSearchMovements {
                         border-radius: 8px !important;
                         border: 1px solid #d1d5db !important;
-                        padding-top: 10px !important;
-                        padding-bottom: 10px !important;
+                        height: 48px !important;
+                        /* Force equal height */
+                        padding-top: 0 !important;
+                        /* Reset to let flex center or line-height work, or just let placeholder center */
+                        padding-bottom: 0 !important;
+                        line-height: 48px !important;
+                        /* Center text vertically */
+                    }
+
+                    /* Adjust placeholder centering */
+                    .stock-filters-wrapper #productSearchMovements::placeholder {
+                        line-height: normal;
+                        /* Prevent placeholder weirdness */
                     }
                 </style>
 
