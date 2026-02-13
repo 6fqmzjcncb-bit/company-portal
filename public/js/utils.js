@@ -113,8 +113,10 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-if (!unit) return '';
-return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+// Capitalize Unit
+function capitalizeUnit(unit) {
+    if (!unit) return '';
+    return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
 }
 
 // Date Formatting
@@ -150,7 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const overlay = document.createElement('div');
         overlay.className = 'sidebar-overlay';
         document.body.appendChild(overlay);
-        
+
         // Close on Overlay Click
         overlay.addEventListener('click', () => {
             document.querySelector('.sidebar').classList.remove('active');
@@ -161,35 +163,48 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Setup Toggle Button
     const toggleBtn = document.getElementById('sidebarToggle');
     const sidebar = document.querySelector('.sidebar');
+
+    // Re-select overlay to be sure
     const overlay = document.querySelector('.sidebar-overlay');
 
-    if (toggleBtn && sidebar) {
-        toggleBtn.addEventListener('click', (e) => {
+    console.log('📱 Mobile Menu Init:', {
+        btn: !!toggleBtn,
+        sidebar: !!sidebar,
+        overlay: !!overlay
+    });
+
+    if (toggleBtn && sidebar && overlay) {
+        toggleBtn.onclick = (e) => { // Use onclick for direct attachment
+            console.log('🍔 Menu Button Clicked');
+            e.preventDefault();
             e.stopPropagation();
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
-        });
+            console.log('Sidebar Active:', sidebar.classList.contains('active'));
+        };
+    } else {
+        console.error('❌ Mobile Menu Elements Missing!');
     }
-    
+
     // 3. Swipe to Close (Optional Simple Touch)
     let touchStartX = 0;
     let touchEndX = 0;
-    
+
     document.addEventListener('touchstart', e => {
         touchStartX = e.changedTouches[0].screenX;
     }, false);
-    
+
     document.addEventListener('touchend', e => {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     }, false);
-    
+
     function handleSwipe() {
         if (touchEndX < touchStartX - 50) { // Swipe Left
-             if (sidebar.classList.contains('active')) {
-                 sidebar.classList.remove('active');
-                 overlay.classList.remove('active');
-             }
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
         }
     }
 });
