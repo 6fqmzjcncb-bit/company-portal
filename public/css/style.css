@@ -1909,3 +1909,103 @@ input[type=number] {
   -moz-appearance: textfield;
   /* Firefox */
 }
+/* ===========================
+   MOBILE RESPONSIVENESS (v1.0)
+   =========================== */
+
+#sidebarToggle {
+    display: none; /* Hidden on desktop */
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-top: 70px; /* Space for hamburger */
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+        position: fixed;
+        width: 260px;
+        height: 100vh;
+        top: 0;
+        left: 0;
+        overflow-y: auto;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+    }
+
+    #sidebarToggle {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 998; /* Below sidebar (1000) so sidebar covers it when open? Or above? Let's keep it visible or let overlay handle close. */
+        /* If sidebar is 1000, and fully covers, button is hidden. */
+        /* Let's put button at 1001 so it can toggle CLOSED too? */
+        /* Actually commonly sidebar covers it. Click overlay to close. */
+        background: white;
+        color: var(--primary-color);
+        border: 1px solid var(--gray-300);
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 999;
+        backdrop-filter: blur(2px);
+    }
+
+    .sidebar-overlay.active {
+        display: block;
+    }
+    
+    /* Table Scrolling */
+    .table-container, .card {
+        overflow-x: auto;
+    }
+    
+    /* Grid adjustments */
+    .dashboard-grid, .stats-grid, .products-grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Modal Full Width */
+    .modal-content {
+        width: 95% !important;
+        margin: 10px !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    /* Header Adjustments */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

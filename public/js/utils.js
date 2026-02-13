@@ -140,3 +140,56 @@ function formatDateTime(dateString) {
         return dateString;
     }
 }
+
+// ===========================
+// MOBILE SIDEBAR LOGIC
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Inject Overlay if not exists
+    if (!document.querySelector('.sidebar-overlay')) {
+        const overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+        
+        // Close on Overlay Click
+        overlay.addEventListener('click', () => {
+            document.querySelector('.sidebar').classList.remove('active');
+            overlay.classList.remove('active');
+        });
+    }
+
+    // 2. Setup Toggle Button
+    const toggleBtn = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        });
+    }
+    
+    // 3. Swipe to Close (Optional Simple Touch)
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    document.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    }, false);
+    
+    document.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    }, false);
+    
+    function handleSwipe() {
+        if (touchEndX < touchStartX - 50) { // Swipe Left
+             if (sidebar.classList.contains('active')) {
+                 sidebar.classList.remove('active');
+                 overlay.classList.remove('active');
+             }
+        }
+    }
+});
