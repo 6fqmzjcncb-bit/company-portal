@@ -318,4 +318,98 @@ router.get('/debug/sync-users-fix', async (req, res) => {
     }
 });
 
+// --- DATA BACKUP & RESTORE SYSTEM ---
+
+// Verileri Dışa Aktar (Export)
+router.get('/data/export', requireAdmin, async (req, res) => {
+    try {
+        const { sequelize } = require('../config/database');
+        const models = sequelize.models; // All loaded models
+
+        const backupData = {
+            version: '1.0',
+            timestamp: new Date().toISOString(),
+            data: {}
+        };
+
+        // Iterate all models and fetch data
+        for (const [modelName, model] of Object.entries(models)) {
+            // Skip SequelizeMeta or system tables if necessary, but usually we want everything
+            const rows = await model.findAll();
+            backupData.data[modelName] = rows;
+        }
+
+        // Set Headers for Download
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Content-Disposition', `attachment; filename=portal-backup-${Date.now()}.json`);
+
+        // Stream response
+        res.send(JSON.stringify(backupData, null, 2));
+
+    } catch (error) {
+        console.error('Export error:', error);
+        res.status(500).json({ error: 'Yedek oluşturulamadı' });
+    }
+});
+
+// Verileri İçe Aktar (Import / Restore)
+router.post('/data/import', requireAdmin, async (req, res) => {
+    const { sequelize } = require('../config/database');
+    const transaction = await sequelize.transaction();
+
+    try {
+        const payload = req.body; // Expecting { version, timestamp, data: { User: [], ... } }
+
+        if (!payload || !payload.data) {
+            throw new Error('Geçersiz yedek dosyası formatı');
+        }
+
+        console.log('🔄 Restore process started...');
+
+        // 1. Disable Foreign Keys (SQLite specific)
+        await sequelize.query('PRAGMA foreign_keys = OFF;', { transaction });
+
+        // 2. Truncate & Restore Loop
+        const performRestore = async () => {
+            for (const [modelName, rows] of Object.entries(payload.data)) {
+                if (!sequelize.models[modelName]) {
+                    console.warn(`⚠️ Unknown model in backup: ${modelName} (Skipping)`);
+                    continue;
+                }
+
+                const Model = sequelize.models[modelName];
+
+                // Truncate (Delete all)
+                await Model.destroy({ where: {}, transaction }); // truncate: true not supported in SQLite with transaction usually? destroy is safer.
+
+                if (rows.length > 0) {
+                    await Model.bulkCreate(rows, {
+                        transaction,
+                        validate: false // Skip validation to ensure exact backup restoration
+                    });
+                }
+                console.log(`✅ Restored ${modelName}: ${rows.length} rows`);
+            }
+        };
+
+        await performRestore();
+
+        // 3. Enable Foreign Keys
+        await sequelize.query('PRAGMA foreign_keys = ON;', { transaction });
+
+        await transaction.commit();
+        console.log('✅ Restore completed successfully.');
+
+        res.json({ message: 'Veriler başarıyla geri yüklendi. Sayfa yenileniyor...' });
+
+    } catch (error) {
+        await transaction.rollback();
+        console.error('Restore error:', error);
+        // Try to re-enable FKs just in case
+        try { await sequelize.query('PRAGMA foreign_keys = ON;'); } catch (e) { }
+
+        res.status(500).json({ error: 'Geri yükleme başarısız: ' + error.message });
+    }
+});
+
 module.exports = router;

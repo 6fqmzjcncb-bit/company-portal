@@ -629,6 +629,70 @@
             }
         }
 
+        // --- Data Management ---
+        function downloadBackup() {
+            const date = new Date().toISOString().slice(0, 10);
+            window.location.href = '/api/admin/data/export';
+        }
+
+        async function confirmRestore() {
+            const fileInput = document.getElementById('restoreFile');
+            if (!fileInput.files.length) {
+                showAlert('Lütfen bir yedek dosyası (.json) seçin', 'error');
+                return;
+            }
+
+            const file = fileInput.files[0];
+
+            if (!confirm(`⚠️ DİKKAT!\n\n"${file.name}" dosyasını yüklemek üzeresiniz.\n\nBU İŞLEM MEVCUT TÜM VERİLERİ KALICI OLARAK SİLECEK VE YEDEĞİ YÜKLEYECEKTİR.\n\nDevam etmek istiyor musunuz?`)) {
+                return;
+            }
+
+            // Double Confirm
+            if (!confirm('SON UYARI: Bu işlem geri alınamaz. Eğer emin değilseniz İptal deyin.\n\nOnaylıyor musunuz?')) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const jsonContent = e.target.result;
+                    // Basic Validation
+                    try {
+                        const parsed = JSON.parse(jsonContent);
+                        if (!parsed.data) throw new Error('Dosya formatı geçersiz (data alanı yok)');
+                    } catch (parseErr) {
+                        throw new Error('Dosya geçerli bir JSON değil veya bozuk.');
+                    }
+
+                    // Show loader overlay
+                    const loader = document.createElement('div');
+                    loader.innerHTML = '<div style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;display:flex;justify-content:center;align-items:center;color:white;flex-direction:column;font-family:sans-serif;"><h1>🔄 Geri Yükleniyor...</h1><p style="margin-top:10px; font-size:1.1rem;">Lütfen bekleyin, sayfayı kapatmayın.</p></div>';
+                    document.body.appendChild(loader);
+
+                    const response = await fetch('/api/admin/data/import', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: jsonContent
+                    });
+
+                    if (response.ok) {
+                        const res = await response.json();
+                        alert(`✅ ${res.message}`);
+                        window.location.reload();
+                    } else {
+                        const res = await response.json();
+                        throw new Error(res.error || 'Bilinmeyen hata');
+                    }
+
+                } catch (error) {
+                    alert('❌ Hata: ' + error.message);
+                    window.location.reload(); // Remove loader
+                }
+            };
+            reader.readAsText(file);
+        }
+
     </script>
 </head>
 
@@ -784,6 +848,44 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </div>
+
+                <!-- Data Management Card -->
+                <div class="card mt-4" style="border-top: 4px solid #3b82f6;">
+                    <div class="card-header" style="background-color: #eff6ff;">
+                        <span style="color: #1e40af; font-weight: bold;">💾 Veri Yönetimi (Yedekle & Geri Yükle)</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div style="display: flex; gap: 20px; align-items: stretch; flex-wrap: wrap;">
+                            <!-- Export Section -->
+                            <div
+                                style="flex: 1; min-width: 300px; border: 1px dashed #cbd5e1; padding: 20px; border-radius: 8px; background: #f8fafc;">
+                                <h4 style="margin-top:0;">📤 Yedek Al (Export)</h4>
+                                <p class="text-muted small">Tüm veritabanını (Kullanıcılar, Ürünler, Stoklar, vb.) JSON
+                                    formatında indirir. Bu dosyayı saklayarak daha sonra sistemi geri yükleyebilirsiniz.
+                                </p>
+                                <button class="btn btn-primary btn-block" onclick="downloadBackup()">
+                                    ⬇️ Verileri İndir (.json)
+                                </button>
+                            </div>
+
+                            <!-- Import Section -->
+                            <div
+                                style="flex: 1; min-width: 300px; border: 1px dashed #ef4444; padding: 20px; border-radius: 8px; background: #fef2f2;">
+                                <h4 style="color: #b91c1c; margin-top:0;">📥 Geri Yükle (Import)</h4>
+                                <p class="text-danger small" style="font-weight: bold;">⚠️ DİKKAT: Bu işlem mevcut tüm
+                                    verileri SİLER ve seçilen yedek dosyasındaki verileri yükler!</p>
+
+                                <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+                                    <input type="file" id="restoreFile" accept=".json" class="form-control"
+                                        style="padding: 5px;">
+                                    <button class="btn btn-danger" onclick="confirmRestore()">
+                                        ⚠️ Yükle
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>
