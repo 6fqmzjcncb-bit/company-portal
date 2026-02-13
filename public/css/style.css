@@ -2009,3 +2009,105 @@ input[type=number] {
         justify-content: space-between;
     }
 }
+
+/* ===========================
+   MOBILE DESIGN REFINEMENTS (v1.1)
+   =========================== */
+
+/* Job Detail: Quick Add Form */
+.quick-add-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr 100px 120px;
+    gap: 1rem;
+    align-items: start;
+}
+
+@media (max-width: 768px) {
+    .quick-add-form {
+        grid-template-columns: 1fr !important; /* Stack vertically on mobile */
+        gap: 0.5rem;
+    }
+    
+    .quick-add-form button {
+        width: 100%;
+        margin-top: 5px;
+    }
+    
+    /* Salary Page: Header Buttons */
+    .card-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 10px;
+    }
+    
+    .card-header > div {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .card-header button {
+        flex: 1;
+    }
+    
+    /* Salary Page: Financial Summary Grid */
+    .summary-grid {
+        grid-template-columns: 1fr 1fr !important; /* Keep 2 cols on mobile, maybe? Or 1fr? */
+        /* User's screenshot showed it stacked awkwardly? No, it wasn't visible. */
+        /* Let's be safe */
+    }
+    
+    /* Admin Page: Backup Buttons */
+    .btn-group, .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    /* Fix weird button alignments globally on mobile */
+    .btn {
+        width: 100%; /* Make buttons full width on mobile for easier tapping */
+        margin-bottom: 5px;
+    }
+    
+    /* Exception: Table action buttons shouldn't be full width */
+    td .btn {
+        width: auto;
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    
+    /* Fix Modal Inputs on Mobile */
+    .form-group {
+        width: 100%;
+    }
+    
+    /* Fix "Sistem Yetkisi" dropdown in User Modal */
+    .role-select-container {
+        flex-direction: column;
+    }
+}
+
+/* Admin Page: Backup Actions */
+.backup-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+@media (max-width: 768px) {
+    .backup-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .backup-actions input[type="file"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .backup-actions button {
+        width: 100%;
+    }
+}
