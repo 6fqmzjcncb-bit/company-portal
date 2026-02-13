@@ -15,7 +15,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">🏢</div>
-                <span class="logo-text">Şirket Portalı</span>
+                <h1 class="sidebar-title">Şirket Portalı</h1>
             </div>
 
             <ul class="nav-menu">
@@ -55,7 +55,8 @@
                         Maaş Yönetimi
                     </a>
                 </li>
-                <li class="nav-item" id="adminLink" style="display: none;">
+
+                <li class="nav-item" id="adminLink" style="display:none;">
                     <a href="/admin.html" class="nav-link">
                         <span class="nav-icon">⚙️</span>
                         Yönetim
@@ -63,12 +64,15 @@
                 </li>
             </ul>
 
-            <div class="user-profile">
+            <div class="sidebar-footer">
                 <div class="user-info">
-                    <div class="user-name" id="userName">Yükleniyor...</div>
-                    <div class="user-role" id="userRole">...</div>
+                    <div class="user-avatar">👤</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">...</div>
+                        <div class="user-role" id="userRole"></div>
+                    </div>
                 </div>
-                <button onclick="logout()" class="btn-icon" title="Çıkış Yap">🚪</button>
+                <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
             </div>
         </aside>
 
