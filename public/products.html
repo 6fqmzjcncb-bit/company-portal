@@ -166,7 +166,8 @@
                 <!-- Filters -->
                 <!-- Filters -->
                 <!-- Filters -->
-                <div class="stock-filters-wrapper" style="display: flex; flex-wrap: wrap; align-items: center;">
+                <div class="stock-filters-wrapper"
+                    style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px;">
                     <!-- 1. Transaction Type -->
                     <div style="flex: 1; min-width: 140px;">
                         <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
@@ -176,9 +177,6 @@
                             <option value="OUT">Stok Çıkışı</option>
                         </select>
                     </div>
-
-                    <!-- SPACER to force separation -->
-                    <div style="width: 15px; flex-shrink: 0;"></div>
 
                     <!-- 2. Product Search (Autocomplete) -->
                     <div style="flex: 2; min-width: 200px; position: relative;">
@@ -208,10 +206,12 @@
 
                     <!-- 5. Buttons -->
                     <div style="display: flex; gap: 5px;">
-                        <button class="btn btn-primary" onclick="loadMovements()" style="padding: 10px 20px;">
+                        <button class="btn btn-primary" onclick="loadMovements()"
+                            style="padding: 10px 20px; height: 48px; display: flex; align-items: center; justify-content: center;">
                             <span style="font-size: 1.1rem;">🔍</span>
                         </button>
-                        <button class="btn btn-secondary" onclick="clearFilters()" style="padding: 10px 15px;"
+                        <button class="btn btn-secondary" onclick="clearFilters()"
+                            style="padding: 10px 15px; height: 48px; display: flex; align-items: center; justify-content: center;"
                             title="Temizle">
                             🗑️
                         </button>
@@ -225,7 +225,6 @@
                         border-radius: 8px !important;
                         border: 1px solid #d1d5db !important;
                         /* gray-300 */
-                        margin-right: 15px !important;
                         background-color: #fff !important;
                         height: 48px !important;
                         /* Force equal height */
@@ -233,22 +232,20 @@
                         align-items: center;
                     }
 
-                    .stock-filters-wrapper #productSearchMovements {
+                    /* Apply 48px height to ALL inputs in this wrapper (Search, Date) */
+                    .stock-filters-wrapper .form-input {
                         border-radius: 8px !important;
                         border: 1px solid #d1d5db !important;
                         height: 48px !important;
                         /* Force equal height */
                         padding-top: 0 !important;
-                        /* Reset to let flex center or line-height work, or just let placeholder center */
                         padding-bottom: 0 !important;
                         line-height: 48px !important;
-                        /* Center text vertically */
                     }
 
-                    /* Adjust placeholder centering */
+                    /* Specific fix for Search Input alignment */
                     .stock-filters-wrapper #productSearchMovements::placeholder {
                         line-height: normal;
-                        /* Prevent placeholder weirdness */
                     }
                 </style>
 
