@@ -165,7 +165,8 @@
             <div id="tab-movements" class="tab-content">
                 <!-- Filters -->
                 <!-- Filters -->
-                <div class="filter-container" style="display: flex; flex-wrap: wrap; align-items: center;">
+                <!-- Filters -->
+                <div class="stock-filters-wrapper" style="display: flex; flex-wrap: wrap; align-items: center;">
                     <!-- 1. Transaction Type -->
                     <div style="flex: 1; min-width: 140px;">
                         <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
@@ -219,16 +220,20 @@
 
                 <style>
                     /* FORCE BOX STYLING FOR STOCK MOVEMENTS FILTERS */
-                    #tab-movements .custom-dropdown-trigger {
+                    /* Target the new wrapper to ensure specificity */
+                    .stock-filters-wrapper .custom-dropdown-trigger {
                         border-radius: 8px !important;
                         border: 1px solid #d1d5db !important;
                         /* gray-300 */
                         margin-right: 15px !important;
+                        background-color: #fff !important;
                     }
 
-                    #tab-movements #productSearchMovements {
+                    .stock-filters-wrapper #productSearchMovements {
                         border-radius: 8px !important;
                         border: 1px solid #d1d5db !important;
+                        padding-top: 10px !important;
+                        padding-bottom: 10px !important;
                     }
                 </style>
 
