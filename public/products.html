@@ -165,7 +165,7 @@
             <div id="tab-movements" class="tab-content">
                 <!-- Filters -->
                 <!-- Filters -->
-                <div class="filter-container" style="flex-wrap: wrap; align-items: center;">
+                <div class="filter-container" style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px;">
                     <!-- 1. Transaction Type -->
                     <div style="flex: 1; min-width: 140px;">
                         <select id="filterType" class="form-select" data-custom-dropdown data-searchable="false"
@@ -179,10 +179,8 @@
                     <!-- 2. Product Search (Autocomplete) -->
                     <div style="flex: 2; min-width: 200px; position: relative;">
                         <input type="text" id="productSearchMovements" class="form-input"
-                            placeholder="🔍 Ürün Ara (Ad veya Barkod)..." autocomplete="off"
+                            placeholder="Ürün Ara (Ad veya Barkod)..." autocomplete="off"
                             style="padding-left: 35px; padding-right: 30px; background-image: url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%239ca3af\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z\'/%3E%3C/svg%3E'); background-repeat: no-repeat; background-position: 10px center; background-size: 18px;">
-                        <input type="hidden" id="filterProduct">
-
                         <!-- Clear Button inside input -->
                         <div id="clearProductSearchBtn"
                             style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #9ca3af; padding: 5px;">
@@ -192,8 +190,6 @@
                                     d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </div>
-                        <div id="productSearchSuggestions" class="autocomplete-items"
-                            style="max-height: 300px; overflow-y: auto;"></div>
                     </div>
 
                     <!-- 3. Start Date -->
