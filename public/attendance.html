@@ -81,20 +81,21 @@
             <button id="sidebarToggle" class="btn-icon mobile-only">☰</button>
             <div class="page-header">
                 <h1 class="page-title">📅 Çalışma Kaydı</h1>
-                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-                    <div style="display: flex; gap: 5px; align-items: center;">
+                <div
+                    style="display: flex; gap: 8px; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px;">
+                    <div style="display: flex; gap: 2px; align-items: center; flex-shrink: 0;">
                         <button class="btn btn-secondary btn-icon" id="prevDayBtn">❮</button>
                         <input type="date" id="selectedDate" class="date-input"
-                            style="min-width: 180px; font-size: 1rem; padding: 10px 12px; height: 42px; box-sizing: border-box;">
+                            style="min-width: 140px; font-size: 0.9rem; padding: 8px 10px; height: 40px; box-sizing: border-box;">
                         <button class="btn btn-secondary btn-icon" id="nextDayBtn">❯</button>
                     </div>
 
-                    <div style="display: flex; gap: 10px; flex: 1; min-width: 250px;">
+                    <div style="display: flex; gap: 8px; flex-shrink: 0;">
                         <button class="btn btn-primary" onclick="loadAttendance()"
-                            style="flex: 1; height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap;">Tarihi
+                            style="height: 40px; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 0.9rem; padding: 0 12px;">Tarihi
                             Göster</button>
                         <button class="btn btn-success" onclick="saveAllAttendance()"
-                            style="flex: 1; height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap;">💾
+                            style="height: 40px; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 0.9rem; padding: 0 12px;">💾
                             Hepsini Kaydet</button>
                     </div>
                 </div>
