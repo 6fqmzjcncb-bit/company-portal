@@ -146,6 +146,9 @@ function createCustomDropdown(selectElement, options = {}) {
 
     // Open dropdown
     function openDropdown() {
+        // Dispatch global event to close all other dropdowns
+        document.dispatchEvent(new CustomEvent('close-custom-dropdowns'));
+
         trigger.classList.add('active');
         menu.classList.add('active');
         if (searchable) {
@@ -189,6 +192,13 @@ function createCustomDropdown(selectElement, options = {}) {
     // Close on outside click
     document.addEventListener('click', (e) => {
         if (!wrapper.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    // Close when another dropdown opens
+    document.addEventListener('close-custom-dropdowns', () => {
+        if (menu.classList.contains('active')) {
             closeDropdown();
         }
     });
