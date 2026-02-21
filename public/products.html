@@ -594,7 +594,8 @@
 
                     <div class="form-group">
                         <label>Personel</label>
-                        <select id="batchEmployee" class="form-select" data-custom-dropdown data-searchable="true" data-placeholder="Personel adı seçin...">
+                        <select id="batchEmployee" class="form-select" data-custom-dropdown data-searchable="true"
+                            data-placeholder="Personel adı seçin...">
                             <option value="">Personel adı seçin...</option>
                         </select>
                     </div>
@@ -629,9 +630,19 @@
                 </div>
 
                 <!-- Scanner Container (Shared) -->
+                <style>
+                    #barcodeReader video {
+                        display: inline !important;
+                        object-fit: cover !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        min-height: 250px !important;
+                        border-radius: 8px;
+                    }
+                </style>
                 <div id="barcodeScannerContainer"
-                    style="display: none; margin-top: 12px; border: 2px solid #667eea; border-radius: 8px; overflow: hidden;">
-                    <div id="barcodeReader" style="width: 100%;"></div>
+                    style="display: none; margin-top: 12px; border: 2px solid #667eea; border-radius: 8px; overflow: hidden; min-height: 300px; background: #000;">
+                    <div id="barcodeReader" style="width: 100%; min-height: 250px;"></div>
                     <div style="padding: 10px; background: #f3f4f6; text-align: center;">
                         <button type="button" onclick="stopBarcodeScanner()" class="btn btn-sm"
                             style="background: #ef4444; color: white; border: none;">Kapat</button>
