@@ -516,11 +516,7 @@
                         <div style="display: flex; gap: 8px;">
                             <input type="text" id="batchProductSearch" class="form-control"
                                 placeholder="Ürün adı veya barkod..." autocomplete="off"
-                                oninput="handleBatchProductSearch(this.value)">
-                            <button type="button" onclick="toggleBarcodeScanner()" class="btn" id="batchScannerBtn"
-                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 20px; font-size: 1.3rem; min-width: 60px;">
-                                📷
-                            </button>
+                                oninput="handleBatchProductSearch(this.value)" style="width: 100%;">
                         </div>
                         <div id="batchProductSuggestions" class="autocomplete-items"></div>
                     </div>
@@ -629,25 +625,6 @@
                     </div>
                 </div>
 
-                <!-- Scanner Container (Shared) -->
-                <style>
-                    #barcodeReader video {
-                        display: inline !important;
-                        object-fit: cover !important;
-                        width: 100% !important;
-                        height: auto !important;
-                        min-height: 250px !important;
-                        border-radius: 8px;
-                    }
-                </style>
-                <div id="barcodeScannerContainer"
-                    style="display: none; margin-top: 12px; border: 2px solid #667eea; border-radius: 8px; overflow: hidden; min-height: 300px; background: #000;">
-                    <div id="barcodeReader" style="width: 100%; min-height: 250px;"></div>
-                    <div style="padding: 10px; background: #f3f4f6; text-align: center;">
-                        <button type="button" onclick="stopBarcodeScanner()" class="btn btn-sm"
-                            style="background: #ef4444; color: white; border: none;">Kapat</button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -729,8 +706,6 @@
     <script src="/js/utils.js?v=7.3"></script>
     <!-- Custom Dropdown Component -->
     <script src="/js/custom-dropdown.js"></script>
-    <!-- Barcode Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="/js/products_v2.js?v=7.5"></script>
 
     <!-- Flatpickr Date Picker Library -->
