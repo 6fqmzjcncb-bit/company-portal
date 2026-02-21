@@ -610,9 +610,10 @@
 
                     <div id="batchSourceField" class="form-group" style="display: none;">
                         <label>Kaynak (Tedarikçi/Firma)</label>
-                        <input type="text" id="batchSource" class="form-input" list="batchSourceOptions"
-                            placeholder="Kaynak seçin veya yeni kaynak yazın..." autocomplete="off">
-                        <datalist id="batchSourceOptions"></datalist>
+                        <select id="batchSource" class="form-select" data-custom-dropdown="true" data-searchable="true"
+                            data-allow-new="true" data-placeholder="Kaynak seçin veya yazın...">
+                            <option value="">Kaynak seçin veya yazın...</option>
+                        </select>
                     </div>
 
                     <div id="batchProjectField" class="form-group" style="display: none;">

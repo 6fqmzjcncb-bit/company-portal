@@ -7,7 +7,8 @@ function createCustomDropdown(selectElement, options = {}) {
     const {
         searchable = true,
         placeholder = 'Seçiniz...',
-        emptyText = 'Sonuç bulunamadı'
+        emptyText = 'Sonuç bulunamadı',
+        allowNew = false
     } = options;
 
     // Hide original select
@@ -53,14 +54,22 @@ function createCustomDropdown(selectElement, options = {}) {
         optionsContainer.innerHTML = '';
         const options = Array.from(selectElement.options);
         let hasResults = false;
+        let exactMatch = false;
 
         options.forEach((option, index) => {
             const text = option.textContent;
             const value = option.value;
 
+            if (!value && !text.trim() && !option.hasAttribute('value')) return; // Skip empty generic options if needed, but usually we just process them
+
             // Filter by search text
-            if (filterText && !text.toLowerCase().includes(filterText.toLowerCase())) {
-                return;
+            if (filterText) {
+                if (text.toLowerCase() === filterText.toLowerCase()) {
+                    exactMatch = true;
+                }
+                if (!text.toLowerCase().includes(filterText.toLowerCase())) {
+                    return;
+                }
             }
 
             hasResults = true;
@@ -85,8 +94,28 @@ function createCustomDropdown(selectElement, options = {}) {
             optionsContainer.appendChild(optionEl);
         });
 
-        if (!hasResults) {
+        if (!hasResults && !allowNew) {
             optionsContainer.innerHTML = `<div class="custom-dropdown-option" style="color: #9ca3af; cursor: default;">${emptyText}</div>`;
+        }
+
+        if (allowNew && filterText && !exactMatch) {
+            const newOptionEl = document.createElement('div');
+            newOptionEl.className = 'custom-dropdown-option add-new';
+            newOptionEl.innerHTML = `
+                <span style="color: #3b82f6; font-weight: 600;">➕ Yeni Ekle: "${filterText}"</span>
+            `;
+
+            newOptionEl.addEventListener('click', () => {
+                const newOpt = document.createElement('option');
+                newOpt.value = filterText;
+                newOpt.textContent = filterText;
+                selectElement.appendChild(newOpt);
+                selectElement.selectedIndex = selectElement.options.length - 1;
+
+                selectOption(selectElement.selectedIndex);
+            });
+
+            optionsContainer.appendChild(newOptionEl);
         }
     }
 
@@ -195,7 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('select[data-custom-dropdown]').forEach(select => {
         createCustomDropdown(select, {
             searchable: select.dataset.searchable !== 'false',
-            placeholder: select.dataset.placeholder || 'Seçiniz...'
+            placeholder: select.dataset.placeholder || 'Seçiniz...',
+            allowNew: select.dataset.allowNew === 'true'
         });
     });
 });

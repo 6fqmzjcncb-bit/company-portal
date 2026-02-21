@@ -1535,9 +1535,11 @@ async function populateBatchDropdowns() {
             const srcResponse = await fetch('/api/sources');
             if (srcResponse.ok) {
                 const sources = await srcResponse.json();
-                const datalist = document.getElementById('batchSourceOptions');
-                if (datalist) {
-                    datalist.innerHTML = sources.map(src => `<option value="${src.name}">`).join('');
+                const selectSrc = document.getElementById('batchSource');
+                if (selectSrc) {
+                    const srcOptions = '<option value="">Kaynak seçin veya yazın...</option>' + sources.map(src => `<option value="${src.name}">${src.name}</option>`).join('');
+                    selectSrc.innerHTML = srcOptions;
+                    if (selectSrc.customDropdown) selectSrc.customDropdown.refresh();
                 }
             }
         }
