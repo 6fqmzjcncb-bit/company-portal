@@ -81,27 +81,37 @@
             <button id="sidebarToggle" class="btn-icon mobile-only">☰</button>
             <div class="page-header">
                 <h1 class="page-title">📅 Çalışma Kaydı</h1>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn btn-secondary btn-icon" id="prevDayBtn">❮</button>
-                    <input type="date" id="selectedDate" class="date-input"
-                        style="min-width: 180px; font-size: 1rem; padding: 10px 12px;">
-                    <button class="btn btn-secondary btn-icon" id="nextDayBtn">❯</button>
+                <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; gap: 5px; align-items: center;">
+                        <button class="btn btn-secondary btn-icon" id="prevDayBtn">❮</button>
+                        <input type="date" id="selectedDate" class="date-input"
+                            style="min-width: 180px; font-size: 1rem; padding: 10px 12px; height: 42px; box-sizing: border-box;">
+                        <button class="btn btn-secondary btn-icon" id="nextDayBtn">❯</button>
+                    </div>
 
-                    <button class="btn btn-primary" onclick="loadAttendance()">Tarihi
-                        Göster</button>
-                    <button class="btn btn-success" onclick="saveAllAttendance()">💾 Hepsini
-                        Kaydet</button>
+                    <div style="display: flex; gap: 10px; flex: 1; min-width: 250px;">
+                        <button class="btn btn-primary" onclick="loadAttendance()"
+                            style="flex: 1; height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap;">Tarihi
+                            Göster</button>
+                        <button class="btn btn-success" onclick="saveAllAttendance()"
+                            style="flex: 1; height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap;">💾
+                            Hepsini Kaydet</button>
+                    </div>
                 </div>
             </div>
 
             <div class="card">
                 <div class="card-header">
                     <h2 id="dateTitle">Bugünün Çalışma Kaydı</h2>
-                    <div>
-                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(true)">✅ Hepsini
-                            İşaretle</button>
-                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(false)">❌ Tümünü
-                            Kaldır</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(true)"
+                            style="display: flex; justify-content: center; align-items: center; gap: 5px; flex: 1; min-width: 140px; white-space: nowrap;">
+                            ✅ Hepsini İşaretle
+                        </button>
+                        <button class="btn btn-small btn-secondary" onclick="markAllWorked(false)"
+                            style="display: flex; justify-content: center; align-items: center; gap: 5px; flex: 1; min-width: 140px; white-space: nowrap;">
+                            ❌ Tümünü Kaldır
+                        </button>
                     </div>
                 </div>
                 <div class="card-body">
