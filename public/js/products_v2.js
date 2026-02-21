@@ -1551,6 +1551,12 @@ async function populateBatchDropdowns() {
 window.handleBatchProductSearch = function (query) {
     const suggestionsDiv = document.getElementById('batchProductSuggestions');
 
+    // Toggle clear button visibility
+    const clearBtn = document.getElementById('batchProductClearBtn');
+    if (clearBtn) {
+        clearBtn.style.display = (query && query.length > 0) ? 'flex' : 'none';
+    }
+
     if (!query || query.length < 1) {
         suggestionsDiv.innerHTML = '';
         selectedBatchProduct = null;
@@ -1617,6 +1623,24 @@ window.selectBatchProduct = function (productId) {
     setTimeout(() => document.getElementById('batchQuantity').focus(), 100);
 }
 
+// Clear selected product
+window.clearBatchProductSelection = function () {
+    selectedBatchProduct = null;
+
+    const searchInput = document.getElementById('batchProductSearch');
+    if (searchInput) searchInput.value = '';
+
+    const clearBtn = document.getElementById('batchProductClearBtn');
+    if (clearBtn) clearBtn.style.display = 'none';
+
+    document.getElementById('batchProductSuggestions').innerHTML = '';
+    document.getElementById('batchQuantityUnit').textContent = '-';
+    document.getElementById('batchUnitLabel').textContent = 'Stok: -';
+
+    // Focus search for a new product
+    if (searchInput) setTimeout(() => searchInput.focus(), 100);
+}
+
 // Add product to batch
 window.addProductToBatch = function () {
     if (!selectedBatchProduct) {
@@ -1654,13 +1678,7 @@ window.addProductToBatch = function () {
     updateBatchTable();
 
     // Reset product selection
-    document.getElementById('batchProductSearch').value = '';
-    document.getElementById('batchQuantity').value = '';
-    document.getElementById('batchUnitLabel').textContent = '-';
-    selectedBatchProduct = null;
-
-    // Focus search for next product
-    setTimeout(() => document.getElementById('batchProductSearch').focus(), 100);
+    clearBatchProductSelection();
 }
 
 // Update batch products table

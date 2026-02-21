@@ -520,10 +520,15 @@
 
                     <div class="form-group">
                         <label>Ürün Ara</label>
-                        <div style="display: flex; gap: 8px;">
+                        <div style="position: relative; flex: 1; display: flex;">
                             <input type="text" id="batchProductSearch" class="form-input"
                                 placeholder="Ürün adı veya barkod..." autocomplete="off"
-                                oninput="handleBatchProductSearch(this.value)" style="width: 100%;">
+                                oninput="handleBatchProductSearch(this.value)"
+                                style="width: 100%; padding-right: 40px;">
+                            <button type="button" id="batchProductClearBtn" onclick="clearBatchProductSelection()"
+                                style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: #fee2e2; border: none; color: #ef4444; width: 26px; height: 26px; border-radius: 50%; justify-content: center; align-items: center; cursor: pointer; font-size: 14px; font-weight: bold; box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);">
+                                ✕
+                            </button>
                         </div>
                         <div id="batchProductSuggestions" class="autocomplete-items"></div>
                     </div>
