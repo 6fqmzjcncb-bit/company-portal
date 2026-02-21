@@ -1113,7 +1113,7 @@ let isScannerActive = false;
 
 window.toggleBarcodeScanner = function () {
     const container = document.getElementById('barcodeScannerContainer');
-    const btn = document.getElementById('scannerToggleBtn');
+    const btn = document.getElementById('batchScannerBtn'); // FIX: ID is batchScannerBtn in HTML
 
     if (isScannerActive) {
         stopBarcodeScanner();
@@ -1121,7 +1121,7 @@ window.toggleBarcodeScanner = function () {
         // Show container
         container.style.display = 'block';
         btn.style.background = '#ef4444'; // Red when active
-        btn.textContent = '⏹️';
+        btn.innerHTML = '⏹️'; // FIX: Use innerHTML
 
         // Start scanner
         startBarcodeScanner();
@@ -1192,10 +1192,10 @@ window.stopBarcodeScanner = function () {
             if (container) container.style.display = 'none';
 
             // Reset button
-            const btn = document.getElementById('scannerToggleBtn');
+            const btn = document.getElementById('batchScannerBtn'); // FIX: Use correct ID
             if (btn) {
                 btn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-                btn.textContent = '📷';
+                btn.innerHTML = '📷';
             }
         }).catch(err => {
             console.error('Error stopping scanner:', err);
@@ -1463,7 +1463,7 @@ let batchDataIn = { employee: '', source: '', notes: '' };
 let batchDataOut = { employee: '', project: '', notes: '' };
 
 // Open unified modal (now batch mode)
-window.openUnifiedModal = function () {
+window.openUnifiedModal = async function () {
     const modal = document.getElementById('unifiedStockModal');
     modal.style.display = 'flex';
     modal.style.alignItems = 'center';
@@ -1471,6 +1471,8 @@ window.openUnifiedModal = function () {
 
     // FULL RESET
     resetBatchModal();
+    // FIX: Load dropdowns when modal opens so users can see employees even before selecting IN/OUT (if you choose to show them early, but IN/OUT selection shows them)
+    await populateBatchDropdowns();
 }
 
 // Reset batch modal completely
@@ -1854,38 +1856,34 @@ window.submitBatch = async function () {
 
     // Get date from Flatpickr instance
     const dateInput = document.getElementById('batchDate');
-    let movementDate = null;
+    let movementDateStr = null;
 
     // Flatpickr stores instance in _flatpickr property
     if (dateInput._flatpickr) {
         const selectedDates = dateInput._flatpickr.selectedDates;
         if (selectedDates && selectedDates.length > 0) {
-            // Format date as Y-m-d
+            // Include current time so timeline sorts correctly
             const date = selectedDates[0];
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            movementDate = `${year}-${month}-${day}`;
+            const now = new Date();
+            date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            movementDateStr = date.toISOString(); // Use ISO string which will be parsed properly by sequelize
         }
     }
 
     // Fallback to input value if Flatpickr not found
-    if (!movementDate) {
-        movementDate = dateInput.value;
+    if (!movementDateStr && dateInput.value) {
+        try {
+            const date = new Date(dateInput.value);
+            const now = new Date();
+             date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            movementDateStr = date.toISOString();
+        } catch (e) {
+            movementDateStr = new Date().toISOString();
+        }
     }
 
-    console.log('=== MOVEMENT DATE DEBUG ===');
-    console.log('Flatpickr instance:', dateInput._flatpickr);
-    console.log('Selected dates:', dateInput._flatpickr?.selectedDates);
-    console.log('Input value:', dateInput.value);
-    console.log('Final movement date:', movementDate);
-    console.log('===========================');
-
-    // SHOW DATE TO USER WITH ALERT
-    alert('TARIH DEBUG:\n\nFlatpickr var mı? ' + (dateInput._flatpickr ? 'EVET' : 'HAYIR') + '\n\nSeçilen tarih: ' + movementDate);
-
     // Validate date
-    if (!movementDate) {
+    if (!movementDateStr) {
         showCustomAlert('Tarih Seçilmedi', 'Lütfen işlem tarihini seçin.', '⚠️', false);
         return;
     }
@@ -1905,7 +1903,7 @@ window.submitBatch = async function () {
                 product_id: item.product.id,
                 quantity: item.quantity,
                 notes: notes,
-                movement_date: movementDate  // Add custom date
+                movement_date: movementDateStr  // Use calculated ISO string date
             };
 
             console.log('Sending to backend:', body);
@@ -1942,8 +1940,11 @@ window.submitBatch = async function () {
         }
     }
 
-    // Refresh products
+    // Refresh products and stock movements list
     await loadProducts();
+    if(typeof loadMovements === 'function') {
+        await loadMovements();
+    }
 
     // Show result
     if (failCount === 0) {
