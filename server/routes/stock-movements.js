@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { StockMovement, Product, JobList } = require('../models');
+const { StockMovement, Product, JobList, Source } = require('../models');
 const { requireAuth } = require('../middleware/auth');
 const { Op } = require('sequelize');
 const { sequelize } = require('../config/database');
@@ -58,6 +58,22 @@ router.post('/in', requireAuth, async (req, res) => {
 
         if (!product_id || !quantity) {
             throw new Error('Ürün ID ve miktar gereklidir.');
+        }
+
+        // If a new source_location is provided, automatically add it to the sources table for future use
+        if (source_location && source_location.trim() !== '') {
+            const existingSource = await Source.findOne({
+                where: { name: source_location.trim() },
+                transaction: t
+            });
+
+            if (!existingSource) {
+                await Source.create({
+                    name: source_location.trim(),
+                    color_code: 'bg-blue-100', // Default styling
+                    type: 'external'           // Default type
+                }, { transaction: t });
+            }
         }
 
         // Prepare movement data
