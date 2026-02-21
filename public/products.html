@@ -33,6 +33,12 @@
             cursor: pointer;
             border-bottom: 3px solid transparent;
             transition: all 0.2s;
+            flex: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
         }
 
         .tab-btn:hover {
@@ -498,11 +504,11 @@
                 <div
                     style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin-bottom: 25px;">
                     <button id="batchModeIn" onclick="setBatchMode('in')" class="btn btn-success"
-                        style="padding: 14px 5px; font-size: 1.05rem; font-weight: 600; text-align: center; white-space: nowrap; width: 100%;">
+                        style="padding: 14px 5px; font-size: 1.05rem; font-weight: 600; justify-content: center; white-space: nowrap; width: 100%; box-sizing: border-box;">
                         📥 Ürün Giriş
                     </button>
                     <button id="batchModeOut" onclick="setBatchMode('out')" class="btn btn-danger"
-                        style="padding: 14px 5px; font-size: 1.05rem; font-weight: 600; text-align: center; white-space: nowrap; width: 100%;">
+                        style="padding: 14px 5px; font-size: 1.05rem; font-weight: 600; justify-content: center; white-space: nowrap; width: 100%; box-sizing: border-box;">
                         📤 Ürün Çıkış
                     </button>
                 </div>
