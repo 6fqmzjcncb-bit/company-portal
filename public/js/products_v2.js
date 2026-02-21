@@ -1506,6 +1506,9 @@ window.setBatchMode = async function (mode) {
     document.getElementById('batchAddSection').style.display = 'block';
     document.getElementById('batchSaveSection').style.display = 'block';
 
+    // FIX: Update UI table visually so it reflects the JS array state!
+    updateBatchTable();
+
     // Load dropdowns
     await populateBatchDropdowns();
 
@@ -1752,7 +1755,7 @@ window.createNewProductFromBatch = function (productName) {
 // Submit batch
 window.submitBatch = async function () {
     if (batchItems.length === 0) {
-        showCustomAlert('Sepet Boş', 'Lütfen önce ürün ekleyin.', '⚠️', false);
+        showCustomAlert('Liste Boş', 'Lütfen önce ürün ekleyin.', '⚠️', false);
         return;
     }
 
