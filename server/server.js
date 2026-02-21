@@ -101,12 +101,23 @@ const syncRolesAndPermissions = async () => {
         // 1. Define allowed roles
         const allowedRoles = ['Yönetici', 'Personel', 'Stok Sorumlusu'];
 
-        // 1.1 Delete ANY role not in allowed list
-        await Role.destroy({
-            where: {
-                name: { [Op.notIn]: allowedRoles }
-            }
+        // 1.1 Safely delete ANY role not in allowed list (avoid Foreign Key constraint)
+        const rolesToDelete = await Role.findAll({
+            where: { name: { [Op.notIn]: allowedRoles } }
         });
+
+        if (rolesToDelete.length > 0) {
+            const roleIdsToDelete = rolesToDelete.map(r => r.id);
+            // Nullify user roles referencing these old roles first
+            await User.update(
+                { role_id: null },
+                { where: { role_id: roleIdsToDelete } }
+            );
+            // Now safely delete
+            await Role.destroy({
+                where: { id: roleIdsToDelete }
+            });
+        }
         console.log('🧹 Yetkisiz roller temizlendi.');
 
         const allRoles = [
