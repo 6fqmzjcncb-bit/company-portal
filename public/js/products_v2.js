@@ -313,8 +313,8 @@ async function loadMovements() {
         let url = '/api/stock-movements?';
         if (productId) url += `product_id=${productId}&`;
         if (type) url += `type=${type}&`;
-        if (startDate) url += `start_date=${startDate}&`;
-        if (endDate) url += `end_date=${endDate}&`;
+        if (startDate) url += `start_date=${startDate}T00:00:00&`;
+        if (endDate) url += `end_date=${endDate}T23:59:59&`;
 
         const response = await fetchWithTimeout(url);
         if (!response.ok) throw new Error('Veri alınamadı');
@@ -1123,8 +1123,10 @@ window.toggleBarcodeScanner = function () {
         btn.style.background = '#ef4444'; // Red when active
         btn.innerHTML = '⏹️'; // FIX: Use innerHTML
 
-        // Start scanner
-        startBarcodeScanner();
+        // Start scanner with a slight delay to allow DOM constraints to kick in
+        setTimeout(() => {
+            startBarcodeScanner();
+        }, 150);
     }
 }
 
@@ -1503,7 +1505,19 @@ function resetBatchModal() {
     // Clear all inputs
     document.getElementById('batchProductSearch').value = '';
     document.getElementById('batchQuantity').value = '';
-    document.getElementById('batchEmployee').value = '';
+
+    // Reset employee dropdown properly
+    const empInput = document.getElementById('batchEmployee');
+    if (empInput) {
+        empInput.value = '';
+        if (empInput.tagName === 'SELECT' && empInput.customDropdown) {
+            empInput.selectedIndex = 0;
+            const triggerVal = empInput.parentNode.querySelector('.custom-dropdown-value');
+            if (triggerVal) triggerVal.textContent = 'Personel adı seçin...';
+            empInput.customDropdown.refresh();
+        }
+    }
+
     document.getElementById('batchSource').value = '';
     document.getElementById('batchProject').value = '';
     document.getElementById('batchNotes').value = '';
@@ -1541,12 +1555,30 @@ window.setBatchMode = async function (mode) {
     // Load saved data for new mode
     if (mode === 'in') {
         batchItems = [...batchItemsIn];
-        document.getElementById('batchEmployee').value = batchDataIn.employee;
+        const empEl = document.getElementById('batchEmployee');
+        empEl.value = batchDataIn.employee;
+        if (empEl.tagName === 'SELECT' && empEl.customDropdown) {
+            const idx = Array.from(empEl.options).findIndex(o => o.value === batchDataIn.employee);
+            if (idx >= 0) {
+                empEl.selectedIndex = idx;
+                const triggerVal = empEl.parentNode.querySelector('.custom-dropdown-value');
+                if (triggerVal) triggerVal.textContent = empEl.options[idx].textContent;
+            }
+        }
         document.getElementById('batchSource').value = batchDataIn.source;
         document.getElementById('batchNotes').value = batchDataIn.notes;
     } else {
         batchItems = [...batchItemsOut];
-        document.getElementById('batchEmployee').value = batchDataOut.employee;
+        const empEl = document.getElementById('batchEmployee');
+        empEl.value = batchDataOut.employee;
+        if (empEl.tagName === 'SELECT' && empEl.customDropdown) {
+            const idx = Array.from(empEl.options).findIndex(o => o.value === batchDataOut.employee);
+            if (idx >= 0) {
+                empEl.selectedIndex = idx;
+                const triggerVal = empEl.parentNode.querySelector('.custom-dropdown-value');
+                if (triggerVal) triggerVal.textContent = empEl.options[idx].textContent;
+            }
+        }
         document.getElementById('batchProject').value = batchDataOut.project;
         document.getElementById('batchNotes').value = batchDataOut.notes;
     }
@@ -1595,9 +1627,12 @@ async function populateBatchDropdowns() {
         const empResponse = await fetch('/api/employees');
         if (empResponse.ok) {
             const employees = await empResponse.json();
-            const datalist = document.getElementById('batchEmployeeOptions');
-            const empOptions = employees.map(emp => `<option value="${emp.full_name}">`).join('');
-            if (datalist) datalist.innerHTML = empOptions;
+            const selectEmp = document.getElementById('batchEmployee');
+            if (selectEmp) {
+                const empOptions = '<option value="">Personel adı seçin...</option>' + employees.map(emp => `<option value="${emp.full_name}">${emp.full_name}</option>`).join('');
+                selectEmp.innerHTML = empOptions;
+                if (selectEmp.customDropdown) selectEmp.customDropdown.refresh();
+            }
         }
 
         // Fetch sources (for IN only)
@@ -1875,7 +1910,7 @@ window.submitBatch = async function () {
         try {
             const date = new Date(dateInput.value);
             const now = new Date();
-             date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+            date.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
             movementDateStr = date.toISOString();
         } catch (e) {
             movementDateStr = new Date().toISOString();
@@ -1942,7 +1977,7 @@ window.submitBatch = async function () {
 
     // Refresh products and stock movements list
     await loadProducts();
-    if(typeof loadMovements === 'function') {
+    if (typeof loadMovements === 'function') {
         await loadMovements();
     }
 
