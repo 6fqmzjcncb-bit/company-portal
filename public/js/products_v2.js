@@ -1113,6 +1113,12 @@ window.toggleBarcodeScanner = function () {
     } else {
         // Show container
         container.style.display = 'block';
+
+        // Force browser layout update so the dynamically created video element gets valid dimensions
+        void container.offsetHeight;
+        const readerEl = document.getElementById('barcodeReader');
+        if (readerEl) readerEl.style.minHeight = '300px';
+
         btn.style.background = '#ef4444'; // Red when active
         btn.innerHTML = '⏹️'; // FIX: Use innerHTML
 
@@ -1131,16 +1137,7 @@ function startBarcodeScanner() {
 
     const config = {
         fps: 10,
-        qrbox: function (viewfinderWidth, viewfinderHeight) {
-            // Responsive qrbox based on minimum dimension of viewfinder
-            const minEdgePercentage = 0.7; // 70% of min dimension
-            const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-            const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
-            return {
-                width: qrboxSize,
-                height: qrboxSize
-            };
-        }
+        qrbox: { width: 250, height: 250 }
     };
 
     html5QrcodeScanner.start(
