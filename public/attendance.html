@@ -82,22 +82,20 @@
             <div class="page-header">
                 <h1 class="page-title">📅 Çalışma Kaydı</h1>
                 <div
-                    style="display: flex; gap: 6px; align-items: stretch; height: 40px; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px;">
-                    <div style="display: flex; gap: 2px; align-items: stretch; flex-shrink: 0;">
-                        <button class="btn btn-secondary" id="prevDayBtn"
-                            style="padding: 0; width: 36px; display: flex; align-items: center; justify-content: center; border-radius: 6px; height: 100%;">❮</button>
+                    style="display: flex; gap: 10px; align-items: center; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 5px; width: 100%;">
+                    <div style="display: flex; gap: 5px; align-items: center; flex-shrink: 0;">
+                        <button class="btn btn-secondary btn-icon" id="prevDayBtn">❮</button>
                         <input type="date" id="selectedDate" class="date-input"
-                            style="min-width: 125px; max-width: 140px; font-size: 0.9rem; padding: 0 8px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; height: 100%; text-align: center; margin: 0;">
-                        <button class="btn btn-secondary" id="nextDayBtn"
-                            style="padding: 0; width: 36px; display: flex; align-items: center; justify-content: center; border-radius: 6px; height: 100%;">❯</button>
+                            style="min-width: 180px; font-size: 1rem; padding: 10px 12px; height: 42px; box-sizing: border-box;">
+                        <button class="btn btn-secondary btn-icon" id="nextDayBtn">❯</button>
                     </div>
 
-                    <div style="display: flex; gap: 6px; flex-shrink: 1;">
+                    <div style="display: flex; gap: 10px; flex-shrink: 0;">
                         <button class="btn btn-primary" onclick="loadAttendance()"
-                            style="display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 0.85rem; padding: 0 10px; border-radius: 6px; height: 100%; margin: 0;">Tarihi
+                            style="height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap; padding: 0 16px;">Tarihi
                             Göster</button>
                         <button class="btn btn-success" onclick="saveAllAttendance()"
-                            style="display: flex; align-items: center; justify-content: center; white-space: nowrap; font-size: 0.85rem; padding: 0 10px; border-radius: 6px; height: 100%; margin: 0;">💾
+                            style="height: 42px; display: flex; align-items: center; justify-content: center; white-space: nowrap; padding: 0 16px;">💾
                             Kaydet</button>
                     </div>
                 </div>
