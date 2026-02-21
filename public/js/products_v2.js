@@ -1482,7 +1482,7 @@ window.setBatchMode = async function (mode) {
 
     if (mode === 'in') {
         btnIn.style.opacity = '1';
-        btnIn.style.transform = 'scale(1.05)';
+        btnIn.style.transform = 'scale(1)';
         btnOut.style.opacity = '0.5';
         btnOut.style.transform = 'scale(1)';
 
@@ -1491,7 +1491,7 @@ window.setBatchMode = async function (mode) {
         document.getElementById('batchProjectField').style.display = 'none';
     } else {
         btnOut.style.opacity = '1';
-        btnOut.style.transform = 'scale(1.05)';
+        btnOut.style.transform = 'scale(1)';
         btnIn.style.opacity = '0.5';
         btnIn.style.transform = 'scale(1)';
 
