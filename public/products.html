@@ -521,7 +521,7 @@
                     <div class="form-group">
                         <label>Ürün Ara</label>
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="batchProductSearch" class="form-control"
+                            <input type="text" id="batchProductSearch" class="form-input"
                                 placeholder="Ürün adı veya barkod..." autocomplete="off"
                                 oninput="handleBatchProductSearch(this.value)" style="width: 100%;">
                         </div>
@@ -531,7 +531,7 @@
                     <div class="form-group">
                         <label>Miktar</label>
                         <div style="display: flex; gap: 12px; align-items: center;">
-                            <input type="number" id="batchQuantity" class="form-control" placeholder="0"
+                            <input type="number" id="batchQuantity" class="form-input" placeholder="0"
                                 style="width: 120px; flex-shrink: 0; font-size: 1.1rem; font-weight: 600; text-align: center;">
                             <span id="batchQuantityUnit"
                                 style="color: #374151; font-weight: 700; font-size: 1.1rem; min-width: 50px;">-</span>
@@ -591,8 +591,8 @@
 
                     <div class="form-group">
                         <label>Tarih</label>
-                        <input type="date" id="batchDate" class="form-control" required
-                            style="min-width: 180px; font-size: 1rem; padding: 10px 12px; background-color: #ffffff !important;">
+                        <input type="date" id="batchDate" class="form-input" required
+                            style="min-width: 180px; width: 100%; font-size: 1rem; padding: 10px 12px; background-color: #ffffff !important; box-sizing: border-box;">
                     </div>
 
                     <div class="form-group">
@@ -605,14 +605,14 @@
 
                     <div id="batchSourceField" class="form-group" style="display: none;">
                         <label>Kaynak (Tedarikçi/Firma)</label>
-                        <input type="text" id="batchSource" class="form-control" list="batchSourceOptions"
+                        <input type="text" id="batchSource" class="form-input" list="batchSourceOptions"
                             placeholder="Kaynak seçin veya yeni kaynak yazın..." autocomplete="off">
                         <datalist id="batchSourceOptions"></datalist>
                     </div>
 
                     <div id="batchProjectField" class="form-group" style="display: none;">
                         <label>Proje Adı</label>
-                        <input type="text" id="batchProject" class="form-control" placeholder="Hangi iş için?">
+                        <input type="text" id="batchProject" class="form-input" placeholder="Hangi iş için?">
                     </div>
                 </div>
 
@@ -620,7 +620,7 @@
                 <div id="batchSaveSection" style="display: none;">
                     <div class="form-group">
                         <label>Notlar (Opsiyonel)</label>
-                        <textarea id="batchNotes" class="form-control" rows="2"
+                        <textarea id="batchNotes" class="form-textarea" rows="2"
                             placeholder="Tüm ürünler için ortak not..."></textarea>
                     </div>
 
