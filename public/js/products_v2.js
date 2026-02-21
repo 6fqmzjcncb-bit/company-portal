@@ -1116,10 +1116,8 @@ window.toggleBarcodeScanner = function () {
         btn.style.background = '#ef4444'; // Red when active
         btn.innerHTML = '⏹️'; // FIX: Use innerHTML
 
-        // Start scanner with a slight delay to allow DOM constraints to kick in
-        setTimeout(() => {
-            startBarcodeScanner();
-        }, 150);
+        // Start scanner directly to preserve user gesture context (crucial for iOS Safari video playback)
+        startBarcodeScanner();
     }
 }
 
@@ -1133,7 +1131,16 @@ function startBarcodeScanner() {
 
     const config = {
         fps: 10,
-        qrbox: { width: 250, height: 250 }
+        qrbox: function (viewfinderWidth, viewfinderHeight) {
+            // Responsive qrbox based on minimum dimension of viewfinder
+            const minEdgePercentage = 0.7; // 70% of min dimension
+            const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+            const qrboxSize = Math.floor(minEdgeSize * minEdgePercentage);
+            return {
+                width: qrboxSize,
+                height: qrboxSize
+            };
+        }
     };
 
     html5QrcodeScanner.start(
