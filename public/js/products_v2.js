@@ -1512,8 +1512,7 @@ window.setBatchMode = async function (mode) {
     // Load dropdowns
     await populateBatchDropdowns();
 
-    // Focus on product search
-    setTimeout(() => document.getElementById('batchProductSearch').focus(), 100);
+    // Auto-focus removed to prevent mobile iOS Safari from scrolling the modal down forcefully.
 }
 
 // Populate employee and source dropdowns
