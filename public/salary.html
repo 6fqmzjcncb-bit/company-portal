@@ -11,6 +11,17 @@
     <link rel="stylesheet" href="/css/modal.css">
     <!-- Flatpickr Date Picker Library -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Mobile Date Picker Overflow Fix */
+        .flatpickr-mobile {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 10px 12px;
+            font-family: inherit;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+    </style>
 </head>
 
 <body>
@@ -330,12 +341,13 @@
                     </div>
 
                     <div class="modal-actions" style="justify-content: flex-end;">
-                        <div style="display:flex; gap:10px;">
-                            <button type="button" class="btn btn-secondary"
-                                onclick="closeModal('employeeModal')">İptal</button>
-                            <button type="button" class="btn btn-primary" id="btnSaveEmployeeSalary">Kaydet</button>
+                        <div style="display:flex; gap:10px; width: 100%;">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('employeeModal')"
+                                style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;">İptal</button>
+                            <button type="button" class="btn btn-primary" id="btnSaveEmployeeSalary"
+                                style="flex: 1; display: flex; align-items: center; justify-content: center; text-align: center;">Kaydet</button>
                             <button type="button" id="btnDeleteEmployee" class="btn btn-danger"
-                                style="display:none;">İşten
+                                style="display:none; flex: 1; align-items: center; justify-content: center; text-align: center;">İşten
                                 Çıkar</button>
                         </div>
                     </div>
