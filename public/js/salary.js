@@ -125,6 +125,9 @@ async function showAddEmployeeModal() {
     for (let i = 0; i < select.options.length; i++) {
         if (select.options[i].text.includes('Personel')) {
             select.selectedIndex = i;
+            if (select.customDropdown) {
+                select.customDropdown.refresh();
+            }
             break;
         }
     }
