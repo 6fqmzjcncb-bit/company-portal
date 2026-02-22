@@ -16,6 +16,13 @@
         .flatpickr-mobile {
             width: 100% !important;
             box-sizing: border-box !important;
+            padding: 0.875rem 1rem !important;
+            border: 2px solid #e5e7eb !important;
+            border-radius: 0.5rem !important;
+            font-size: 1rem !important;
+            background-color: white !important;
+            margin: 0 !important;
+            /* DO NOT USE appearance: none, to preserve native iOS blue date UI */
         }
     </style>
 </head>
@@ -258,7 +265,7 @@
                                 <div class="form-group half">
                                     <label>Tarih</label>
                                     <input type="date" id="transDate" class="form-input" required
-                                        style="width: 100%; box-sizing: border-box; font-size: 1rem; background-color: white; margin: 0; height: 46px;">
+                                        style="width: 100%; box-sizing: border-box; background-color: white; margin: 0;">
                                 </div>
                             </div>
 
@@ -328,7 +335,7 @@
                     <div class="form-group">
                         <label for="hireDate">İşe Başlama Tarihi</label>
                         <input type="date" id="hireDate" class="form-input"
-                            style="width: 100%; box-sizing: border-box; font-size: 1rem; background-color: white; margin: 0; height: 46px;">
+                            style="width: 100%; box-sizing: border-box; background-color: white; margin: 0;">
                     </div>
 
                     <div class="form-group">
