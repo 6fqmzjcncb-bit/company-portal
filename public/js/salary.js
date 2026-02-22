@@ -1308,9 +1308,16 @@ async function loadSystemRoles() {
         if (personelRoleId) {
             select.value = personelRoleId;
         }
+
+        if (select.customDropdown) {
+            select.customDropdown.refresh();
+        }
     } catch (e) {
         console.error(e);
         select.innerHTML = '<option value="">Hata!</option>';
+        if (select.customDropdown) {
+            select.customDropdown.refresh();
+        }
     }
 }
 
