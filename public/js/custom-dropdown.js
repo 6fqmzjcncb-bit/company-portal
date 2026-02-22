@@ -213,7 +213,15 @@ function createCustomDropdown(selectElement, options = {}) {
     }
 
     const api = {
-        refresh: () => populateOptions(),
+        refresh: () => {
+            populateOptions();
+            const selectedOpt = selectElement.options[selectElement.selectedIndex];
+            if (selectedOpt) {
+                trigger.querySelector('.custom-dropdown-value').textContent = selectedOpt.textContent;
+            } else {
+                trigger.querySelector('.custom-dropdown-value').textContent = placeholder;
+            }
+        },
         open: openDropdown,
         close: closeDropdown,
         destroy: () => {

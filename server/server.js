@@ -272,9 +272,9 @@ const initializeDatabase = async () => {
         // alter: false -> Tablo yapısını değiştirmeye çalışmaz (Güvenli mod)
         // alter: true -> Tablo yapısını günceller (Schema update)
         await sequelize.query('PRAGMA foreign_keys = OFF');
-        await sequelize.sync({ force: false, alter: true });
+        await sequelize.sync({ force: false, alter: false });
         await sequelize.query('PRAGMA foreign_keys = ON');
-        console.log('✓ Tablolar senkronize edildi.');
+        console.log('✓ Tablolar senkronize edildi (Güvenli mod).');
 
         // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
         await syncRolesAndPermissions(); // Migrate Roles FIRST
