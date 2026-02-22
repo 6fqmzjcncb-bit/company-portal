@@ -232,18 +232,23 @@ app.use((err, req, res, next) => {
 
 // Sunucuyu başlat
 const startServer = async () => {
-    // 1. Önce sunucuyu başlat (Hızlı cevap vermek için)
-    app.listen(PORT, () => {
-        console.log('╔════════════════════════════════════════╗');
-        console.log('║   ŞİRKET PORTALI - V2.3 GÜNCELLENDİ    ║');
-        console.log('╚════════════════════════════════════════╝');
-        console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
-        console.log('📂 Veritabanı: database/portal.db');
-        console.log('Durdurmak için: Ctrl + C');
+    try {
+        // 1. Önce veritabanı işlemlerini tamamla ki SQLite çakışması veya Validation error olmasın
+        await initializeDatabase();
 
-        // 2. Veritabanı işlemlerini arka planda başlat
-        initializeDatabase();
-    });
+        // 2. Veritabanı hazır olduktan sonra sunucuyu dışarıya aç
+        app.listen(PORT, () => {
+            console.log('╔════════════════════════════════════════╗');
+            console.log('║   ŞİRKET PORTALI - V2.3 GÜNCELLENDİ    ║');
+            console.log('╚════════════════════════════════════════╝');
+            console.log(`✅ Sunucu çalışıyor: http://localhost:${PORT}`);
+            console.log('📂 Veritabanı: database/portal.db');
+            console.log('Durdurmak için: Ctrl + C');
+        });
+    } catch (error) {
+        console.error('❌ Kritik Hata: Sunucu başlatılamadı.', error);
+        process.exit(1);
+    }
 };
 
 const initializeDatabase = async () => {

@@ -18,11 +18,6 @@ router.get('/', requireAuth, async (req, res) => {
                 { id: 2, name: 'Ziraat Bankası', type: 'bank', icon: '🏦' },
                 { id: 3, name: 'Şirket Kredi Kartı', type: 'credit_card', icon: '💳' }
             ];
-            // Async: Try to save them for real in background
-            (async () => {
-                const { PaymentAccount } = require('../models');
-                for (const a of accounts) await PaymentAccount.findOrCreate({ where: { name: a.name }, defaults: a });
-            })();
         }
 
         res.json(accounts);
