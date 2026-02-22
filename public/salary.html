@@ -15,11 +15,13 @@
         /* Mobile Date Picker Overflow Fix */
         .flatpickr-mobile {
             width: 100% !important;
+            height: 46px !important;
             box-sizing: border-box !important;
             padding: 0.875rem 1rem !important;
             border: 2px solid #e5e7eb !important;
             border-radius: 0.5rem !important;
             font-size: 1rem !important;
+            line-height: 1.5 !important;
             background-color: white !important;
             margin: 0 !important;
             /* DO NOT USE appearance: none, to preserve native iOS blue date UI */
@@ -525,8 +527,7 @@
                     static: true,
                     monthSelectorType: 'static',
                     inline: false,
-                    position: 'below left',
-                    disableMobile: true
+                    position: 'below left'
                 });
             }
 
@@ -543,8 +544,7 @@
                     static: true,
                     monthSelectorType: 'static',
                     inline: false,
-                    position: 'below left',
-                    disableMobile: true
+                    position: 'below left'
                 });
             }
         });
