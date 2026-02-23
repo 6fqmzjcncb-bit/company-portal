@@ -1055,23 +1055,41 @@ function renderTagsInput(itemId, currentSource) {
     `).join('');
 
     return `
-        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()">
+        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; min-height: 42px;">
             ${tagsHtml}
-            <input 
-                type="text" 
-                id="tag-input-${itemId}"
-                class="tag-input-field" 
-                placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
-                list="sourceList"
-                onkeydown="handleTagKeydown(event, '${itemId}')"
-                oninput="handleTagInput(event, '${itemId}')"
-                onblur="handleTagBlur('${itemId}')"
-            >
+            <div style="display: flex; flex: 1; align-items: center;">
+                <input 
+                    type="text" 
+                    id="tag-input-${itemId}"
+                    class="tag-input-field" 
+                    placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
+                    list="sourceList"
+                    style="flex: 1; border: none; background: transparent; padding: 4px 8px; outline: none; font-size: 0.95rem; min-width: 100px;"
+                    onkeydown="handleTagKeydown(event, '${itemId}')"
+                    oninput="handleTagInput(event, '${itemId}')"
+                    onblur="handleTagBlur('${itemId}')"
+                >
+                <button type="button" 
+                        onmousedown="event.preventDefault(); window.addTagManually('${itemId}')" 
+                        style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-left: 4px;">
+                    +
+                </button>
+            </div>
         </div>
         <!-- Hidden input for comparison -->
         <input type="hidden" id="source-original-${itemId}" value="${currentSource || ''}">
     `;
 }
+
+// Manual Tag Add Button Hook
+window.addTagManually = async function (itemId) {
+    const input = document.getElementById(`tag-input-${itemId}`);
+    if (input && input.value.trim()) {
+        const val = input.value.trim();
+        input.value = ''; // Temizle
+        await addSourceTag(itemId, val);
+    }
+};
 
 async function handleTagInput(event, itemId) {
     const input = event.target;

@@ -9,6 +9,20 @@ const sequelize = new Sequelize({
   define: {
     timestamps: true,
     underscored: false
+  },
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+  retry: {
+    match: [
+      /SQLITE_BUSY/,
+      /database is locked/
+    ],
+    name: 'query',
+    max: 5 // Retry 5 times if database is busy
   }
 });
 
