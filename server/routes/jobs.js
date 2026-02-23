@@ -302,7 +302,7 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
 
         // STOK DÜŞÜMÜ: Sadece İLK KEZ işaretleniyorsa stoktan düş
         // (Not: Kısmi stok düşümü yapmıyoruz, check edildiği an tüm stok düşülüyor varsayımı korundu)
-        if (!isAlreadyChecked && item.product_id && item.source.type === 'internal') {
+        if (!isAlreadyChecked && item.product_id && item.source?.type === 'internal') {
             const product = await Product.findByPk(item.product_id, { transaction });
 
             if (product) {
