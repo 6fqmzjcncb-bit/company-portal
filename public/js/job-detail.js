@@ -912,6 +912,26 @@ async function deleteItem(itemId) {
 // Kalem işaretle
 async function checkItem(itemId) {
     try {
+        // FRONTEND GÜVENLİK: Eğer kullanıcı "Alınan" inputunu BİLEREK BOŞ bırakıp
+        // direkt olarak Yeşil Tik'e basarsa, sistemin "Tamamı alındı" saymasını istiyor.
+        // O yüzden tike basıldığı an, boşsa Gerekli Miktarı Alınan'a kopyalayıp sunucuya kaydedelim.
+        const reqInput = document.getElementById(`req-qty-${itemId}`);
+        const foundInput = document.getElementById(`found-qty-${itemId}`);
+
+        if (reqInput && foundInput && foundInput.value.trim() === '') {
+            const fullQty = reqInput.value;
+            // 1. Arayüzde kutuyu hemen "Tam Liste" ile doldur ki kullanıcı içi rahat etsin
+            foundInput.value = fullQty;
+
+            // 2. Tike basılmadan hemen önce arka planda Sunucuya bu rakamı PUT et
+            await fetch(`/api/jobs/items/${itemId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity_found: parseInt(fullQty) || 0 })
+            });
+        }
+
+        // Asıl Tamamlama İsteğini Yolla
         const response = await fetch(`/api/jobs/items/${itemId}/check`, {
             method: 'POST'
         });
@@ -1055,16 +1075,16 @@ function renderTagsInput(itemId, currentSource) {
     `).join('');
 
     return `
-        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; min-height: 42px;">
+        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; min-height: 38px;">
             ${tagsHtml}
             <div style="display: flex; flex: 1; align-items: center;">
                 <input 
                     type="text" 
                     id="tag-input-${itemId}"
                     class="tag-input-field" 
-                    placeholder="${tags.length > 0 ? '' : 'Kaynak ekle...'}"
+                    placeholder="${tags.length > 0 ? '' : '🔍 Tedarikçi Ara/Yaz...'}"
                     list="sourceList"
-                    style="flex: 1; border: none; background: transparent; padding: 4px 8px; outline: none; font-size: 0.95rem; min-width: 100px;"
+                    style="flex: 1; border: none; background: transparent; padding: 2px 4px; outline: none; font-size: 0.95rem; min-width: 100px; height: 100%; margin: 0;"
                     onkeydown="handleTagKeydown(event, '${itemId}')"
                     oninput="handleTagInput(event, '${itemId}')"
                     onblur="handleTagBlur('${itemId}')"
