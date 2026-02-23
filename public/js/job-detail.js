@@ -352,15 +352,19 @@ function renderIncompleteItem(item) {
                 <!-- Col 1: Required -->
                 <div>
                      <span class="input-group-label">Gerekli</span>
-                     <input type="number" class="qty-input-field"
-                            value="${item.quantity}" min="1" onblur="autoSaveQuantity(${item.id}, this.value)">
+                     <input type="number" class="qty-input-field" id="req-qty-${item.id}"
+                            value="${item.quantity}" min="1" 
+                            oninput="handleQuantityChange(${item.id})"
+                            onblur="autoSaveQuantity(${item.id}, this.value)">
                 </div>
 
                 <!-- Col 2: Received -->
                 <div>
                      <span class="input-group-label">Alınan</span>
-                     <input type="number" class="qty-input-field"
-                            value="${item.quantity_found || ''}" min="0" onblur="autoSaveQuantityFound(${item.id}, this.value)">
+                     <input type="number" class="qty-input-field" id="found-qty-${item.id}"
+                            value="${item.quantity_found !== null && item.quantity_found !== undefined ? item.quantity_found : ''}" min="0" 
+                            oninput="handleQuantityChange(${item.id})"
+                            onblur="autoSaveQuantityFound(${item.id}, this.value)">
                 </div>
 
                 <!-- Col 3: Source -->
@@ -380,35 +384,31 @@ function renderIncompleteItem(item) {
             </div>
 
             <!-- EXCEPTION: Missing Quantity Warning -->
-            ${(item.quantity_found !== undefined && item.quantity_found !== null) && item.quantity_found < item.quantity ? `
-                <div style="margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
-                    <div style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
-                        ⚠️ ${item.quantity - item.quantity_found} adet eksik!
-                    </div>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151;">
-                            <input type="radio" name="missing_reason_${item.id}" value="buy_from_source" 
-                                ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
-                                onchange="updateMissingReason(${item.id}, 'buy_from_source')">
-                            📦 Başka yerden alınacak
-                        </label>
-                        
-                        ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? `
-                            <div style="margin-left: 24px; margin-top: 5px; width: 100%; max-width: 400px;">
-                                ${renderTagsInput('missing-' + item.id, item.missing_source || '')}
-                            </div>
-                        ` : ''}
-
-                        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; margin-top: 5px;">
-                            <input type="radio" name="missing_reason_${item.id}" value="buy_later" 
-                                ${item.missing_reason === 'buy_later' ? 'checked' : ''}
-                                onchange="updateMissingReason(${item.id}, 'buy_later')">
-                            ⏰ Daha sonra alınacak
-                        </label>
-                    </div>
+            <div id="missing-panel-${item.id}" style="display: ${(item.quantity_found !== undefined && item.quantity_found !== null && item.quantity_found < item.quantity) ? 'block' : 'none'}; margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+                <div id="missing-text-${item.id}" style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
+                    ⚠️ ${item.quantity - (item.quantity_found || 0)} adet eksik!
                 </div>
-            ` : ''}
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151;">
+                        <input type="radio" name="missing_reason_${item.id}" value="buy_from_source" 
+                            ${!item.missing_reason || item.missing_reason === 'buy_from_source' ? 'checked' : ''}
+                            onchange="updateMissingReason(${item.id}, 'buy_from_source')">
+                        📦 Başka yerden alınacak
+                    </label>
+                    
+                    <div id="missing-source-container-${item.id}" style="display: ${(!item.missing_reason || item.missing_reason === 'buy_from_source') ? 'block' : 'none'}; margin-left: 24px; margin-top: 5px; box-sizing: border-box; width: calc(100% - 24px);">
+                        ${renderTagsInput('missing-' + item.id, item.missing_source || '')}
+                    </div>
+
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; color: #374151; margin-top: 5px;">
+                        <input type="radio" name="missing_reason_${item.id}" value="buy_later" 
+                            ${item.missing_reason === 'buy_later' ? 'checked' : ''}
+                            onchange="updateMissingReason(${item.id}, 'buy_later')">
+                        ⏰ Daha sonra alınacak
+                    </label>
+                </div>
+            </div>
         </div>
     `;
 }
@@ -477,7 +477,6 @@ async function autoSaveQuantity(itemId, newQuantity) {
     const quantity = parseInt(newQuantity);
     if (!quantity || quantity < 1) {
         showAlert('Geçerli bir miktar girin');
-        await loadJobDetail(); // Reload to reset
         return;
     }
 
@@ -487,15 +486,41 @@ async function autoSaveQuantity(itemId, newQuantity) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity })
         });
-
         if (!response.ok) throw new Error('Güncelleme başarısız');
-        await loadJobDetail();
-
     } catch (error) {
         showAlert(error.message);
-        await loadJobDetail();
     }
 }
+
+// Global Quantity Handle Local UI Feedback (Instant)
+window.handleQuantityChange = function (itemId) {
+    const reqInput = document.getElementById(`req-qty-${itemId}`);
+    const foundInput = document.getElementById(`found-qty-${itemId}`);
+    const missingPanel = document.getElementById(`missing-panel-${itemId}`);
+    const missingText = document.getElementById(`missing-text-${itemId}`);
+
+    if (!reqInput || !foundInput || !missingPanel || !missingText) return;
+
+    const reqVal = parseInt(reqInput.value) || 0;
+    const foundText = foundInput.value.trim();
+
+    // If empty text, treat as no panel yet 
+    if (foundText === '') {
+        missingPanel.style.display = 'none';
+        return;
+    }
+
+    const foundVal = parseInt(foundText) || 0;
+
+    if (foundVal < reqVal) {
+        // Show panel instantly
+        missingPanel.style.display = 'block';
+        missingText.innerHTML = `⚠️ ${reqVal - foundVal} adet eksik!`;
+    } else {
+        // Hide panel instantly
+        missingPanel.style.display = 'none';
+    }
+};
 
 // Auto-save source (onBlur)
 async function autoSaveSource(itemId, newSourceName) {
@@ -524,13 +549,15 @@ async function autoSaveSource(itemId, newSourceName) {
 
 // Auto-save quantity found (onBlur)
 async function autoSaveQuantityFound(itemId, newValue) {
+    if (newValue.trim() === '') return; // Don't save empty
     try {
         await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ quantity_found: parseInt(newValue) || 0 })
         });
-        await loadJobDetail();
+        // We do NOT call loadJobDetail() here anymore to prevent 
+        // focus loss when users immediately jump to the "missing source" input.
     } catch (error) {
         console.error('Quantity found update error:', error);
     }
@@ -569,7 +596,12 @@ async function updateMissingReason(itemId, reason) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ missing_reason: reason })
         });
-        await loadJobDetail(); // Reload to show/hide input
+
+        // Show/hide locally instead of full reload to prevent visual jump
+        const container = document.getElementById(`missing-source-container-${itemId}`);
+        if (container) {
+            container.style.display = reason === 'buy_from_source' ? 'block' : 'none';
+        }
     } catch (error) {
         console.error('Missing reason update error:', error);
     }
