@@ -360,12 +360,15 @@ function renderIncompleteItem(item) {
                 <!-- Col 1: Required -->
                 <div>
                      <span class="input-group-label">Gerekli</span>
-                     <div style="display: flex; align-items: center; gap: 4px;">
+                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 38px;">
                          <input type="number" class="qty-input-field" id="req-qty-${item.id}"
                                 value="${item.quantity}" min="1" 
+                                style="border: none; border-radius: 0; outline: none; box-shadow: none; height: 100%; text-align: center; flex: 1; padding: 0;"
                                 oninput="handleQuantityChange(${item.id})"
                                 onblur="autoSaveQuantity(${item.id}, this.value)">
-                         <span style="font-size: 0.85rem; color: #6b7280; white-space: nowrap;">${unitText}</span>
+                         <div style="background: #f3f4f6; color: #4b5563; padding: 0 10px; height: 100%; display: flex; align-items: center; border-left: 1px solid #d1d5db; font-size: 0.85rem; white-space: nowrap;">
+                             ${unitText}
+                         </div>
                      </div>
                 </div>
 
@@ -772,6 +775,29 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
         unitSelect.value = unit;
         unitSelect.disabled = !!id; // Lock if registered product
         unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
+        unitSelect.style.color = !!id ? '#9ca3af' : '#1f2937';
+    }
+
+    // Auto-select Default Source
+    const hiddenSource = document.getElementById('source-original-quick-add');
+    const visualSource = document.getElementById('source-visual-quick-add');
+    if (id && window.sources && window.sources.length > 0) {
+        let defaultSource = window.sources.find(s => s.name.toLowerCase() === 'merkez depo' || s.name.toLowerCase() === 'depo')
+            || window.sources.find(s => s.type === 'internal')
+            || window.sources[0];
+
+        if (defaultSource && hiddenSource && visualSource) {
+            hiddenSource.value = defaultSource.name;
+            visualSource.innerHTML = `
+                <div class="tag-item" style="background: ${defaultSource.color_code || '#e5e7eb'}; border: 1px solid #d1d5db; color: #374151;">
+                    ${defaultSource.name}
+                    <span class="remove" onclick="removeTag('quick-add')">×</span>
+                </div>
+            `;
+        }
+    } else if (hiddenSource && visualSource) {
+        hiddenSource.value = '';
+        visualSource.innerHTML = '';
     }
 
     if (infoDiv) {
@@ -786,7 +812,7 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
             }
             if (hasStock) {
                 const stockColor = parseInt(stock) > 0 ? '#4b5563' : '#dc2626';
-                infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} Yerde</span>`;
+                infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} ${unit}</span>`;
             }
             infoDiv.innerHTML = infoHtml;
             infoDiv.style.display = 'block';
