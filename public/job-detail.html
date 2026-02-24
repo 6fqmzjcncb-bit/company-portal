@@ -172,7 +172,9 @@
                         <div style="position: relative;">
                             <input type="text" id="inlineProductSearch" class="form-input"
                                 placeholder="🔍 Ürün adı veya barkod yazın..." autocomplete="off">
-                            <div id="inlineProductResults"></div>
+                            <div id="inlineProductResults"
+                                style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; max-height: 250px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); margin-top: 4px; padding: 4px;">
+                            </div>
                             <input type="hidden" id="inlineSelectedProductId">
                             <input type="hidden" id="inlineSelectedProductName">
                         </div>

@@ -685,16 +685,20 @@ function initInlineSearch() {
 
             if (products.length === 0) {
                 if (query.length > 0) {
-                    resultsDiv.innerHTML = '<div class="p-2 text-gray-500">Ürün bulunamadı</div>';
+                    resultsDiv.innerHTML = '<div style="padding: 10px 12px; color: #6b7280; font-size: 0.95rem; text-align: center;">Ürün bulunamadı</div>';
+                    resultsDiv.style.display = 'block';
                 } else {
+                    resultsDiv.style.display = 'none';
                     resultsDiv.innerHTML = '';
                 }
                 return;
             }
 
             resultsDiv.innerHTML = products.map(p => `
-                <div class="search-result-item p-2 hover:bg-gray-100 cursor-pointer border-b last:border-0" 
-                     style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px;"
+                <div class="search-result-item" 
+                     style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; background: white; transition: all 0.2s ease;"
+                     onmouseover="this.style.background='#f0f9ff'; this.querySelector('.prod-name').style.color='#0284c7';" 
+                     onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
                      data-id="${p.id}"
                      data-name="${p.name.replace(/"/g, '&quot;')}">
                     
@@ -702,12 +706,12 @@ function initInlineSearch() {
                         ${p.barcode || '-'}
                     </div>
 
-                    <div style="pointer-events: none; font-size: 0.95rem; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${p.name.replace(/"/g, '&quot;')}">
+                    <div class="prod-name" style="pointer-events: none; font-size: 0.95rem; color: #374151; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s ease;" title="${p.name.replace(/"/g, '&quot;')}">
                         ${p.name}
                     </div>
 
                     <div style="pointer-events: none; text-align: right;">
-                         <span class="text-sm font-bold ${p.current_stock > 0 ? 'text-blue-700' : 'text-red-600'}">
+                         <span style="font-size: 0.85rem; font-weight: bold; color: ${p.current_stock > 0 ? '#1d4ed8' : '#dc2626'}">
                              Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
                          </span>
                     </div>
@@ -736,7 +740,7 @@ function initInlineSearch() {
     // Hide results on outside click
     document.addEventListener('click', (e) => {
         if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'none';
         }
     });
 }
@@ -750,7 +754,10 @@ window.selectInlineProduct = function (id, name) {
     if (searchInput) searchInput.value = name;
     if (hiddenId) hiddenId.value = id;
     if (hiddenName) hiddenName.value = name;
-    if (resultsDiv) resultsDiv.innerHTML = '';
+    if (resultsDiv) {
+        resultsDiv.style.display = 'none';
+        resultsDiv.innerHTML = '';
+    }
 
     const qtyInput = document.getElementById('inlineQuantity');
     if (qtyInput) qtyInput.focus();
