@@ -759,14 +759,20 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     if (unitSelect) unitSelect.value = unit;
 
     if (infoDiv) {
-        if (barcode || stock !== '') {
+        const hasBarcode = barcode && barcode !== 'null' && barcode !== 'undefined' && barcode !== '-';
+        const hasStock = stock !== '' && stock !== 'null' && stock !== 'undefined';
+
+        if (hasBarcode || hasStock) {
             let infoHtml = '';
-            if (barcode && barcode !== '-') infoHtml += `<strong>Barkod:</strong> ${barcode} &nbsp;|&nbsp; `;
-            if (stock !== '') {
-                const stockColor = parseInt(stock) > 0 ? '#1d4ed8' : '#dc2626';
+            if (hasBarcode) {
+                infoHtml += `<strong>Barkod:</strong> ${barcode}`;
+                if (hasStock) infoHtml += ` &nbsp;|&nbsp; `;
+            }
+            if (hasStock) {
+                const stockColor = parseInt(stock) > 0 ? '#4b5563' : '#dc2626';
                 infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} Yerde</span>`;
             }
-            infoDiv.innerHTML = infoHtml || 'Bilgi yok';
+            infoDiv.innerHTML = infoHtml;
             infoDiv.style.display = 'block';
         } else {
             infoDiv.style.display = 'none';

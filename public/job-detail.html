@@ -179,7 +179,7 @@
                             <input type="hidden" id="inlineSelectedProductName">
                         </div>
                         <div id="inlineProductInfo"
-                            style="display: none; padding: 6px 10px; font-size: 0.9rem; color: #4b5563; background: #f9fafb; border-radius: 4px; border: 1px solid #e5e7eb; margin-bottom: 12px; margin-top: -8px;">
+                            style="display: none; padding: 2px 4px; font-size: 0.85rem; color: #6b7280; text-align: right; margin-top: 4px; margin-bottom: 8px;">
                         </div>
 
                         <!-- Kaynak -->
@@ -188,20 +188,25 @@
                         </div>
 
                         <!-- Miktar -->
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <input type="number" id="inlineQuantity" class="form-input" min="1" required
-                                placeholder="Miktar giriniz">
-                            <select id="inlineProductUnit" class="form-input" style="flex: 0 0 110px; cursor: pointer;">
-                                <option value="Adet">Adet</option>
-                                <option value="Metre">Metre</option>
-                                <option value="Paket">Paket</option>
-                                <option value="Top">Top</option>
-                                <option value="Takım">Takım</option>
-                                <option value="Kutu">Kutu</option>
-                                <option value="Kilo">Kilo</option>
-                                <option value="Boy">Boy</option>
-                                <option value="Torba">Torba</option>
-                            </select>
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 1;">
+                                <input type="number" id="inlineQuantity" class="form-input" min="1" required
+                                    placeholder="Miktar giriniz">
+                            </div>
+                            <div style="flex: 0 0 110px;">
+                                <select id="inlineProductUnit" class="form-input"
+                                    style="width: 100%; cursor: pointer; padding-left: 0.5rem; padding-right: 0.5rem;">
+                                    <option value="Adet">Adet</option>
+                                    <option value="Metre">Metre</option>
+                                    <option value="Paket">Paket</option>
+                                    <option value="Top">Top</option>
+                                    <option value="Takım">Takım</option>
+                                    <option value="Kutu">Kutu</option>
+                                    <option value="Kilo">Kilo</option>
+                                    <option value="Boy">Boy</option>
+                                    <option value="Torba">Torba</option>
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Ekle Butonu -->
