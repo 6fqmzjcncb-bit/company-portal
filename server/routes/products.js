@@ -46,7 +46,6 @@ router.get('/search', requireAuth, async (req, res) => {
 
         const products = await Product.findAll({
             where: whereClause,
-            limit: 20,
             order: [['name', 'ASC']]
         });
 
