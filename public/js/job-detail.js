@@ -1075,23 +1075,23 @@ function renderTagsInput(itemId, currentSource) {
     `).join('');
 
     return `
-        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; min-height: 38px;">
+        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; height: 38px; white-space: nowrap; scrollbar-width: none;">
             ${tagsHtml}
-            <div style="display: flex; flex: 1; align-items: center;">
+            <div style="display: flex; flex: 1; align-items: center; min-width: 140px;">
                 <input 
                     type="text" 
                     id="tag-input-${itemId}"
                     class="tag-input-field" 
                     placeholder="${tags.length > 0 ? '' : '🔍 Tedarikçi Ara/Yaz...'}"
                     list="sourceList"
-                    style="flex: 1; border: none; background: transparent; padding: 2px 4px; outline: none; font-size: 0.95rem; min-width: 100px; height: 100%; margin: 0;"
+                    style="flex: 1; border: none; background: transparent; padding: 2px 4px; outline: none; font-size: 0.95rem; width: 100%; height: 100%; margin: 0;"
                     onkeydown="handleTagKeydown(event, '${itemId}')"
                     oninput="handleTagInput(event, '${itemId}')"
                     onblur="handleTagBlur('${itemId}')"
                 >
                 <button type="button" 
                         onmousedown="event.preventDefault(); window.addTagManually('${itemId}')" 
-                        style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-left: 4px;">
+                        style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-left: 4px; flex-shrink: 0;">
                     +
                 </button>
             </div>
