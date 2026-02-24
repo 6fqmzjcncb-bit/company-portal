@@ -1102,7 +1102,7 @@ function renderTagsInput(itemId, currentSource) {
                 </div>
             </div>
             <!-- Custom Autocomplete Dropdown -->
-            <div id="autocomplete-list-${itemId}" style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; max-height: 180px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
+            <div id="autocomplete-list-${itemId}" style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); margin-top: 4px; padding: 4px;"></div>
         </div>
         <!-- Hidden input for comparison -->
         <input type="hidden" id="source-original-${itemId}" value="${currentSource || ''}">
@@ -1161,9 +1161,9 @@ async function handleTagInput(event, itemId) {
 function renderAutocompleteItems(itemId, listDiv, matches) {
     listDiv.innerHTML = matches.map(match => `
         <div onmousedown="event.preventDefault(); window.selectAutocomplete('${itemId}', '${match.replace(/'/g, "\\'")}')" 
-             style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; color: #374151; background: white;"
-             onmouseover="this.style.background='#f3f4f6'" 
-             onmouseout="this.style.background='white'">
+             style="padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; font-size: 0.95rem; color: #4b5563; background: white; transition: all 0.2s ease;"
+             onmouseover="this.style.background='#f0f9ff'; this.style.color='#0284c7';" 
+             onmouseout="this.style.background='white'; this.style.color='#4b5563';">
             ${match}
         </div>
     `).join('');
