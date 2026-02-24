@@ -772,7 +772,15 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     if (hiddenId) hiddenId.value = id;
     if (hiddenName) hiddenName.value = name;
     if (unitSelect) {
-        unitSelect.value = unit;
+        if (unit) {
+            // Dropdown options are Title Case ("Adet", "Metre", "Paket"), so format it
+            const formattedUnit = unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+            unitSelect.value = formattedUnit;
+            // Fallback to Adet if it still wasn't found
+            if (!unitSelect.value) unitSelect.value = 'Adet';
+        } else {
+            unitSelect.value = 'Adet';
+        }
         unitSelect.disabled = !!id; // Lock if registered product
         unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
         // Force text color for iOS Safari when disabled
