@@ -692,7 +692,9 @@ function initInlineSearch() {
         const unitSelect = document.getElementById('inlineProductUnit');
         if (unitSelect) {
             unitSelect.disabled = false; // Unlock for custom typing
+            unitSelect.style.pointerEvents = 'auto'; // Fix iOS simulation lock
             unitSelect.style.background = 'white';
+            unitSelect.style.color = '#1f2937';
         }
 
         await performSearch(e.target.value);
@@ -1234,7 +1236,7 @@ window.selectAutocomplete = async function (itemId, value) {
     const input = document.getElementById(`tag-input-${itemId}`);
     if (input) input.value = '';
 
-    await addSourceTag(itemId, value);
+    await addSourceTag(itemId, value, false); // Do not refocus input after click selection
 };
 
 // Manual Tag Add Button Hook
@@ -1320,7 +1322,7 @@ async function handleTagBlur(itemId) {
     }
 }
 
-async function addSourceTag(itemId, newTag) {
+async function addSourceTag(itemId, newTag, keepFocus = true) {
     const originalInput = document.getElementById(`source-original-${itemId}`);
     let currentSource = originalInput ? originalInput.value : '';
     let tags = currentSource ? currentSource.split(',').map(s => s.trim()).filter(s => s) : [];
@@ -1335,10 +1337,12 @@ async function addSourceTag(itemId, newTag) {
         if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
 
         // Refocus logic
-        setTimeout(() => {
-            const input = document.getElementById('tag-input-quick-add');
-            if (input) input.focus();
-        }, 50);
+        if (keepFocus) {
+            setTimeout(() => {
+                const input = document.getElementById('tag-input-quick-add');
+                if (input) input.focus();
+            }, 50);
+        }
         return;
     }
 
@@ -1379,10 +1383,12 @@ async function addSourceTag(itemId, newTag) {
                 container.outerHTML = newHtml;
 
                 // Restore focus
-                setTimeout(() => {
-                    const newInput = document.getElementById(`tag-input-${itemId}`);
-                    if (newInput) newInput.focus();
-                }, 50);
+                if (keepFocus) {
+                    setTimeout(() => {
+                        const newInput = document.getElementById(`tag-input-${itemId}`);
+                        if (newInput) newInput.focus();
+                    }, 50);
+                }
             }
         }
         return;
