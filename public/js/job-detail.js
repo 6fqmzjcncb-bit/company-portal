@@ -816,7 +816,8 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
             }
             if (hasStock) {
                 const stockColor = parseInt(stock) > 0 ? '#4b5563' : '#dc2626';
-                infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} ${unit}</span>`;
+                const formattedUnitDisplay = unit ? (unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase()) : 'Adet';
+                infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} ${formattedUnitDisplay}</span>`;
             }
             infoDiv.innerHTML = infoHtml;
             infoDiv.style.display = 'block';
