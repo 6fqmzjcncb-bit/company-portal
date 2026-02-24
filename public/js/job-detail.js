@@ -2,6 +2,7 @@
 let jobId = null;
 let currentUser = null;
 let sources = [];
+let availableSourceNames = [];
 
 // URL'den job ID al
 const urlParams = new URLSearchParams(window.location.search);
@@ -96,10 +97,12 @@ async function loadSources() {
         }
 
         // Autocomplete datalist (kaynak input için)
+        availableSourceNames = [];
         const sourceList = document.getElementById('sourceList');
         if (sourceList) {
             sourceList.innerHTML = '';
             sources.forEach(source => {
+                availableSourceNames.push(source.name);
                 const option = document.createElement('option');
                 option.value = source.name;
                 sourceList.appendChild(option);
@@ -1075,19 +1078,20 @@ function renderTagsInput(itemId, currentSource) {
     `).join('');
 
     return `
-        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; height: 38px; white-space: nowrap; scrollbar-width: none;">
+        <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; height: 38px; white-space: nowrap; scrollbar-width: none; position: relative;">
             ${tagsHtml}
-            <div style="display: flex; flex: 1; align-items: center; min-width: 140px;">
+            <div style="display: flex; flex: 1; align-items: center; min-width: 140px; position: relative;">
                 <input 
                     type="text" 
                     id="tag-input-${itemId}"
                     class="tag-input-field" 
                     placeholder="${tags.length > 0 ? '' : '🔍 Tedarikçi Ara/Yaz...'}"
-                    list="sourceList"
+                    autocomplete="off"
                     style="flex: 1; border: none; background: transparent; padding: 2px 4px; outline: none; font-size: 0.95rem; width: 100%; height: 100%; margin: 0;"
                     onkeydown="handleTagKeydown(event, '${itemId}')"
                     oninput="handleTagInput(event, '${itemId}')"
                     onblur="handleTagBlur('${itemId}')"
+                    onfocus="handleTagInput(event, '${itemId}')"
                 >
                 <button type="button" 
                         onmousedown="event.preventDefault(); window.addTagManually('${itemId}')" 
@@ -1096,10 +1100,23 @@ function renderTagsInput(itemId, currentSource) {
                 </button>
             </div>
         </div>
+        <!-- Custom Autocomplete Dropdown -->
+        <div id="autocomplete-list-${itemId}" style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; right: 0; max-height: 180px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 6px 6px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);"></div>
         <!-- Hidden input for comparison -->
         <input type="hidden" id="source-original-${itemId}" value="${currentSource || ''}">
     `;
 }
+
+// Helper to manually select from dropdown
+window.selectAutocomplete = async function (itemId, value) {
+    const listDiv = document.getElementById(`autocomplete-list-${itemId}`);
+    if (listDiv) listDiv.style.display = 'none';
+
+    const input = document.getElementById(`tag-input-${itemId}`);
+    if (input) input.value = '';
+
+    await addSourceTag(itemId, value);
+};
 
 // Manual Tag Add Button Hook
 window.addTagManually = async function (itemId) {
@@ -1113,28 +1130,42 @@ window.addTagManually = async function (itemId) {
 
 async function handleTagInput(event, itemId) {
     const input = event.target;
-    const value = input.value.trim();
-    if (!value) return;
+    const value = input.value.trim().toLowerCase();
+    const listDiv = document.getElementById(`autocomplete-list-${itemId}`);
 
-    // Datalist kontrolü - Eğer tam eşleşme varsa otomatik ekle
-    const list = document.getElementById('sourceList');
-    if (list && list.options) {
-        let match = false;
-        for (let i = 0; i < list.options.length; i++) {
-            if (list.options[i].value === value) {
-                match = true;
-                break;
-            }
+    if (!listDiv) return;
+
+    if (!value) {
+        // Option to display all if focused but empty, or just hide. Let's show all if empty on focus.
+        if (event.type === 'focus' && availableSourceNames.length > 0) {
+            // Show top 10
+            renderAutocompleteItems(itemId, listDiv, availableSourceNames.slice(0, 10));
+        } else {
+            listDiv.style.display = 'none';
         }
-        if (match) {
-            // UI hissiyatı için çok kısa bir gecikme
-            setTimeout(() => {
-                addSourceTag(itemId, value);
-                input.value = '';
-                input.focus();
-            }, 100);
-        }
+        return;
     }
+
+    // Filter
+    const matches = availableSourceNames.filter(name => name.toLowerCase().includes(value));
+
+    if (matches.length > 0) {
+        renderAutocompleteItems(itemId, listDiv, matches);
+    } else {
+        listDiv.style.display = 'none';
+    }
+}
+
+function renderAutocompleteItems(itemId, listDiv, matches) {
+    listDiv.innerHTML = matches.map(match => `
+        <div onmousedown="event.preventDefault(); window.selectAutocomplete('${itemId}', '${match.replace(/'/g, "\\'")}')" 
+             style="padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; font-size: 0.95rem; color: #374151; background: white;"
+             onmouseover="this.style.background='#f3f4f6'" 
+             onmouseout="this.style.background='white'">
+            ${match}
+        </div>
+    `).join('');
+    listDiv.style.display = 'block';
 }
 
 async function handleTagKeydown(event, itemId) {
@@ -1157,6 +1188,12 @@ async function handleTagKeydown(event, itemId) {
 }
 
 async function handleTagBlur(itemId) {
+    // Hide dropdown
+    setTimeout(() => {
+        const listDiv = document.getElementById(`autocomplete-list-${itemId}`);
+        if (listDiv) listDiv.style.display = 'none';
+    }, 150);
+
     const input = document.getElementById(`tag-input-${itemId}`);
     if (input && input.value.trim()) {
         await addSourceTag(itemId, input.value.trim());
