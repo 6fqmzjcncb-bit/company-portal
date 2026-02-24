@@ -973,10 +973,6 @@ async function restoreDeletion(deletionId) {
 
 // Kalem sil (Anında - Gecikmesiz)
 async function deleteItem(itemId) {
-    if (!confirm('Bu kalemi listeden silmek istediğinize emin misiniz? (Daha sonra \"Silinen Ürünler\" menüsünden geri alabilirsiniz)')) {
-        return;
-    }
-
     const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
     if (card) {
         card.style.opacity = '0.5';
