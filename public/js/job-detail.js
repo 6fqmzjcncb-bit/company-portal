@@ -783,25 +783,17 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     }
 
     // Auto-select Default Source
-    const hiddenSource = document.getElementById('source-original-quick-add');
-    const visualSource = document.getElementById('source-visual-quick-add');
+    const sourceContainer = document.getElementById('quick-add-source-container');
     if (id && typeof sources !== 'undefined' && sources.length > 0) {
         let defaultSource = sources.find(s => s.name.toLowerCase() === 'merkez depo' || s.name.toLowerCase() === 'depo')
             || sources.find(s => s.type === 'internal')
             || sources[0];
 
-        if (defaultSource && hiddenSource && visualSource) {
-            hiddenSource.value = defaultSource.name;
-            visualSource.innerHTML = `
-                <div class="tag-item" style="background: ${defaultSource.color_code || '#e5e7eb'}; border: 1px solid #d1d5db; color: #374151;">
-                    ${defaultSource.name}
-                    <span class="remove" onclick="removeTag('quick-add')">×</span>
-                </div>
-            `;
+        if (defaultSource && sourceContainer) {
+            sourceContainer.innerHTML = renderTagsInput('quick-add', defaultSource.name);
         }
-    } else if (hiddenSource && visualSource) {
-        hiddenSource.value = '';
-        visualSource.innerHTML = '';
+    } else if (sourceContainer) {
+        sourceContainer.innerHTML = renderTagsInput('quick-add', '');
     }
 
     if (infoDiv) {
@@ -831,7 +823,10 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     }
 
     const qtyInput = document.getElementById('inlineQuantity');
-    if (qtyInput) qtyInput.focus();
+    if (qtyInput) {
+        if (!qtyInput.value) qtyInput.value = 1;
+        qtyInput.focus();
+    }
 };
 
 // 4. Inline Add Form
