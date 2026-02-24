@@ -673,6 +673,9 @@ function initInlineSearch() {
     });
 
     searchInput.addEventListener('input', async (e) => {
+        document.getElementById('inlineProductInfo').style.display = 'none';
+        document.getElementById('inlineSelectedProductId').value = '';
+        document.getElementById('inlineSelectedProductName').value = '';
         await performSearch(e.target.value);
     });
 
@@ -696,7 +699,7 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="search-result-item" 
-                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.unit || ''}')"
+                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.unit || 'Adet'}', '${p.barcode || ''}', '${p.current_stock !== undefined ? p.current_stock : ''}')"
                      style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; background: white; transition: all 0.2s ease;"
                      onmouseover="this.style.background='#f0f9ff'; this.querySelector('.prod-name').style.color='#0284c7';" 
                      onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
@@ -736,17 +739,34 @@ function initInlineSearch() {
     });
 }
 
-window.selectInlineProduct = function (id, name, unit = '') {
+window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', stock = '') {
     const searchInput = document.getElementById('inlineProductSearch');
     const hiddenId = document.getElementById('inlineSelectedProductId');
     const hiddenName = document.getElementById('inlineSelectedProductName');
     const resultsDiv = document.getElementById('inlineProductResults');
-    const unitSpan = document.getElementById('inlineProductUnit');
+    const unitSelect = document.getElementById('inlineProductUnit');
+    const infoDiv = document.getElementById('inlineProductInfo');
 
     if (searchInput) searchInput.value = name;
     if (hiddenId) hiddenId.value = id;
     if (hiddenName) hiddenName.value = name;
-    if (unitSpan) unitSpan.textContent = unit;
+    if (unitSelect) unitSelect.value = unit;
+
+    if (infoDiv) {
+        if (barcode || stock !== '') {
+            let infoHtml = '';
+            if (barcode && barcode !== '-') infoHtml += `<strong>Barkod:</strong> ${barcode} &nbsp;|&nbsp; `;
+            if (stock !== '') {
+                const stockColor = parseInt(stock) > 0 ? '#1d4ed8' : '#dc2626';
+                infoHtml += `<span style="color: ${stockColor};"><strong>Stok:</strong> ${stock} Yerde</span>`;
+            }
+            infoDiv.innerHTML = infoHtml || 'Bilgi yok';
+            infoDiv.style.display = 'block';
+        } else {
+            infoDiv.style.display = 'none';
+        }
+    }
+
     if (resultsDiv) {
         resultsDiv.style.display = 'none';
         resultsDiv.innerHTML = '';
@@ -777,6 +797,16 @@ function initInlineAddForm() {
         const sourceName = sourceNameInput ? sourceNameInput.value : '';
 
         const quantity = document.getElementById('inlineQuantity').value;
+        const unit = document.getElementById('inlineProductUnit').value;
+
+        // If user typed something completely new and it DOES NOT match the hidden name,
+        // it means they want to add a custom/unlisted product.
+        let finalProductId = productId;
+        let finalProductName = productName;
+        if (rawSearchValue.toLowerCase() !== selectedProductName.toLowerCase()) {
+            finalProductId = null; // Forces it to be treated as a new custom item
+            finalProductName = rawSearchValue;
+        }
 
         if (!productName) {
             showAlert('Lütfen bir ürün adı yazın veya seçin');
@@ -793,8 +823,9 @@ function initInlineAddForm() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    product_id: productId,
-                    custom_name: productId ? null : productName,
+                    product_id: finalProductId,
+                    custom_name: finalProductId ? null : finalProductName,
+                    unit: unit, // explicitly pass the unit for custom products
                     source_name: sourceName,
                     quantity: parseInt(quantity)
                 })
@@ -815,7 +846,9 @@ function initInlineAddForm() {
             if (resultsDiv) resultsDiv.innerHTML = '';
 
             document.getElementById('inlineQuantity').value = '';
-            document.getElementById('inlineProductUnit').textContent = '';
+            document.getElementById('inlineProductUnit').value = 'Adet';
+            const infoDiv = document.getElementById('inlineProductInfo');
+            if (infoDiv) infoDiv.style.display = 'none';
 
             // Reset Tag Input
             const container = document.getElementById('quick-add-source-container');

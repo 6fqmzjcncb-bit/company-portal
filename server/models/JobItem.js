@@ -29,6 +29,11 @@ const JobItem = sequelize.define('JobItem', {
         allowNull: true, // Eğer product_id doluysa bu boş olabilir
         comment: 'Stoksuz ürün adı (örn: "1 Kutu Vida")'
     },
+    unit: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        comment: 'Stoksuz ürün birimi (örn: Adet, Metre)'
+    },
     source_id: {
         type: DataTypes.INTEGER,
         allowNull: true, // Allow null for Quick Add when no source selected
