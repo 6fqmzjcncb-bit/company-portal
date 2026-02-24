@@ -682,6 +682,13 @@ function initInlineSearch() {
         document.getElementById('inlineProductInfo').style.display = 'none';
         document.getElementById('inlineSelectedProductId').value = '';
         document.getElementById('inlineSelectedProductName').value = '';
+
+        const unitSelect = document.getElementById('inlineProductUnit');
+        if (unitSelect) {
+            unitSelect.disabled = false; // Unlock for custom typing
+            unitSelect.style.background = 'white';
+        }
+
         await performSearch(e.target.value);
     });
 
@@ -711,7 +718,9 @@ function initInlineSearch() {
                      onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
                      data-id="${p.id}"
                      data-name="${p.name.replace(/"/g, '&quot;')}"
-                     data-unit="${p.unit || ''}">
+                     data-unit="${p.unit || ''}"
+                     data-barcode="${p.barcode || ''}"
+                     data-stock="${(p.current_stock !== undefined && p.current_stock !== null) ? p.current_stock : ''}">
                     
                     <div style="pointer-events: none; font-size: 0.85rem; color: #111827; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${p.barcode || '-'}
@@ -723,7 +732,7 @@ function initInlineSearch() {
 
                     <div style="pointer-events: none; text-align: right;">
                          <span style="font-size: 0.85rem; font-weight: bold; color: ${p.current_stock > 0 ? '#1d4ed8' : '#dc2626'}">
-                             Stok: ${p.current_stock !== undefined ? p.current_stock : 0}
+                             Stok: ${(p.current_stock !== undefined && p.current_stock !== null) ? p.current_stock : 0}
                          </span>
                     </div>
                 </div>
@@ -756,7 +765,11 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     if (searchInput) searchInput.value = name;
     if (hiddenId) hiddenId.value = id;
     if (hiddenName) hiddenName.value = name;
-    if (unitSelect) unitSelect.value = unit;
+    if (unitSelect) {
+        unitSelect.value = unit;
+        unitSelect.disabled = !!id; // Lock if registered product
+        unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
+    }
 
     if (infoDiv) {
         const hasBarcode = barcode && barcode !== 'null' && barcode !== 'undefined' && barcode !== '-';
@@ -976,6 +989,7 @@ async function deleteItem(itemId) {
 
             delete deleteTimers[itemId];
             if (card) card.remove();
+            await loadJobDetail(); // <-- Refresh UI to render deletions section
         } catch (error) {
             if (card) {
                 card.style.display = '';
