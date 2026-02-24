@@ -775,16 +775,20 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
         unitSelect.value = unit;
         unitSelect.disabled = !!id; // Lock if registered product
         unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
-        unitSelect.style.color = !!id ? '#9ca3af' : '#1f2937';
+        // Force text color for iOS Safari when disabled
+        unitSelect.style.color = !!id ? '#4b5563' : '#1f2937';
+        unitSelect.style.opacity = '1';
+        unitSelect.style.webkitOpacity = '1';
+        unitSelect.style.webkitTextFillColor = !!id ? '#4b5563' : '#1f2937';
     }
 
     // Auto-select Default Source
     const hiddenSource = document.getElementById('source-original-quick-add');
     const visualSource = document.getElementById('source-visual-quick-add');
-    if (id && window.sources && window.sources.length > 0) {
-        let defaultSource = window.sources.find(s => s.name.toLowerCase() === 'merkez depo' || s.name.toLowerCase() === 'depo')
-            || window.sources.find(s => s.type === 'internal')
-            || window.sources[0];
+    if (id && typeof sources !== 'undefined' && sources.length > 0) {
+        let defaultSource = sources.find(s => s.name.toLowerCase() === 'merkez depo' || s.name.toLowerCase() === 'depo')
+            || sources.find(s => s.type === 'internal')
+            || sources[0];
 
         if (defaultSource && hiddenSource && visualSource) {
             hiddenSource.value = defaultSource.name;
