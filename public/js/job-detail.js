@@ -696,12 +696,13 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="search-result-item" 
-                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')"
+                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.unit || ''}')"
                      style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; background: white; transition: all 0.2s ease;"
                      onmouseover="this.style.background='#f0f9ff'; this.querySelector('.prod-name').style.color='#0284c7';" 
                      onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
                      data-id="${p.id}"
-                     data-name="${p.name.replace(/"/g, '&quot;')}">
+                     data-name="${p.name.replace(/"/g, '&quot;')}"
+                     data-unit="${p.unit || ''}">
                     
                     <div style="pointer-events: none; font-size: 0.85rem; color: #111827; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                         ${p.barcode || '-'}
@@ -735,15 +736,17 @@ function initInlineSearch() {
     });
 }
 
-window.selectInlineProduct = function (id, name) {
+window.selectInlineProduct = function (id, name, unit = '') {
     const searchInput = document.getElementById('inlineProductSearch');
     const hiddenId = document.getElementById('inlineSelectedProductId');
     const hiddenName = document.getElementById('inlineSelectedProductName');
     const resultsDiv = document.getElementById('inlineProductResults');
+    const unitSpan = document.getElementById('inlineProductUnit');
 
     if (searchInput) searchInput.value = name;
     if (hiddenId) hiddenId.value = id;
     if (hiddenName) hiddenName.value = name;
+    if (unitSpan) unitSpan.textContent = unit;
     if (resultsDiv) {
         resultsDiv.style.display = 'none';
         resultsDiv.innerHTML = '';
@@ -812,6 +815,7 @@ function initInlineAddForm() {
             if (resultsDiv) resultsDiv.innerHTML = '';
 
             document.getElementById('inlineQuantity').value = '';
+            document.getElementById('inlineProductUnit').textContent = '';
 
             // Reset Tag Input
             const container = document.getElementById('quick-add-source-container');
@@ -1091,11 +1095,6 @@ function renderTagsInput(itemId, currentSource) {
                         onblur="handleTagBlur('${itemId}')"
                         onfocus="handleTagInput(event, '${itemId}')"
                     >
-                    <button type="button" 
-                            onmousedown="event.preventDefault(); window.addTagManually('${itemId}')" 
-                            style="background: #e0f2fe; color: #0284c7; border: none; border-radius: 4px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; cursor: pointer; margin-left: 4px; flex-shrink: 0;">
-                        +
-                    </button>
                 </div>
             </div>
             <!-- Custom Autocomplete Dropdown -->
