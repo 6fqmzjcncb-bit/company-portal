@@ -811,7 +811,7 @@ function initInlineAddForm() {
             const resultsDiv = document.getElementById('inlineProductResults');
             if (resultsDiv) resultsDiv.innerHTML = '';
 
-            document.getElementById('inlineQuantity').value = '1';
+            document.getElementById('inlineQuantity').value = '';
 
             // Reset Tag Input
             const container = document.getElementById('quick-add-source-container');
