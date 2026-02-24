@@ -1980,7 +1980,7 @@ input[type=number] {
     }
     
     /* Table Scrolling */
-    .table-container, .card {
+    .table-container {
         overflow-x: auto;
     }
     
