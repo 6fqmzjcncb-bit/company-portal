@@ -696,6 +696,7 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="search-result-item" 
+                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')"
                      style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; background: white; transition: all 0.2s ease;"
                      onmouseover="this.style.background='#f0f9ff'; this.querySelector('.prod-name').style.color='#0284c7';" 
                      onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
@@ -724,18 +725,7 @@ function initInlineSearch() {
         }
     }
 
-    // Event delegation for selection (Robust)
-    const handleSelection = (e) => {
-        // Prevent default to avoid blur issues
-        e.preventDefault();
-        const item = e.target.closest('.search-result-item');
-        if (item) {
-            selectInlineProduct(item.dataset.id, item.dataset.name);
-        }
-    };
 
-    resultsDiv.addEventListener('mousedown', handleSelection);
-    resultsDiv.addEventListener('touchstart', handleSelection);
 
     // Hide results on outside click
     document.addEventListener('click', (e) => {
