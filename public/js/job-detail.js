@@ -334,6 +334,8 @@ function renderIncompleteItem(item) {
     const productName = item.product ? item.product.name : item.custom_name;
     const sourceName = item.source ? item.source.name : '';
 
+    const unitText = item.unit || (item.product ? item.product.unit : 'Adet') || 'Adet';
+
     return `
         <div class="job-item-card" data-item-id="${item.id}">
             <!-- HEADER: Checkbox + Name + Actions -->
@@ -355,10 +357,13 @@ function renderIncompleteItem(item) {
                 <!-- Col 1: Required -->
                 <div>
                      <span class="input-group-label">Gerekli</span>
-                     <input type="number" class="qty-input-field" id="req-qty-${item.id}"
-                            value="${item.quantity}" min="1" 
-                            oninput="handleQuantityChange(${item.id})"
-                            onblur="autoSaveQuantity(${item.id}, this.value)">
+                     <div style="display: flex; align-items: center; gap: 4px;">
+                         <input type="number" class="qty-input-field" id="req-qty-${item.id}"
+                                value="${item.quantity}" min="1" 
+                                oninput="handleQuantityChange(${item.id})"
+                                onblur="autoSaveQuantity(${item.id}, this.value)">
+                         <span style="font-size: 0.85rem; color: #6b7280; white-space: nowrap;">${unitText}</span>
+                     </div>
                 </div>
 
                 <!-- Col 2: Received -->
@@ -419,6 +424,7 @@ function renderIncompleteItem(item) {
 function renderCompletedItem(item) {
     const productName = item.product ? item.product.name : item.custom_name;
     const sourceName = item.source ? item.source.name : 'Belirtilmedi';
+    const unitText = item.unit || (item.product ? item.product.unit : 'Adet') || 'Adet';
 
     // Status Badge Logic
     let statusBadge = '';
@@ -427,14 +433,14 @@ function renderCompletedItem(item) {
         // Partial (Red Badge)
         statusBadge = `
             <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
-                 ✓ ${item.quantity_found || 0} alındı • ✕ ${item.quantity_missing} eksik
+                 ✓ ${item.quantity_found || 0} ${unitText} alındı • ✕ ${item.quantity_missing} eksik
             </span>
         `;
     } else {
         // Full (Green Badge)
         statusBadge = `
             <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
-                 ✓ ${item.quantity} tam alındı
+                 ✓ ${item.quantity} ${unitText} tam alındı
             </span>
         `;
     }
@@ -552,7 +558,7 @@ async function autoSaveSource(itemId, newSourceName) {
 
 // Auto-save quantity found (onBlur)
 async function autoSaveQuantityFound(itemId, newValue) {
-    if (newValue.trim() === '') return; // Don't save empty
+    if (String(newValue).trim() === '') return; // Don't save empty
     try {
         await fetch(`/api/jobs/items/${itemId}`, {
             method: 'PUT',
@@ -699,7 +705,7 @@ function initInlineSearch() {
 
             resultsDiv.innerHTML = products.map(p => `
                 <div class="search-result-item" 
-                     onmousedown="event.preventDefault(); window.selectInlineProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.unit || 'Adet'}', '${p.barcode || ''}', '${p.current_stock !== undefined ? p.current_stock : ''}')"
+                     onmousedown="event.preventDefault(); window.selectInlineProduct(this.getAttribute('data-id'), this.getAttribute('data-name'), this.getAttribute('data-unit'), this.getAttribute('data-barcode'), this.getAttribute('data-stock'))"
                      style="display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; border-radius: 6px; margin-bottom: 2px; background: white; transition: all 0.2s ease;"
                      onmouseover="this.style.background='#f0f9ff'; this.querySelector('.prod-name').style.color='#0284c7';" 
                      onmouseout="this.style.background='white'; this.querySelector('.prod-name').style.color='#374151';"
@@ -927,23 +933,51 @@ document.addEventListener('DOMContentLoaded', () => {
 // DELETE / CHECK / UNCHECK
 // ===========================
 
+const deleteTimers = {};
+
+window.undoDelete = function (itemId) {
+    if (deleteTimers[itemId]) {
+        clearTimeout(deleteTimers[itemId]);
+        delete deleteTimers[itemId];
+        const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
+        if (card) {
+            card.style.display = '';
+            card.style.opacity = '1';
+        }
+        showAlert('Silme işlemi geri alındı.', 'info');
+    }
+};
+
 // Kalem sil
 async function deleteItem(itemId) {
-    try {
-        const response = await fetch(`/api/jobs/items/${itemId}`, {
-            method: 'DELETE'
-        });
-
-        if (!response.ok) {
-            throw new Error('Kalem silinemedi');
-        }
-
-        showAlert('Kalem silindi', 'success');
-        await loadJobDetail();
-
-    } catch (error) {
-        showAlert(error.message);
+    const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
+    if (card) {
+        card.style.opacity = '0.5';
+        card.style.display = 'none'; // hide instantly
     }
+
+    showAlert(`Kalem siliniyor... <button onclick="undoDelete(${itemId})" style="margin-left:12px; padding:4px 10px; border-radius:4px; background:white; color:#ef4444; border:none; cursor:pointer; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1);">Geri Al</button>`, 'success', 4000);
+
+    deleteTimers[itemId] = setTimeout(async () => {
+        try {
+            const response = await fetch(`/api/jobs/items/${itemId}`, {
+                method: 'DELETE'
+            });
+
+            if (!response.ok) {
+                throw new Error('Kalem silinemedi');
+            }
+
+            delete deleteTimers[itemId];
+            if (card) card.remove();
+        } catch (error) {
+            if (card) {
+                card.style.display = '';
+                card.style.opacity = '1';
+            }
+            showAlert(error.message);
+        }
+    }, 4000);
 }
 
 // Kalem işaretle
