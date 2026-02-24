@@ -781,13 +781,13 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
         } else {
             unitSelect.value = 'Adet';
         }
-        unitSelect.disabled = !!id; // Lock if registered product
+        // Remove disabled attribute to bypass iOS Safari's broken native disabled styling
+        unitSelect.disabled = false;
+
+        // Use pointer-events and visual styles to simulate disabled state
+        unitSelect.style.pointerEvents = !!id ? 'none' : 'auto';
         unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
-        // Force text color for iOS Safari when disabled
         unitSelect.style.color = !!id ? '#4b5563' : '#1f2937';
-        unitSelect.style.opacity = '1';
-        unitSelect.style.webkitOpacity = '1';
-        unitSelect.style.webkitTextFillColor = !!id ? '#4b5563' : '#1f2937';
     }
 
     // Auto-select Default Source
