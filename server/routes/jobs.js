@@ -136,6 +136,7 @@ router.get('/:id', requireAuth, async (req, res) => {
                 viewed_at: v.viewed_at
             })),
             deletions: deletions.map(d => ({
+                id: d.id,
                 product_name: d.product_name,
                 quantity: d.quantity,
                 source_name: d.source_name,
@@ -588,6 +589,37 @@ router.delete('/items/:itemId', requireAuth, async (req, res) => {
     } catch (error) {
         console.error('Job item delete error:', error);
         res.status(500).json({ error: 'Kalem silinemedi' });
+    }
+});
+
+// Silinen öğeyi geri al (Restore)
+router.post('/deletions/:id/restore', requireAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const JobItemDeletion = require('../models/JobItemDeletion');
+
+        const deletion = await JobItemDeletion.findByPk(id);
+        if (!deletion) {
+            return res.status(404).json({ error: 'Silinen kayıt bulunamadı' });
+        }
+
+        // Yeniden kalem olarak ekle (tam eşleşme olmasa da text tabanlı kurtarma)
+        const newItem = await JobItem.create({
+            job_list_id: deletion.job_list_id,
+            custom_name: deletion.product_name,
+            quantity: deletion.quantity,
+            unit: 'Adet',
+            source_name: deletion.source_name || 'Geri Alınan',
+            is_checked: false
+        });
+
+        // Logu temizle
+        await deletion.destroy();
+
+        res.json({ success: true, item: newItem });
+    } catch (error) {
+        console.error('Job item restore error:', error);
+        res.status(500).json({ error: 'Kalem geri alınamadı' });
     }
 });
 

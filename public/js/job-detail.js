@@ -270,7 +270,10 @@ function renderDeletions(deletions) {
             </summary>
             <div style="margin-top: 10px;">
                 ${deletions.map(d => `
-                    <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem;">
+                    <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem; border: 1px solid #fee2e2;">
+                        <button onclick="restoreDeletion(${d.id})" class="btn btn-sm" style="float: right; padding: 2px 8px; font-size: 0.8rem; background: #10b981; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 2px;">
+                            ↩ Geri Al
+                        </button>
                         <strong>${d.product_name}</strong> - ${d.quantity} adet
                         ${d.source_name ? `(${d.source_name})` : ''}<br>
                         <span style="color: #6b7280;">
@@ -949,55 +952,56 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===========================
-// DELETE / CHECK / UNCHECK
+// DELETE / RESTORE / CHECK / UNCHECK
 // ===========================
 
-const deleteTimers = {};
-
-window.undoDelete = function (itemId) {
-    if (deleteTimers[itemId]) {
-        clearTimeout(deleteTimers[itemId]);
-        delete deleteTimers[itemId];
-        const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
-        if (card) {
-            card.style.display = '';
-            card.style.opacity = '1';
+// Silinen Öğeyi Geri Al (RESTORE)
+async function restoreDeletion(deletionId) {
+    try {
+        const response = await fetch(`/api/jobs/deletions/${deletionId}/restore`, {
+            method: 'POST'
+        });
+        if (!response.ok) {
+            throw new Error('Geri alma başarısız');
         }
-        showAlert('Silme işlemi geri alındı.', 'info');
+        showAlert('Silinen liste elemanı geri alındı!', 'success');
+        await loadJobDetail(); // Refresh UI to move it back up
+    } catch (error) {
+        showAlert(error.message);
     }
-};
+}
 
-// Kalem sil
+// Kalem sil (Anında - Gecikmesiz)
 async function deleteItem(itemId) {
+    if (!confirm('Bu kalemi listeden silmek istediğinize emin misiniz? (Daha sonra \"Silinen Ürünler\" menüsünden geri alabilirsiniz)')) {
+        return;
+    }
+
     const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
     if (card) {
         card.style.opacity = '0.5';
-        card.style.display = 'none'; // hide instantly
     }
 
-    showAlert(`Kalem siliniyor... <button onclick="undoDelete(${itemId})" style="margin-left:12px; padding:4px 10px; border-radius:4px; background:white; color:#ef4444; border:none; cursor:pointer; font-weight:bold; box-shadow:0 1px 2px rgba(0,0,0,0.1);">Geri Al</button>`, 'success', 4000);
+    try {
+        const response = await fetch(`/api/jobs/items/${itemId}`, {
+            method: 'DELETE'
+        });
 
-    deleteTimers[itemId] = setTimeout(async () => {
-        try {
-            const response = await fetch(`/api/jobs/items/${itemId}`, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error('Kalem silinemedi');
-            }
-
-            delete deleteTimers[itemId];
-            if (card) card.remove();
-            await loadJobDetail(); // <-- Refresh UI to render deletions section
-        } catch (error) {
-            if (card) {
-                card.style.display = '';
-                card.style.opacity = '1';
-            }
-            showAlert(error.message);
+        if (!response.ok) {
+            throw new Error('Kalem silinemedi');
         }
-    }, 4000);
+
+        if (card) card.remove();
+        await loadJobDetail(); // <-- Silinen öğeler bölümünü anında güncelle
+
+        // deletedItems details elementini otomatik aç ki kullanıcı görsün
+        const detailsElem = document.querySelector('#deletedItems details');
+        if (detailsElem) detailsElem.open = true;
+
+    } catch (error) {
+        if (card) card.style.opacity = '1';
+        showAlert(error.message);
+    }
 }
 
 // Kalem işaretle
