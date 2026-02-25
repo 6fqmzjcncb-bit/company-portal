@@ -11,6 +11,9 @@ function createCustomDropdown(selectElement, options = {}) {
         allowNew = false
     } = options;
 
+    // Capture original style before hiding
+    const originalStyle = selectElement.getAttribute('style') || '';
+
     // Hide original select
     selectElement.style.display = 'none';
 
@@ -22,7 +25,15 @@ function createCustomDropdown(selectElement, options = {}) {
 
     // Create trigger button
     const trigger = document.createElement('div');
-    trigger.className = 'custom-dropdown-trigger';
+    trigger.className = `custom-dropdown-trigger ${selectElement.className}`;
+    if (originalStyle) {
+        trigger.setAttribute('style', originalStyle);
+    }
+    // Override display to ensure flex behavior works for the trigger contents
+    trigger.style.display = 'flex';
+    trigger.style.alignItems = 'center';
+    trigger.style.justifyContent = 'space-between';
+
     trigger.innerHTML = `
         <span class="custom-dropdown-value">${placeholder}</span>
         <svg class="custom-dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
