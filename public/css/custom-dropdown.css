@@ -6,8 +6,9 @@
 
 .custom-dropdown-trigger {
     width: 100%;
-    padding: 11px 16px;
-    padding-right: 40px;
+    height: 42px;
+    padding: 8px 12px;
+    padding-right: 32px;
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     font-size: 0.9375rem;
@@ -42,7 +43,7 @@
 
 .custom-dropdown-arrow {
     position: absolute;
-    right: 14px;
+    right: 10px;
     width: 14px;
     height: 14px;
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
