@@ -452,8 +452,10 @@ body {
 select {
   /* Catch-all for basic selects like in the modal */
   width: 100%;
-  padding: 0.875rem 1rem;
+  height: 44px;
+  padding: 0 1rem;
   padding-right: 2.5rem;
+  box-sizing: border-box;
   /* Space for arrow */
   border: 2px solid var(--gray-200);
   border-radius: var(--radius-md);
@@ -527,6 +529,8 @@ select:focus,
 .form-textarea {
   resize: vertical;
   min-height: 100px;
+  height: auto;
+  padding: 0.875rem 1rem;
 }
 
 .form-error {
@@ -1909,105 +1913,111 @@ input[type=number] {
   -moz-appearance: textfield;
   /* Firefox */
 }
+
 /* ===========================
    MOBILE RESPONSIVENESS (v1.0)
    =========================== */
 
 #sidebarToggle {
-    display: none; /* Hidden on desktop */
+  display: none;
+  /* Hidden on desktop */
 }
 
 @media (max-width: 768px) {
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding-top: 70px; /* Space for hamburger */
-    }
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-top: 70px;
+    /* Space for hamburger */
+  }
 
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-        z-index: 1000;
-        position: fixed;
-        width: 260px;
-        height: 100vh;
-        top: 0;
-        left: 0;
-        overflow-y: auto;
-    }
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    position: fixed;
+    width: 260px;
+    height: 100vh;
+    top: 0;
+    left: 0;
+    overflow-y: auto;
+  }
 
-    .sidebar.active {
-        transform: translateX(0);
-        box-shadow: 4px 0 15px rgba(0,0,0,0.2);
-    }
+  .sidebar.active {
+    transform: translateX(0);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+  }
 
-    #sidebarToggle {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 998; /* Below sidebar (1000) so sidebar covers it when open? Or above? Let's keep it visible or let overlay handle close. */
-        /* If sidebar is 1000, and fully covers, button is hidden. */
-        /* Let's put button at 1001 so it can toggle CLOSED too? */
-        /* Actually commonly sidebar covers it. Click overlay to close. */
-        background: white;
-        color: var(--primary-color);
-        border: 1px solid var(--gray-300);
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        font-size: 1.5rem;
-        cursor: pointer;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
+  #sidebarToggle {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 998;
+    /* Below sidebar (1000) so sidebar covers it when open? Or above? Let's keep it visible or let overlay handle close. */
+    /* If sidebar is 1000, and fully covers, button is hidden. */
+    /* Let's put button at 1001 so it can toggle CLOSED too? */
+    /* Actually commonly sidebar covers it. Click overlay to close. */
+    background: white;
+    color: var(--primary-color);
+    border: 1px solid var(--gray-300);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
 
-    .sidebar-overlay {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 999;
-        backdrop-filter: blur(2px);
-    }
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(2px);
+  }
 
-    .sidebar-overlay.active {
-        display: block;
-    }
-    
-    /* Table Scrolling */
-    .table-container {
-        overflow-x: auto;
-    }
-    
-    /* Grid adjustments */
-    .dashboard-grid, .stats-grid, .products-grid {
-        grid-template-columns: 1fr !important;
-    }
-    
-    /* Modal Full Width */
-    .modal-content {
-        width: 95% !important;
-        margin: 10px !important;
-        max-height: 90vh;
-        overflow-y: auto;
-    }
-    
-    /* Header Adjustments */
-    .page-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    
-    .header-actions {
-        width: 100%;
-        justify-content: space-between;
-    }
+  .sidebar-overlay.active {
+    display: block;
+  }
+
+  /* Table Scrolling */
+  .table-container {
+    overflow-x: auto;
+  }
+
+  /* Grid adjustments */
+  .dashboard-grid,
+  .stats-grid,
+  .products-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal Full Width */
+  .modal-content {
+    width: 95% !important;
+    margin: 10px !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Header Adjustments */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 /* ===========================
@@ -2016,100 +2026,104 @@ input[type=number] {
 
 /* Job Detail: Quick Add Form */
 .quick-add-form {
-    display: grid;
-    grid-template-columns: 2fr 1fr 100px 120px;
-    gap: 1rem;
-    align-items: start;
+  display: grid;
+  grid-template-columns: 2fr 1fr 100px 120px;
+  gap: 1rem;
+  align-items: start;
 }
 
 @media (max-width: 768px) {
-    .quick-add-form {
-        grid-template-columns: 1fr !important; /* Stack vertically on mobile */
-        gap: 0.5rem;
-    }
-    
-    .quick-add-form button {
-        width: 100%;
-        margin-top: 5px;
-    }
-    
-    /* Salary Page: Header Buttons */
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start !important;
-        gap: 10px;
-    }
-    
-    .card-header > div {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-    
-    .card-header button {
-        flex: 1;
-    }
-    
-    /* Salary Page: Financial Summary Grid */
-    .summary-grid {
-        grid-template-columns: 1fr 1fr !important; /* Keep 2 cols on mobile, maybe? Or 1fr? */
-        /* User's screenshot showed it stacked awkwardly? No, it wasn't visible. */
-        /* Let's be safe */
-    }
-    
-    /* Admin Page: Backup Buttons */
-    .btn-group, .action-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    /* Fix weird button alignments globally on mobile */
-    .btn {
-        width: 100%; /* Make buttons full width on mobile for easier tapping */
-        margin-bottom: 5px;
-    }
-    
-    /* Exception: Table action buttons shouldn't be full width */
-    td .btn {
-        width: auto;
-        padding: 4px 8px;
-        font-size: 0.8rem;
-    }
-    
-    /* Fix Modal Inputs on Mobile */
-    .form-group {
-        width: 100%;
-    }
-    
-    /* Fix "Sistem Yetkisi" dropdown in User Modal */
-    .role-select-container {
-        flex-direction: column;
-    }
+  .quick-add-form {
+    grid-template-columns: 1fr !important;
+    /* Stack vertically on mobile */
+    gap: 0.5rem;
+  }
+
+  .quick-add-form button {
+    width: 100%;
+    margin-top: 5px;
+  }
+
+  /* Salary Page: Header Buttons */
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+
+  .card-header>div {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .card-header button {
+    flex: 1;
+  }
+
+  /* Salary Page: Financial Summary Grid */
+  .summary-grid {
+    grid-template-columns: 1fr 1fr !important;
+    /* Keep 2 cols on mobile, maybe? Or 1fr? */
+    /* User's screenshot showed it stacked awkwardly? No, it wasn't visible. */
+    /* Let's be safe */
+  }
+
+  /* Admin Page: Backup Buttons */
+  .btn-group,
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Fix weird button alignments globally on mobile */
+  .btn {
+    width: 100%;
+    /* Make buttons full width on mobile for easier tapping */
+    margin-bottom: 5px;
+  }
+
+  /* Exception: Table action buttons shouldn't be full width */
+  td .btn {
+    width: auto;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
+
+  /* Fix Modal Inputs on Mobile */
+  .form-group {
+    width: 100%;
+  }
+
+  /* Fix "Sistem Yetkisi" dropdown in User Modal */
+  .role-select-container {
+    flex-direction: column;
+  }
 }
 
 /* Admin Page: Backup Actions */
 .backup-actions {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 15px;
 }
 
 @media (max-width: 768px) {
-    .backup-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .backup-actions input[type="file"] {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-    
-    .backup-actions button {
-        width: 100%;
-    }
+  .backup-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .backup-actions input[type="file"] {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .backup-actions button {
+    width: 100%;
+  }
 }
 
 /* ===========================
@@ -2118,85 +2132,90 @@ input[type=number] {
 
 /* Fix Tag Input Container on Mobile */
 @media (max-width: 768px) {
-    .tag-container {
-        width: 100% !important;
-        display: flex !important;
-        flex-wrap: wrap !important;
-        padding: 5px !important;
-        min-height: 48px !important; /* Larger touch target */
-        height: auto !important;
-        overflow: visible !important;
-    }
-    
-    .tag-input-field {
-        min-width: 100px;
-        flex: 1;
-        height: 36px;
-    }
+  .tag-container {
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    padding: 5px !important;
+    min-height: 48px !important;
+    /* Larger touch target */
+    height: auto !important;
+    overflow: visible !important;
+  }
 
-    .active-tag {
-        margin: 2px;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        display: inline-flex;
-    }
+  .tag-input-field {
+    min-width: 100px;
+    flex: 1;
+    height: 36px;
+  }
+
+  .active-tag {
+    margin: 2px;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-flex;
+  }
 }
 
 /* Fix Bulk Stock Modal (Toplu Stok) Mobile Layout */
 @media (max-width: 768px) {
-    /* Stack Product Search & Camera Button */
-    #batchAddSection .form-group > div {
-        flex-direction: column !important;
-        gap: 10px !important;
-    }
 
-    #batchProductSearch {
-        width: 100% !important;
-    }
+  /* Stack Product Search & Camera Button */
+  #batchAddSection .form-group>div {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
 
-    #batchScannerBtn {
-        width: 100% !important;
-        border-radius: 8px !important;
-    }
+  #batchProductSearch {
+    width: 100% !important;
+  }
 
-    /* Stack Quantity & Stock Label */
-    #batchQuantity {
-        width: 100% !important;
-        margin-bottom: 5px;
-    }
+  #batchScannerBtn {
+    width: 100% !important;
+    border-radius: 8px !important;
+  }
 
-    #batchQuantityUnit {
-        display: none; /* Hide dash separator on mobile */
-    }
+  /* Stack Quantity & Stock Label */
+  #batchQuantity {
+    width: 100% !important;
+    margin-bottom: 5px;
+  }
 
-    #batchUnitLabel {
-        width: 100% !important;
-        min-width: 100% !important;
-        margin-left: 0 !important;
-    }
+  #batchQuantityUnit {
+    display: none;
+    /* Hide dash separator on mobile */
+  }
 
-    /* Fix Note & Save Button Spacing */
-    .form-group textarea {
-        margin-bottom: 15px; /* More space before button */
-    }
+  #batchUnitLabel {
+    width: 100% !important;
+    min-width: 100% !important;
+    margin-left: 0 !important;
+  }
 
-    .modal-actions {
-        flex-direction: column-reverse; /* Stack buttons, Save on top? Or standard bottom? Standard is fine. */
-        gap: 10px;
-    }
+  /* Fix Note & Save Button Spacing */
+  .form-group textarea {
+    margin-bottom: 15px;
+    /* More space before button */
+  }
 
-    .modal-actions button {
-        width: 100%;
-    }
-    
-    /* Fix "Kaydet (0)" Button in Unified Modal */
-    #unifiedStockModal .btn-success {
-        width: 100%;
-        margin-top: 10px;
-        padding: 12px;
-    }
+  .modal-actions {
+    flex-direction: column-reverse;
+    /* Stack buttons, Save on top? Or standard bottom? Standard is fine. */
+    gap: 10px;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  /* Fix "Kaydet (0)" Button in Unified Modal */
+  #unifiedStockModal .btn-success {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+  }
 }
 
 /* Fix "2 Tane Rol Seçiniz" issue (Generic Fix if JS fails) */
@@ -2205,22 +2224,22 @@ input[type=number] {
 
 /* Improve Job Detail Incomplete Item Card Mobile */
 @media (max-width: 768px) {
-    .job-item-card {
-        padding: 10px;
-    }
+  .job-item-card {
+    padding: 10px;
+  }
 
-    .card-body-grid {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 10px !important;
-    }
+  .card-body-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
 
-    /* Make Source & Note full width */
-    .card-body-grid > div:nth-child(3),
-    .card-body-grid > div:nth-child(4) {
-        grid-column: 1 / -1;
-    }
-    
-    .note-input {
-        width: 100% !important;
-    }
+  /* Make Source & Note full width */
+  .card-body-grid>div:nth-child(3),
+  .card-body-grid>div:nth-child(4) {
+    grid-column: 1 / -1;
+  }
+
+  .note-input {
+    width: 100% !important;
+  }
 }
