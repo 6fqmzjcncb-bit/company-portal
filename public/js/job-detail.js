@@ -1203,7 +1203,7 @@ function renderTagsInput(itemId, currentSource) {
 
     return `
         <div style="position: relative; width: 100%;">
-            <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #e5e7eb; border-radius: 6px; background: white; height: 42px; white-space: nowrap; scrollbar-width: none;">
+            <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 2px solid var(--gray-200); border-radius: var(--radius-md); box-sizing: border-box; background: white; height: 42px; white-space: nowrap; scrollbar-width: none;">
                 ${tagsHtml}
                 <div style="display: flex; flex: 1; align-items: center; min-width: 140px;">
                     <input 
