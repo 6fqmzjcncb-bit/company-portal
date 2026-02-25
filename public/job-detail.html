@@ -176,7 +176,8 @@
                         <!-- Ürün Arama -->
                         <div style="position: relative; margin-bottom: 8px;">
                             <input type="text" id="inlineProductSearch" class="form-input"
-                                placeholder="🔍 Ürün adı veya barkod yazın..." autocomplete="off">
+                                placeholder="🔍 Ürün adı veya barkod yazın..." autocomplete="off"
+                                style="height: 38px; width: 100%; box-sizing: border-box;">
                             <div id="inlineProductResults"
                                 style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; max-height: 250px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); margin-top: 4px; padding: 4px;">
                             </div>
@@ -193,11 +194,11 @@
                         <div style="display: flex; gap: 8px;">
                             <div style="flex: 2;">
                                 <input type="number" id="inlineQuantity" class="form-input" min="1" required
-                                    placeholder="Miktar giriniz..." style="height: 42px; width: 100%;">
+                                    placeholder="Miktar giriniz..." style="height: 38px; width: 100%;">
                             </div>
                             <div style="flex: 1;">
                                 <select id="inlineProductUnit" class="form-input"
-                                    style="width: 100%; height: 42px; cursor: pointer; padding: 0 4px; color: #1f2937; font-size: 0.9rem; line-height: normal; display: block; box-sizing: border-box; text-align: center; text-align-last: center;">
+                                    style="width: 100%; height: 38px; cursor: pointer; padding: 0 4px; color: #1f2937; font-size: 0.9rem; line-height: normal; display: block; box-sizing: border-box; text-align: center; text-align-last: center;">
                                     <option value="Adet">Adet</option>
                                     <option value="Metre">Metre</option>
                                     <option value="Paket">Paket</option>
