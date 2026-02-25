@@ -835,7 +835,7 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
 
     const qtyInput = document.getElementById('inlineQuantity');
     if (qtyInput) {
-        if (!qtyInput.value) qtyInput.value = 1;
+        qtyInput.value = '';
         qtyInput.focus();
     }
 };
