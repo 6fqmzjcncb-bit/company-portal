@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { Unit } = require('../models');
-const { isAuthenticated, isAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 // GET /api/units
-router.get('/', isAuthenticated, async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
     try {
         const units = await Unit.findAll({
             order: [['name', 'ASC']]
@@ -17,7 +17,7 @@ router.get('/', isAuthenticated, async (req, res) => {
 });
 
 // POST /api/units
-router.post('/', isAdmin, async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
     try {
         const { name } = req.body;
         if (!name || name.trim() === '') {
@@ -39,7 +39,7 @@ router.post('/', isAdmin, async (req, res) => {
 });
 
 // DELETE /api/units/:id
-router.delete('/:id', isAdmin, async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const unit = await Unit.findByPk(id);
