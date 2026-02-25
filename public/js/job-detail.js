@@ -132,6 +132,7 @@ async function loadUnits() {
                 if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 inlineUnitSelect.appendChild(opt);
             });
+            if (inlineUnitSelect.customDropdown) inlineUnitSelect.customDropdown.refresh();
         }
 
         // Edit modal unit select
@@ -145,6 +146,7 @@ async function loadUnits() {
                 if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 editUnitSelect.appendChild(opt);
             });
+            if (editUnitSelect.customDropdown) editUnitSelect.customDropdown.refresh();
         }
     } catch (error) {
         console.error('Units load error:', error);

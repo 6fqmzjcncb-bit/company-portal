@@ -222,6 +222,7 @@ async function loadUnits() {
                 if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 unitSelect.appendChild(opt);
             });
+            if (unitSelect.customDropdown) unitSelect.customDropdown.refresh();
         }
     } catch (error) {
         console.error('Units load error:', error);
