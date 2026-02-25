@@ -124,11 +124,12 @@ async function loadUnits() {
         // Inline form unit select
         const inlineUnitSelect = document.getElementById('inlineProductUnit');
         if (inlineUnitSelect) {
-            inlineUnitSelect.innerHTML = '<option value="" disabled selected>Birim...</option>';
+            inlineUnitSelect.innerHTML = '';
             units.forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.name;
                 opt.textContent = u.name;
+                if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 inlineUnitSelect.appendChild(opt);
             });
         }
@@ -136,11 +137,12 @@ async function loadUnits() {
         // Edit modal unit select
         const editUnitSelect = document.getElementById('editUnit');
         if (editUnitSelect) {
-            editUnitSelect.innerHTML = '<option value="">Birim Seçin...</option>';
+            editUnitSelect.innerHTML = '';
             units.forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.name;
                 opt.textContent = u.name;
+                if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 editUnitSelect.appendChild(opt);
             });
         }

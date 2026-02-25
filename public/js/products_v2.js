@@ -214,11 +214,12 @@ async function loadUnits() {
         // Populate Product Modal Unit Select
         const unitSelect = document.getElementById('newProdUnit');
         if (unitSelect) {
-            unitSelect.innerHTML = '<option value="" disabled selected>Birim Seçin</option>';
+            unitSelect.innerHTML = '';
             units.forEach(u => {
                 const opt = document.createElement('option');
                 opt.value = u.name;
                 opt.textContent = u.name;
+                if (u.name.toLowerCase() === 'adet') opt.selected = true;
                 unitSelect.appendChild(opt);
             });
         }
