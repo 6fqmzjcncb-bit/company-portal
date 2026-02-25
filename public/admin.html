@@ -602,6 +602,39 @@
                     await saveLink();
                 });
             }
+
+            // Unit Form
+            const unitForm = document.getElementById('unitForm');
+            if (unitForm) {
+                unitForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const name = document.getElementById('unitName').value;
+
+                    try {
+                        const response = await fetch('/api/units', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            closeModal('unitModal');
+                            loadUnits();
+                            showAlert('Birim eklendi');
+                        } else {
+                            showAlert('Hata: ' + (result.error || 'Bilinmeyen hata'));
+                        }
+                    } catch (error) {
+                        console.error('Unit submit error:', error);
+                        showAlert('Bağlantı hatası!');
+                    }
+                });
+            }
+
+            // Load Units Initial
+            loadUnits();
         });
         // User Role Edit
         function openEditUserRoleModal(userId, username, currentRoleId) {
@@ -640,6 +673,56 @@
                 }
             } catch (error) {
                 console.error(error);
+                showAlert('Bağlantı hatası');
+            }
+        }
+
+        // --- Unit Management ---
+        async function loadUnits() {
+            const container = document.getElementById('unitsContainer');
+            if (!container) return;
+
+            try {
+                const response = await fetch('/api/units');
+                if (!response.ok) throw new Error('Sunucu Hatası');
+                const units = await response.json();
+
+                if (units.length === 0) {
+                    container.innerHTML = '<tr><td colspan="2" class="text-center text-muted">Birim bulunamadı (Örn: Adet)</td></tr>';
+                    return;
+                }
+
+                container.innerHTML = units.map(u => `
+                    <tr>
+                        <td><strong>${u.name}</strong></td>
+                        <td>
+                            <button class="btn btn-danger btn-sm" onclick="deleteUnit(${u.id})">Sil</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<tr><td colspan="2" class="text-danger text-center">Yüklenemedi</td></tr>';
+            }
+        }
+
+        function openUnitModal() {
+            const form = document.getElementById('unitForm');
+            if (form) form.reset();
+            document.getElementById('unitModal').style.display = 'flex';
+        }
+
+        async function deleteUnit(id) {
+            if (!confirm('Bu ölçü birimini sistemden kaldırmak istediğinize emin misiniz?')) return;
+            try {
+                const response = await fetch(`/api/units/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    loadUnits();
+                    showAlert('Birim silindi');
+                } else {
+                    const res = await response.json();
+                    showAlert('Hata: ' + res.error);
+                }
+            } catch (error) {
                 showAlert('Bağlantı hatası');
             }
         }
@@ -892,6 +975,29 @@
                     </div>
                 </div>
 
+                <!-- Units Management Card -->
+                <div class="card mt-4">
+                    <div class="card-header" style="background-color: #f8fafc; padding: 1rem;">
+                        <span style="color: #334155; font-weight: bold;">📏 Birim Yönetimi (Ölçü Birimleri)</span>
+                        <button class="btn btn-primary btn-sm" onclick="openUnitModal()">+ Yeni Birim Ekle</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <table class="table" style="margin-bottom: 0;">
+                            <thead>
+                                <tr>
+                                    <th>Birim Adı</th>
+                                    <th style="width: 150px;">İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="unitsContainer">
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">Birimler yükleniyor...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <!-- Data Management Card -->
                 <div class="card mt-4" style="border-top: 4px solid #3b82f6;">
                     <div class="card-header" style="background-color: #eff6ff; padding: 1rem;">
@@ -961,6 +1067,30 @@
                                 <button type="button" class="btn btn-secondary"
                                     onclick="closeModal('accountModal')">İptal</button>
                                 <button type="submit" class="btn btn-primary">Hesabı Oluştur</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unit Add Modal -->
+            <div id="unitModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Yeni Birim Ekle</h2>
+                        <button class="modal-close" onclick="closeModal('unitModal')">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="unitForm">
+                            <div class="form-group">
+                                <label>Birim Adı</label>
+                                <input type="text" id="unitName" placeholder="Örn: Adet, Metre, Litre" required
+                                    autocomplete="off">
+                            </div>
+                            <div class="modal-actions">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="closeModal('unitModal')">İptal</button>
+                                <button type="submit" class="btn btn-primary">Kaydet</button>
                             </div>
                         </form>
                     </div>

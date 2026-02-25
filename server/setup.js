@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const { sequelize } = require('./config/database');
-const { User, Source, Product, JobList, JobItem, Employee, Attendance, StockMovement } = require('./models');
+const { User, Source, Product, JobList, JobItem, Employee, Attendance, StockMovement, Unit } = require('./models');
 
 async function setup() {
     try {
@@ -159,6 +159,18 @@ async function setup() {
         ]);
 
         console.log('✓ Örnek iş listesi ve kalemler oluşturuldu');
+
+        // Örnek Birimler Ekle
+        const units = await Unit.bulkCreate([
+            { name: 'Adet' },
+            { name: 'Metre' },
+            { name: 'Kutu' },
+            { name: 'Paket' },
+            { name: 'Top' },
+            { name: 'Takım' },
+            { name: 'Kilo' }
+        ]);
+        console.log('✓ Örnek ölçü birimleri oluşturuldu');
 
         // Fase 2: Örnek personel
         const employees = await Employee.bulkCreate([

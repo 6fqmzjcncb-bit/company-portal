@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setupModalListeners();
 
         // Load Data
+        await loadUnits();
         await loadProducts();
     } catch (e) {
         alert('Init Hata: ' + e.message);
@@ -197,6 +198,33 @@ function setupTabs() {
             }
         });
     });
+}
+
+// =======================
+// UNITS LOGIC
+// =======================
+let units = [];
+
+async function loadUnits() {
+    try {
+        const response = await fetch('/api/units');
+        if (!response.ok) return;
+        units = await response.json();
+
+        // Populate Product Modal Unit Select
+        const unitSelect = document.getElementById('newProdUnit');
+        if (unitSelect) {
+            unitSelect.innerHTML = '<option value="" disabled selected>Birim Seçin</option>';
+            units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.name;
+                opt.textContent = u.name;
+                unitSelect.appendChild(opt);
+            });
+        }
+    } catch (error) {
+        console.error('Units load error:', error);
+    }
 }
 
 // =======================

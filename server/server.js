@@ -85,6 +85,7 @@ app.use('/api/stock-movements', require('./routes/stock-movements'));
 app.use('/api/salary', require('./routes/salary'));
 app.use('/api/roles', require('./routes/roles')); // New Roles Route
 app.use('/api/payment-accounts', require('./routes/payment-accounts'));
+app.use('/api/units', require('./routes/units'));
 
 // ... (rest of routes)
 

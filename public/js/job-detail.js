@@ -3,6 +3,7 @@ let jobId = null;
 let currentUser = null;
 let sources = [];
 let availableSourceNames = [];
+let units = [];
 
 // URL'den job ID al
 const urlParams = new URLSearchParams(window.location.search);
@@ -110,6 +111,41 @@ async function loadSources() {
         }
     } catch (error) {
         console.error('Sources load error:', error);
+    }
+}
+
+// Birimleri yükle
+async function loadUnits() {
+    try {
+        const response = await fetch('/api/units');
+        if (!response.ok) return;
+        units = await response.json();
+
+        // Inline form unit select
+        const inlineUnitSelect = document.getElementById('inlineProductUnit');
+        if (inlineUnitSelect) {
+            inlineUnitSelect.innerHTML = '<option value="" disabled selected>Birim...</option>';
+            units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.name;
+                opt.textContent = u.name;
+                inlineUnitSelect.appendChild(opt);
+            });
+        }
+
+        // Edit modal unit select
+        const editUnitSelect = document.getElementById('editUnit');
+        if (editUnitSelect) {
+            editUnitSelect.innerHTML = '<option value="">Birim Seçin...</option>';
+            units.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.name;
+                opt.textContent = u.name;
+                editUnitSelect.appendChild(opt);
+            });
+        }
+    } catch (error) {
+        console.error('Units load error:', error);
     }
 }
 
@@ -949,8 +985,12 @@ function closeEditItemModal() {
     setTimeout(() => modal.style.display = 'none', 300);
 }
 
-// Edit form submit
+// Event Listeners (Sayfa Yüklendiğinde)
 document.addEventListener('DOMContentLoaded', () => {
+    loadUserInfo();
+    loadSources();
+    loadUnits();
+    loadJobDetail();
     const editForm = document.getElementById('editItemForm');
 
     if (editForm) {

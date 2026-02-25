@@ -12,6 +12,7 @@ const JobView = require('./JobView');
 const JobItemDeletion = require('./JobItemDeletion');
 const Role = require('./Role'); // Import Role
 const PaymentAccount = require('./PaymentAccount');
+const Unit = require('./Unit');
 
 // İlişkileri tanımla
 // Role - User (1-N)
@@ -157,5 +158,6 @@ module.exports = {
     JobItemDeletion,
     PaymentAccount,
     Role,
+    Unit,
     sequelize // Export sequelize instance
 };
