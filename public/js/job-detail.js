@@ -731,10 +731,13 @@ function initInlineSearch() {
 
         const unitSelect = document.getElementById('inlineProductUnit');
         if (unitSelect) {
-            unitSelect.disabled = false; // Unlock for custom typing
-            unitSelect.style.pointerEvents = 'auto'; // Fix iOS simulation lock
-            unitSelect.style.background = 'white';
-            unitSelect.style.color = '#1f2937';
+            unitSelect.disabled = false;
+            const triggerDiv = unitSelect.closest('.custom-dropdown') ? unitSelect.closest('.custom-dropdown').querySelector('.custom-dropdown-trigger') : unitSelect;
+            if (triggerDiv) {
+                triggerDiv.style.pointerEvents = 'auto';
+                triggerDiv.style.background = 'white';
+                triggerDiv.style.color = '#1f2937';
+            }
         }
 
         await performSearch(e.target.value);
@@ -835,10 +838,6 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
         }
     }
 
-    // Show the reset (X) button
-    const resetBtn = document.getElementById('inlineResetProductBtn');
-    if (resetBtn) resetBtn.style.display = 'block';
-
     // Auto-select Default Source
     const sourceContainer = document.getElementById('quick-add-source-container');
     if (id && typeof sources !== 'undefined' && sources.length > 0) {
@@ -894,7 +893,6 @@ window.resetInlineProductSelection = function () {
     const resultsDiv = document.getElementById('inlineProductResults');
     const infoDiv = document.getElementById('inlineProductInfo');
     const unitSelect = document.getElementById('inlineProductUnit');
-    const resetBtn = document.getElementById('inlineResetProductBtn');
 
     if (searchInput) {
         searchInput.value = '';
@@ -909,9 +907,6 @@ window.resetInlineProductSelection = function () {
     if (resultsDiv) {
         resultsDiv.innerHTML = '';
         resultsDiv.style.display = 'none';
-    }
-    if (resetBtn) {
-        resetBtn.style.display = 'none';
     }
 
     // Unlock and reset unit dropdown
