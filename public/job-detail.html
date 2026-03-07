@@ -190,17 +190,23 @@
                         </div>
 
                         <!-- Miktar -->
-                        <div style="display: flex; gap: 8px; align-items: flex-start;">
-                            <div style="flex: 2;">
+                        <div style="display: flex; gap: 8px; align-items: stretch;">
+                            <div style="flex: 2; display: flex;">
                                 <input type="number" id="inlineQuantity" class="form-input" min="1" required
-                                    placeholder="Miktar giriniz..." style="width: 100%;">
+                                    placeholder="Miktar giriniz..." style="width: 100%; flex: 1;">
                             </div>
-                            <div style="flex: 1;">
+                            <div style="flex: 1; display: flex;">
                                 <select id="inlineProductUnit" class="form-input" data-custom-dropdown
-                                    data-searchable="false" style="width: 100%;">
+                                    data-searchable="false" style="width: 100%; flex: 1;">
                                     <option value="" disabled selected>Birim...</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <!-- Not -->
+                        <div style="margin-top: 8px; margin-bottom: 8px;">
+                            <input type="text" id="inlineNote" class="form-input" placeholder="Not (isteğe bağlı)..."
+                                style="width: 100%;">
                         </div>
 
                         <!-- Ekle Butonu -->

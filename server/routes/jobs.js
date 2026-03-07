@@ -173,7 +173,7 @@ router.post('/', requireAuth, async (req, res) => {
 router.post('/:id/items', requireAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { product_id, custom_name, source_id, quantity, source_name, unit } = req.body;
+        const { product_id, custom_name, source_id, quantity, source_name, unit, note } = req.body;
 
         // Validation: product_id veya custom_name birisi dolu olmalı
         if (!product_id && !custom_name) {
@@ -206,6 +206,7 @@ router.post('/:id/items', requireAuth, async (req, res) => {
             unit: unit || 'Adet', // Save the unit for custom products
             source_id: finalSourceId,
             quantity: quantity || 1,
+            note: note || null,
             is_checked: false
         });
 

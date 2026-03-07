@@ -902,6 +902,8 @@ function initInlineAddForm() {
 
         const quantity = document.getElementById('inlineQuantity').value;
         const unit = document.getElementById('inlineProductUnit').value;
+        const noteInput = document.getElementById('inlineNote');
+        const note = noteInput ? noteInput.value.trim() : null;
 
         // If user typed something completely new and it DOES NOT match the hidden name,
         // it means they want to add a custom/unlisted product.
@@ -931,7 +933,8 @@ function initInlineAddForm() {
                     custom_name: finalProductId ? null : finalProductName,
                     unit: unit, // explicitly pass the unit for custom products
                     source_name: sourceName,
-                    quantity: parseInt(quantity)
+                    quantity: parseInt(quantity),
+                    note: note
                 })
             });
 
@@ -946,6 +949,7 @@ function initInlineAddForm() {
             document.getElementById('inlineProductSearch').value = '';
             document.getElementById('inlineSelectedProductId').value = '';
             document.getElementById('inlineSelectedProductName').value = '';
+            if (noteInput) noteInput.value = '';
             const resultsDiv = document.getElementById('inlineProductResults');
             if (resultsDiv) resultsDiv.innerHTML = '';
 
