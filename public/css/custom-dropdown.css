@@ -6,14 +6,19 @@
 
 .custom-dropdown-trigger {
     width: 100%;
-    padding: 10px 16px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    max-height: 42px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
     padding-right: 32px !important;
     border: 2px solid var(--gray-200, #e5e7eb) !important;
     border-radius: var(--radius-md, 8px) !important;
     font-size: 16px !important;
     box-sizing: border-box !important;
     font-weight: 400 !important;
-    line-height: normal !important;
+    line-height: 38px !important;
+    vertical-align: middle !important;
     background-color: #ffffff !important;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
