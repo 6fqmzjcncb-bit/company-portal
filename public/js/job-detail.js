@@ -826,11 +826,18 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
         // Remove disabled attribute to bypass iOS Safari's broken native disabled styling
         unitSelect.disabled = false;
 
-        // Use pointer-events and visual styles to simulate disabled state
-        unitSelect.style.pointerEvents = !!id ? 'none' : 'auto';
-        unitSelect.style.background = !!id ? '#f3f4f6' : 'white';
-        unitSelect.style.color = !!id ? '#4b5563' : '#1f2937';
+        const triggerDiv = unitSelect.closest('.custom-dropdown') ? unitSelect.closest('.custom-dropdown').querySelector('.custom-dropdown-trigger') : unitSelect;
+
+        if (triggerDiv) {
+            triggerDiv.style.pointerEvents = !!id ? 'none' : 'auto';
+            triggerDiv.style.background = !!id ? '#f3f4f6' : 'white';
+            triggerDiv.style.color = !!id ? '#4b5563' : '#1f2937';
+        }
     }
+
+    // Show the reset (X) button
+    const resetBtn = document.getElementById('inlineResetProductBtn');
+    if (resetBtn) resetBtn.style.display = 'block';
 
     // Auto-select Default Source
     const sourceContainer = document.getElementById('quick-add-source-container');
@@ -877,6 +884,44 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
     if (qtyInput) {
         qtyInput.value = '';
         qtyInput.focus();
+    }
+};
+
+window.resetInlineProductSelection = function () {
+    const searchInput = document.getElementById('inlineProductSearch');
+    const hiddenId = document.getElementById('inlineSelectedProductId');
+    const hiddenName = document.getElementById('inlineSelectedProductName');
+    const resultsDiv = document.getElementById('inlineProductResults');
+    const infoDiv = document.getElementById('inlineProductInfo');
+    const unitSelect = document.getElementById('inlineProductUnit');
+    const resetBtn = document.getElementById('inlineResetProductBtn');
+
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus(); // Jump right back to start typing
+    }
+    if (hiddenId) hiddenId.value = '';
+    if (hiddenName) hiddenName.value = '';
+    if (infoDiv) {
+        infoDiv.innerHTML = '';
+        infoDiv.style.display = 'none';
+    }
+    if (resultsDiv) {
+        resultsDiv.innerHTML = '';
+        resultsDiv.style.display = 'none';
+    }
+    if (resetBtn) {
+        resetBtn.style.display = 'none';
+    }
+
+    // Unlock and reset unit dropdown
+    if (unitSelect) {
+        const triggerDiv = unitSelect.closest('.custom-dropdown') ? unitSelect.closest('.custom-dropdown').querySelector('.custom-dropdown-trigger') : unitSelect;
+        if (triggerDiv) {
+            triggerDiv.style.pointerEvents = 'auto';
+            triggerDiv.style.background = 'white';
+            triggerDiv.style.color = '#1f2937';
+        }
     }
 };
 
