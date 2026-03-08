@@ -9,6 +9,12 @@ let units = [];
 const urlParams = new URLSearchParams(window.location.search);
 jobId = urlParams.get('id');
 
+const jobTitleParam = urlParams.get('title');
+if (jobTitleParam) {
+    const titleEl = document.getElementById('jobTitle');
+    if (titleEl) titleEl.textContent = jobTitleParam;
+}
+
 if (!jobId) {
     showAlert('İş listesi ID bulunamadı');
     window.location.href = '/jobs.html';
@@ -55,15 +61,27 @@ function showAlert(message, type = 'error') {
 
 // Kullanıcı bilgilerini yükle
 async function loadUserInfo() {
+    const cachedStr = localStorage.getItem('userInfoCache');
+    if (cachedStr) {
+        try {
+            const u = JSON.parse(cachedStr);
+            document.getElementById('userName').textContent = u.full_name;
+            document.getElementById('userRole').textContent = u.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+            if (u.role === 'admin') document.getElementById('adminLink').style.display = 'block';
+        } catch (e) { }
+    }
+
     currentUser = await checkAuth();
     if (!currentUser) return;
 
-    document.getElementById('userName').textContent = currentUser.full_name;
-    document.getElementById('userRole').textContent =
-        currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
-
-    if (currentUser.role === 'admin') {
-        document.getElementById('adminLink').style.display = 'block';
+    const freshStr = JSON.stringify(currentUser);
+    if (cachedStr !== freshStr) {
+        localStorage.setItem('userInfoCache', freshStr);
+        document.getElementById('userName').textContent = currentUser.full_name;
+        document.getElementById('userRole').textContent = currentUser.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+        if (currentUser.role === 'admin') {
+            document.getElementById('adminLink').style.display = 'block';
+        }
     }
 }
 
@@ -156,6 +174,21 @@ async function loadUnits() {
 // İş listesi detayını yükle
 async function loadJobDetail() {
     try {
+        // --- 1. INSTANT CACHE RENDER (Stale) ---
+        const cacheKey = `jobDetailCache_${jobId}`;
+        const cachedStr = localStorage.getItem(cacheKey);
+        if (cachedStr) {
+            try {
+                const job = JSON.parse(cachedStr);
+                document.getElementById('jobTitle').textContent = job.title;
+                renderCompletionStats(job.completion, job.viewers);
+                renderItems(job.items || []);
+                renderIncompleteItems(job.items || []);
+                renderDeletions(job.deletions || []);
+            } catch (e) { console.error("Cache read error", e); }
+        }
+
+        // --- 2. NETWORK FETCH (Revalidate) ---
         const response = await fetch(`/api/jobs/${jobId}`);
 
         if (!response.ok) {
@@ -163,21 +196,22 @@ async function loadJobDetail() {
         }
 
         const job = await response.json();
+        const freshStr = JSON.stringify(job);
 
-        // Başlığı güncelle
-        document.getElementById('jobTitle').textContent = job.title;
-
-        // COMPLETION % + VIEWERS göster
-        renderCompletionStats(job.completion, job.viewers);
-
-        // Kalemleri render et
-        renderItems(job.items || []);
-
-        // TAMAMLANMAYAN MALZEMELER
-        renderIncompleteItems(job.items || []);
-
-        // SİLİNEN ÜRÜNLER
-        renderDeletions(job.deletions || []);
+        // --- 3. SILENT UPDATE IF CHANGED ---
+        if (cachedStr !== freshStr) {
+            localStorage.setItem(cacheKey, freshStr);
+            // Başlığı güncelle
+            document.getElementById('jobTitle').textContent = job.title;
+            // COMPLETION % + VIEWERS göster
+            renderCompletionStats(job.completion, job.viewers);
+            // Kalemleri render et
+            renderItems(job.items || []);
+            // TAMAMLANMAYAN MALZEMELER
+            renderIncompleteItems(job.items || []);
+            // SİLİNEN ÜRÜNLER
+            renderDeletions(job.deletions || []);
+        }
 
         // View tracking kaydet (silent)
         trackView();

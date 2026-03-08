@@ -87,7 +87,7 @@
             </div>
           </div>
           <div class="card-footer">
-            <a href="/job-detail.html?id=${job.id}" class="btn btn-primary btn-sm">Detay Gör</a>
+            <a href="/job-detail.html?id=${job.id}&title=${encodeURIComponent(job.title)}" class="btn btn-primary btn-sm">Detay Gör</a>
           </div>
         </div>
       `;
@@ -124,7 +124,7 @@
 
                     if (response.ok) {
                         const job = await response.json();
-                        window.location.href = `/job-detail.html?id=${job.id}`;
+                        window.location.href = `/job-detail.html?id=${job.id}&title=${encodeURIComponent(job.title)}`;
                     } else {
                         showAlert('Hata oluştu');
                     }
