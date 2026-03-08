@@ -696,6 +696,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Inline Search & Add Form
     initInlineSearch();
     initInlineAddForm();
+
+    // Reveal page completely constructed
+    document.body.style.opacity = '1';
 });
 
 
