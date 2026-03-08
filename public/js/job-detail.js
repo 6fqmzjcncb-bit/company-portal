@@ -262,24 +262,9 @@ async function loadJobDetail() {
         // ana öğeler değişmese bile her network isteğinde yeniden çizdiriyoruz.
         renderCompletionStats(job.completion, job.viewers);
 
-        // View tracking kaydet (silent)
-        trackView();
-
     } catch (error) {
         console.error('Job detail load error:', error);
         showAlert('İş listesi yüklenemedi');
-    }
-}
-
-// View tracking (kim baktı log'u)
-async function trackView() {
-    try {
-        await fetch(`/api/jobs/${jobId}/view`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        });
-    } catch (error) {
-        // Silent fail - tracking is not critical
     }
 }
 

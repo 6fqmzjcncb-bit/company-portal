@@ -99,8 +99,28 @@ router.get('/:id', requireAuth, async (req, res) => {
         const completedItems = jobList.items.filter(item => item.is_checked).length;
         const completionPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-        // Viewers (kim baktı) getir
+        // 1. ANLIK GÖRÜNTÜLEME KAYDI (VIEW TRACKING)
+        // Kullanıcı detay sayfasını çektiği an, görüntüleme tablosuna onu ekleyelim 
+        // ki dönen 10 kişilik listede kendi adı da hemen görünsün (Sayfa yenilemeye gerek kalmasın)
         const JobView = require('../models/JobView');
+        const userId = req.session.userId;
+
+        if (userId) {
+            const recentView = await JobView.findOne({
+                where: { job_list_id: id, user_id: userId },
+                order: [['viewed_at', 'DESC']]
+            });
+            const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+            if (!recentView || recentView.viewed_at < oneHourAgo) {
+                await JobView.create({
+                    job_list_id: id,
+                    user_id: userId,
+                    viewed_at: new Date()
+                });
+            }
+        }
+
+        // 2. VIEWERS (kim baktı) GETİR
         const viewers = await JobView.findAll({
             where: { job_list_id: id },
             include: [{
