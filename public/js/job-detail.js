@@ -20,6 +20,52 @@ if (!jobId) {
     window.location.href = '/jobs.html';
 }
 
+// ===========================
+// ZERO DELAY CACHE RENDERER
+// ===========================
+function renderFromCacheSync() {
+    // 1. User Info
+    const userCache = localStorage.getItem('userInfoCache');
+    if (userCache) {
+        try {
+            const u = JSON.parse(userCache);
+            const userNameEl = document.getElementById('userName');
+            const userRoleEl = document.getElementById('userRole');
+            const adminLinkEl = document.getElementById('adminLink');
+            if (userNameEl) userNameEl.textContent = u.full_name;
+            if (userRoleEl) userRoleEl.textContent = u.role === 'admin' ? '👑 Yönetici' : '👤 Personel';
+            if (u.role === 'admin' && adminLinkEl) adminLinkEl.style.display = 'block';
+        } catch (e) { }
+    }
+
+    // 2. Job Detail Content
+    if (jobId) {
+        const jobCache = localStorage.getItem(`jobDetailCache_${jobId}`);
+        if (jobCache) {
+            try {
+                const job = JSON.parse(jobCache);
+                const titleEl = document.getElementById('jobTitle');
+                if (titleEl) titleEl.textContent = job.title;
+                if (typeof renderCompletionStats === 'function') renderCompletionStats(job.completion, job.viewers);
+                if (typeof renderItems === 'function') renderItems(job.items || []);
+                if (typeof renderIncompleteItems === 'function') renderIncompleteItems(job.items || []);
+                if (typeof renderDeletions === 'function') renderDeletions(job.deletions || []);
+            } catch (e) { }
+        }
+    }
+
+    // 3. Unhide synchronously!
+    const mainArea = document.getElementById('mainContentArea');
+    if (mainArea) {
+        mainArea.style.opacity = '1';
+    }
+}
+
+// Call instantly (Blocks HTML parsing marginally but prevents visual Flash of Unpopulated Content)
+// Note: Some DOM elements might not be strictly ready if script is in <head>, 
+// but our script is at the END of <body>, so DOM *is* ready synchronously.
+renderFromCacheSync();
+
 // Auth kontrol
 async function checkAuth() {
     try {
@@ -714,20 +760,20 @@ async function autoSaveNote(itemId, note) {
 // MAIN INITIALIZATION
 // ===========================
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Data Loading - Parallelized for instant UI render
-    await Promise.all([
+document.addEventListener('DOMContentLoaded', () => {
+    // Reveal instantly even if cache failed or was empty, to prevent blank screen
+    const mainArea = document.getElementById('mainContentArea');
+    if (mainArea) mainArea.style.opacity = '1';
+
+    // 1. Data Network Re-Validation (Non-blocking)
+    Promise.all([
         loadUserInfo(),
         loadSources(),
         loadJobDetail()
-    ]);
+    ]).catch(e => console.error("Init err", e));
 
     // 2. Component Initialization
-
-    // Quick Add Tag Input
     initTagsInput('quick-add');
-
-    // Inline Search & Add Form
     initInlineSearch();
     initInlineAddForm();
 });
