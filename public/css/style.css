@@ -187,7 +187,7 @@ body {
   /* Match .form-input styling exactly */
   padding: 0.875rem 1rem;
   padding-right: 2.5rem;
-  border: 2px solid var(--gray-200);
+  border: 1px solid #d1d5db;
   border-radius: var(--radius-md);
   font-size: 1rem;
   font-family: inherit;
@@ -456,10 +456,10 @@ select {
   max-height: 42px !important;
   margin: 0 !important;
   box-sizing: border-box !important;
-  /* 42px total height - 4px vertical borders = 38px inside height */
-  line-height: 38px !important;
+  /* 42px total height - 2px vertical borders = 40px inside height */
+  line-height: 40px !important;
   vertical-align: middle !important;
-  border: 2px solid var(--gray-200) !important;
+  border: 1px solid #d1d5db !important;
   border-radius: var(--radius-md) !important;
   font-size: 16px !important;
   /* Prevents Safari zoom */

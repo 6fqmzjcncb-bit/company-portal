@@ -471,7 +471,7 @@ function renderIncompleteItem(item) {
                 <!-- Col 1: Required -->
                 <div>
                      <span class="input-group-label">Gerekli</span>
-                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 38px;">
+                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 42px;">
                          <input type="number" class="qty-input-field" id="req-qty-${item.id}"
                                 value="${item.quantity}" min="1" 
                                 style="border: none; border-radius: 0; outline: none; box-shadow: none; height: 100%; text-align: center; flex: 1; padding: 0;"
@@ -486,7 +486,7 @@ function renderIncompleteItem(item) {
                 <!-- Col 2: Received -->
                 <div>
                      <span class="input-group-label">Alınan</span>
-                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 38px;">
+                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 42px;">
                          <input type="number" class="qty-input-field" id="found-qty-${item.id}"
                                 value="${item.quantity_found !== null && item.quantity_found !== undefined ? item.quantity_found : ''}" min="0" 
                                 style="border: none; border-radius: 0; outline: none; box-shadow: none; height: 100%; text-align: center; flex: 1; padding: 0;"
@@ -1439,7 +1439,7 @@ function renderTagsInput(itemId, currentSource) {
 
     return `
         <div style="position: relative; width: 100%;">
-            <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: var(--radius-md); box-sizing: border-box; background: white; height: 38px; white-space: nowrap; scrollbar-width: none;">
+            <div class="tag-container" onclick="document.getElementById('tag-input-${itemId}').focus()" style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 1px solid #d1d5db; border-radius: var(--radius-md); box-sizing: border-box; background: white; height: 42px; white-space: nowrap; scrollbar-width: none;">
                 ${tagsHtml}
                 <div style="display: flex; flex: 1; align-items: center; min-width: 140px;">
                     <input 
