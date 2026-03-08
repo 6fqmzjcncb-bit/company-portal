@@ -382,7 +382,7 @@ function renderDeletions(deletions) {
             <div style="margin-top: 10px;">
                 ${deletions.map(d => `
                     <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem; border: 1px solid #fee2e2;">
-                        <button onclick="restoreDeletion(${d.id})" class="btn btn-sm" style="float: right; padding: 2px 8px; font-size: 0.8rem; background: #10b981; color: white; border: none; cursor: pointer; border-radius: 4px; margin-top: 2px;">
+                        <button onclick="restoreDeletion(${d.id})" class="btn btn-sm" style="float: right; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; background: #10b981; color: white; border: none; cursor: pointer; border-radius: 6px;">
                             ↩ Geri Al
                         </button>
                         <strong>${d.product_name}</strong> - ${d.quantity} adet
@@ -581,7 +581,7 @@ function renderCompletedItem(item) {
                     ${item.note ? `<span style="color:#f59e0b;">• 📝 ${item.note}</span>` : ''}
                 </div>
             </div>
-            <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.8rem; padding: 4px 12px; border-radius: 6px;">Geri Al</button>
+            <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.9rem; padding: 8px 16px; font-weight: 600; border-radius: 6px;">Geri Al</button>
         </div>
     `;
 }
