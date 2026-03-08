@@ -681,10 +681,12 @@ async function autoSaveNote(itemId, note) {
 // ===========================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Data Loading
-    await loadUserInfo();
-    await loadSources();
-    await loadJobDetail();
+    // 1. Data Loading - Parallelized for instant UI render
+    await Promise.all([
+        loadUserInfo(),
+        loadSources(),
+        loadJobDetail()
+    ]);
 
     // 2. Component Initialization
 
