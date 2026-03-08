@@ -1563,6 +1563,15 @@ async function checkItem(itemId) {
     const itemCard = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
     if (!itemCard) return;
 
+    // Capture the button for visual feedback
+    const checkBtn = itemCard.querySelector('button.btn-success.btn-icon');
+    if (checkBtn) {
+        checkBtn.disabled = true;
+        checkBtn.dataset.originalHtml = checkBtn.innerHTML;
+        checkBtn.innerHTML = '⏳';
+        checkBtn.style.background = '#9ca3af';
+    }
+
     // Get input values (Reliable selection)
     const inputs = itemCard.querySelectorAll('.qty-input-field');
     const qtyInput = inputs[0]; // Required
@@ -1570,6 +1579,11 @@ async function checkItem(itemId) {
 
     if (!receivedInput) {
         console.error("Critical: Received input not found for item", itemId);
+        if (checkBtn) {
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = checkBtn.dataset.originalHtml;
+            checkBtn.style.background = '';
+        }
         return;
     }
 
@@ -1607,6 +1621,11 @@ async function checkItem(itemId) {
                 return;
             }
 
+            if (checkBtn) {
+                checkBtn.disabled = false;
+                checkBtn.innerHTML = checkBtn.dataset.originalHtml;
+                checkBtn.style.background = '';
+            }
             showAlert('⚠️ Eksik miktar var! Lütfen aşağıdan "Başka yerden alınacak" veya "Daha sonra" seçeneğini işaretleyin.');
             return;
         }
@@ -1619,10 +1638,27 @@ async function checkItem(itemId) {
         });
 
         if (!response.ok) throw new Error('İşlem başarısız');
+
+        // Success Visual Feedback
+        if (checkBtn) {
+            checkBtn.innerHTML = '<span style="font-size: 0.85rem; padding: 0 4px;">✓ Eklendi</span>';
+            checkBtn.style.background = '#059669'; // Darker success green
+            checkBtn.style.width = 'auto'; // Let it expand for text
+            checkBtn.style.borderRadius = '8px';
+
+            // Wait briefly so the user sees the "Eklendi" state
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
         await loadJobDetail();
 
     } catch (error) {
         console.error(error);
+        if (checkBtn) {
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = checkBtn.dataset.originalHtml;
+            checkBtn.style.background = '';
+        }
         showAlert(error.message);
     }
 }
