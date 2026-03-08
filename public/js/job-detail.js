@@ -1564,7 +1564,7 @@ async function checkItem(itemId) {
     if (!itemCard) return;
 
     // Capture the button for visual feedback
-    const checkBtn = itemCard.querySelector('button.btn-success.btn-icon');
+    const checkBtn = itemCard.querySelector('button.btn-success');
     if (checkBtn) {
         checkBtn.disabled = true;
         checkBtn.dataset.originalHtml = checkBtn.innerHTML;
