@@ -304,12 +304,12 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
         await item.update(updateData, { transaction });
 
         // STOK DÜŞÜMÜ: Sadece İLK KEZ işaretleniyorsa stoktan düş
-        // (Not: Kısmi stok düşümü yapmıyoruz, check edildiği an tüm stok düşülüyor varsayımı korundu)
         if (!isAlreadyChecked && item.product_id && item.source?.type === 'internal') {
             const product = await Product.findByPk(item.product_id, { transaction });
+            const deductionAmount = updateData.quantity_found;
 
-            if (product) {
-                const newStock = product.current_stock - item.quantity;
+            if (product && deductionAmount > 0) {
+                const newStock = product.current_stock - deductionAmount;
                 await product.update({
                     current_stock: Math.max(0, newStock) // Negatif olmasın
                 }, { transaction });
@@ -321,7 +321,7 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
                 await StockMovement.create({
                     product_id: item.product_id,
                     movement_type: 'OUT',
-                    quantity: item.quantity,
+                    quantity: deductionAmount,
                     taken_by: user ? user.full_name : 'Sistem',
                     destination: jobListLoc ? jobListLoc.title : 'Şantiye Sepeti',
                     job_id: item.job_list_id,
@@ -544,9 +544,10 @@ router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
         // STOK GERİ EKLE: Eğer product_id doluysa VE source internal ise
         if (item.product_id && item.source.type === 'internal') {
             const product = await Product.findByPk(item.product_id, { transaction });
+            const refundAmount = item.quantity_found || item.quantity;
 
-            if (product) {
-                const newStock = product.current_stock + item.quantity;
+            if (product && refundAmount > 0) {
+                const newStock = product.current_stock + refundAmount;
                 await product.update({
                     current_stock: newStock
                 }, { transaction });
@@ -559,7 +560,7 @@ router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
                 await StockMovement.create({
                     product_id: item.product_id,
                     movement_type: 'IN',
-                    quantity: item.quantity,
+                    quantity: refundAmount,
                     brought_by: user ? user.full_name : 'Sistem',
                     source_location: jobListLoc ? jobListLoc.title : 'Şantiye İptali',
                     notes: 'İş listesindeki onay kaldırıldı, stok depoya geri döndü.',
