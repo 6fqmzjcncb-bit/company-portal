@@ -186,19 +186,25 @@
 
                         <!-- Kaynak -->
                         <div id="quick-add-source-container" style="margin-bottom: 8px;">
-                            <div class="tags-input-container" tabindex="-1"
-                                style="min-height: 44px; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; cursor: text;">
-                                <div id="tags-wrapper-quick-add" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                            <div style="position: relative; width: 100%;">
+                                <div class="tag-container"
+                                    onclick="document.getElementById('tag-input-quick-add').focus()"
+                                    style="display: flex; flex-wrap: nowrap; overflow-x: auto; align-items: center; gap: 4px; padding: 2px 4px; border: 2px solid var(--gray-200); border-radius: var(--radius-md); box-sizing: border-box; background: white; height: 42px; white-space: nowrap; scrollbar-width: none;">
+                                    <div id="tags-wrapper-quick-add"
+                                        style="display: flex; flex-wrap: nowrap; gap: 4px; align-items: center;"></div>
+                                    <div style="display: flex; flex: 1; align-items: center; min-width: 140px;">
+                                        <input type="text" id="tag-input-quick-add" class="tag-input-field"
+                                            placeholder="🔍 Tedarikçi Ara/Yaz..." autocomplete="off"
+                                            style="flex: 1; border: none; background: transparent; padding: 2px 4px; outline: none; font-size: 0.95rem; width: 100%; height: 100%; margin: 0;">
+                                    </div>
                                 </div>
-                                <input type="text" id="tag-input-quick-add" class="tag-input"
-                                    placeholder="Tedarikçi Ara/Yaz..." autocomplete="off">
+                                <!-- Custom Autocomplete Dropdown -->
+                                <div id="autocomplete-list-quick-add"
+                                    style="display: none; position: absolute; z-index: 9999; top: 100%; left: 0; width: 100%; max-height: 200px; overflow-y: auto; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1); margin-top: 4px; padding: 4px;">
+                                </div>
                             </div>
-                            <!-- Autocomplete Dropdown Listesi -->
-                            <div id="tag-autocomplete-quick-add" class="tag-autocomplete-list" style="display: none;">
-                            </div>
-
                             <!-- Asıl gidecek virgüllü data burada tutuluyor -->
-                            <input type="hidden" id="source-original-quick-add" name="source" class="tag-hidden-input">
+                            <input type="hidden" id="source-original-quick-add" name="source" value="">
                         </div>
 
                         <!-- Miktar -->
