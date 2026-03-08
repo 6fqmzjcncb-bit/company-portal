@@ -924,11 +924,19 @@ window.selectInlineProduct = function (id, name, unit = 'Adet', barcode = '', st
             || sources.find(s => s.type === 'internal')
             || sources[0];
 
-        if (defaultSource && sourceContainer) {
-            sourceContainer.innerHTML = renderTagsInput('quick-add', defaultSource.name);
+        if (defaultSource) {
+            const originalInput = document.getElementById('source-original-quick-add');
+            if (originalInput) originalInput.value = defaultSource.name;
+            if (typeof refreshQuickAddTagsUI === 'function') {
+                refreshQuickAddTagsUI([defaultSource.name]);
+            }
         }
-    } else if (sourceContainer) {
-        sourceContainer.innerHTML = renderTagsInput('quick-add', '');
+    } else {
+        const originalInput = document.getElementById('source-original-quick-add');
+        if (originalInput) originalInput.value = '';
+        if (typeof refreshQuickAddTagsUI === 'function') {
+            refreshQuickAddTagsUI([]);
+        }
     }
 
     if (infoDiv) {
@@ -996,6 +1004,13 @@ window.resetInlineProductSelection = function () {
             triggerDiv.style.background = 'white';
             triggerDiv.style.color = '#1f2937';
         }
+    }
+
+    // Clear the source tag (Tedarikçi)
+    const originalInput = document.getElementById('source-original-quick-add');
+    if (originalInput) originalInput.value = '';
+    if (typeof refreshQuickAddTagsUI === 'function') {
+        refreshQuickAddTagsUI([]);
     }
 };
 
