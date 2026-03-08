@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { JobList, JobItem, Product, Source, User } = require('../models');
+const { JobList, JobItem, Product, Source, User, StockMovement } = require('../models');
 const { requireAuth } = require('../middleware/auth');
 const { sequelize } = require('../config/database');
 
@@ -313,6 +313,22 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
                 await product.update({
                     current_stock: Math.max(0, newStock) // Negatif olmasın
                 }, { transaction });
+
+                // STOK ÇIKIŞ HAREKETİ LOGLA (OUT)
+                const user = await User.findByPk(userId, { transaction });
+                const jobListLoc = await JobList.findByPk(item.job_list_id, { transaction });
+
+                await StockMovement.create({
+                    product_id: item.product_id,
+                    movement_type: 'OUT',
+                    quantity: item.quantity,
+                    taken_by: user ? user.full_name : 'Sistem',
+                    destination: jobListLoc ? jobListLoc.title : 'Şantiye Sepeti',
+                    job_id: item.job_list_id,
+                    reason: 'İş listesi üzerinden teslim alındı',
+                    notes: `Otomatik stok çıkışı`,
+                    created_by: userId
+                }, { transaction });
             }
         }
 
@@ -533,6 +549,21 @@ router.post('/items/:itemId/uncheck', requireAuth, async (req, res) => {
                 const newStock = product.current_stock + item.quantity;
                 await product.update({
                     current_stock: newStock
+                }, { transaction });
+
+                // STOK GİRİŞİ (İADE) HAREKETİ LOGLA (IN)
+                const userId = req.session.userId;
+                const user = await User.findByPk(userId, { transaction });
+                const jobListLoc = await JobList.findByPk(item.job_list_id, { transaction });
+
+                await StockMovement.create({
+                    product_id: item.product_id,
+                    movement_type: 'IN',
+                    quantity: item.quantity,
+                    brought_by: user ? user.full_name : 'Sistem',
+                    source_location: jobListLoc ? jobListLoc.title : 'Şantiye İptali',
+                    notes: 'İş listesindeki onay kaldırıldı, stok depoya geri döndü.',
+                    created_by: userId
                 }, { transaction });
             }
         }
