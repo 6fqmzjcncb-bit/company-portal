@@ -486,10 +486,16 @@ function renderIncompleteItem(item) {
                 <!-- Col 2: Received -->
                 <div>
                      <span class="input-group-label">Alınan</span>
-                     <input type="number" class="qty-input-field" id="found-qty-${item.id}"
-                            value="${item.quantity_found !== null && item.quantity_found !== undefined ? item.quantity_found : ''}" min="0" 
-                            oninput="handleQuantityChange(${item.id})"
-                            onblur="autoSaveQuantityFound(${item.id}, this.value)">
+                     <div style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 4px; overflow: hidden; height: 38px;">
+                         <input type="number" class="qty-input-field" id="found-qty-${item.id}"
+                                value="${item.quantity_found !== null && item.quantity_found !== undefined ? item.quantity_found : ''}" min="0" 
+                                style="border: none; border-radius: 0; outline: none; box-shadow: none; height: 100%; text-align: center; flex: 1; padding: 0;"
+                                oninput="handleQuantityChange(${item.id})"
+                                onblur="autoSaveQuantityFound(${item.id}, this.value)">
+                         <div style="background: #f3f4f6; color: #4b5563; padding: 0 10px; height: 100%; display: flex; align-items: center; border-left: 1px solid #d1d5db; font-size: 0.85rem; white-space: nowrap;">
+                             ${unitText}
+                         </div>
+                     </div>
                 </div>
 
                 <!-- Col 3: Source -->
