@@ -290,18 +290,21 @@ function renderCompletionStats(completion, viewers) {
 
     container.innerHTML = `
         <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e5e7eb;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <strong>Tamamlanma:</strong> ${completed}/${total} (%${percentage})
-                    <div style="background: #e5e7eb; height: 8px; width: 200px; border-radius: 4px; margin-top: 5px; overflow: hidden;">
-                        <div style="background: #059669; height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div style="font-size: 1rem; color: #1f2937;">
+                        <strong>Tamamlanma:</strong> ${completed}/${total} (%${percentage})
                     </div>
+                    ${viewers && viewers.length > 0 ? `
+                        <div style="font-size: 0.85rem; color: #6b7280; text-align: right;">
+                            <strong>Görüntüleyenler:</strong> ${viewersHtml}
+                        </div>
+                    ` : ''}
                 </div>
-                ${viewers && viewers.length > 0 ? `
-                    <div style="font-size: 0.9rem; color: #6b7280;">
-                        <strong>Görüntüleyenler:</strong> ${viewersHtml}
-                    </div>
-                ` : ''}
+                <!-- Progress bar full width -->
+                <div style="background: #e5e7eb; height: 8px; width: 100%; border-radius: 4px; overflow: hidden;">
+                    <div style="background: #059669; height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+                </div>
             </div>
         </div>
     `;
