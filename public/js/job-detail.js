@@ -249,8 +249,6 @@ async function loadJobDetail() {
             localStorage.setItem(cacheKey, freshStr);
             // Başlığı güncelle
             document.getElementById('jobTitle').textContent = job.title;
-            // COMPLETION % + VIEWERS göster
-            renderCompletionStats(job.completion, job.viewers);
             // Kalemleri render et
             renderItems(job.items || []);
             // TAMAMLANMAYAN MALZEMELER
@@ -258,6 +256,11 @@ async function loadJobDetail() {
             // SİLİNEN ÜRÜNLER
             renderDeletions(job.deletions || []);
         }
+
+        // --- 4. ALWAYS UPDATE VIEWERS ---
+        // Viewers listesi kişiye özel (kendi görüntülemesini içerir) ve anlık olduğu için, 
+        // ana öğeler değişmese bile her network isteğinde yeniden çizdiriyoruz.
+        renderCompletionStats(job.completion, job.viewers);
 
         // View tracking kaydet (silent)
         trackView();
