@@ -396,6 +396,15 @@ body {
   transform: translateY(-2px);
 }
 
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #d97706;
+}
+
 .btn-danger {
   background: #dc2626;
   color: white;
@@ -2103,11 +2112,13 @@ input[type=number] {
     margin-bottom: 5px;
   }
 
-  /* Exception: Table action buttons shouldn't be full width */
-  td .btn {
-    width: auto;
-    padding: 4px 8px;
-    font-size: 0.8rem;
+  /* Exception: Table action buttons and small buttons shouldn't be full width */
+  td .btn,
+  .btn-sm,
+  .item-row .btn,
+  .job-item-card .btn {
+    width: auto !important;
+    margin-bottom: 0 !important;
   }
 
   /* Fix Modal Inputs on Mobile */
