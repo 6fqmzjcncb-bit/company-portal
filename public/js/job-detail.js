@@ -1097,8 +1097,17 @@ async function restoreDeletion(deletionId) {
 // Kalem sil (Anında - Gecikmesiz)
 async function deleteItem(itemId) {
     const card = document.querySelector(`.job-item-card[data-item-id="${itemId}"]`);
+    let deleteBtn = null;
+
     if (card) {
         card.style.opacity = '0.5';
+        deleteBtn = card.querySelector('button.btn-danger');
+        if (deleteBtn) {
+            deleteBtn.disabled = true;
+            deleteBtn.dataset.originalHtml = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '⏳';
+            deleteBtn.style.background = '#9ca3af';
+        }
     }
 
     try {
@@ -1110,6 +1119,17 @@ async function deleteItem(itemId) {
             throw new Error('Kalem silinemedi');
         }
 
+        // Success Visual Feedback
+        if (deleteBtn) {
+            deleteBtn.innerHTML = '<span style="font-size: 0.85rem; padding: 0 4px;">✓ Silindi</span>';
+            deleteBtn.style.background = '#991b1b'; // Darker red
+            deleteBtn.style.width = 'auto'; // Let it expand for text
+            deleteBtn.style.borderRadius = '8px';
+
+            // Wait briefly so the user sees the "Silindi" state
+            await new Promise(resolve => setTimeout(resolve, 600));
+        }
+
         if (card) card.remove();
         await loadJobDetail(); // <-- Silinen öğeler bölümünü anında güncelle
 
@@ -1119,6 +1139,11 @@ async function deleteItem(itemId) {
 
     } catch (error) {
         if (card) card.style.opacity = '1';
+        if (deleteBtn) {
+            deleteBtn.disabled = false;
+            deleteBtn.innerHTML = deleteBtn.dataset.originalHtml;
+            deleteBtn.style.background = '';
+        }
         showAlert(error.message);
     }
 }
