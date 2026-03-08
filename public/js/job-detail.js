@@ -461,8 +461,8 @@ function renderIncompleteItem(item) {
                 <div class="card-product-name">${productName}</div>
 
                 <div style="display: flex; gap: 8px;">
-                    <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">🗑️</button>
-                    <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; padding: 0;">✅</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteItem(${item.id})" title="Sil" style="width: 32px !important; height: 32px !important; display: flex; align-items: center; justify-content: center; padding: 0;">🗑️</button>
+                    <button class="btn btn-sm btn-success" onclick="checkItem(${item.id})" title="Tamamla" style="width: 32px !important; height: 32px !important; display: flex; align-items: center; justify-content: center; padding: 0;">✅</button>
                 </div>
             </div>
 
