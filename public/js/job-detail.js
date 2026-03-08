@@ -691,10 +691,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 2. Component Initialization
 
     // Quick Add Tag Input
-    const quickAddContainer = document.getElementById('quick-add-source-container');
-    if (quickAddContainer) {
-        quickAddContainer.innerHTML = renderTagsInput('quick-add', '');
-    }
+    initTagsInput('quick-add');
 
     // Inline Search & Add Form
     initInlineSearch();
@@ -1412,6 +1409,38 @@ async function handleTagBlur(itemId) {
     }
 }
 
+// Initializer for static tag input structures
+function initTagsInput(itemId) {
+    const input = document.getElementById(`tag-input-${itemId}`);
+    if (!input) return;
+
+    input.addEventListener('keydown', (e) => handleTagKeydown(e, itemId));
+    input.addEventListener('input', (e) => handleTagInput(e, itemId));
+    input.addEventListener('focus', (e) => handleTagInput(e, itemId));
+    input.addEventListener('blur', () => handleTagBlur(itemId));
+}
+
+// Helper for quick-add DOM mutation without destroying the parent input
+function refreshQuickAddTagsUI(tags) {
+    const wrapper = document.getElementById('tags-wrapper-quick-add');
+    if (!wrapper) return;
+
+    wrapper.innerHTML = '';
+
+    const getTagColor = (tag) => {
+        if (!isNaN(parseInt(tag))) return '#dcfce7';
+        return '#e5e7eb';
+    };
+
+    tags.forEach((tag, index) => {
+        const span = document.createElement('span');
+        span.className = 'active-tag';
+        span.style.background = getTagColor(tag);
+        span.innerHTML = `${tag} <span class="remove-tag" onclick="removeSourceTag('quick-add', ${index}); event.stopPropagation();">×</span>`;
+        wrapper.appendChild(span);
+    });
+}
+
 async function addSourceTag(itemId, newTag, keepFocus = true) {
     const originalInput = document.getElementById(`source-original-${itemId}`);
     let currentSource = originalInput ? originalInput.value : '';
@@ -1423,8 +1452,7 @@ async function addSourceTag(itemId, newTag, keepFocus = true) {
     // Quick Add Mode: DOM only update
     if (itemId === 'quick-add') {
         if (originalInput) originalInput.value = finalSourceString;
-        const container = document.getElementById('quick-add-source-container');
-        if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
+        refreshQuickAddTagsUI(tags);
 
         // Refocus logic
         if (keepFocus) {
@@ -1500,8 +1528,7 @@ async function removeSourceTag(itemId, indexToRemove) {
         // Quick Add Mode: DOM only update
         if (itemId === 'quick-add') {
             if (originalInput) originalInput.value = finalSourceString;
-            const container = document.getElementById('quick-add-source-container');
-            if (container) container.innerHTML = renderTagsInput('quick-add', finalSourceString);
+            refreshQuickAddTagsUI(tags);
             return;
         }
 

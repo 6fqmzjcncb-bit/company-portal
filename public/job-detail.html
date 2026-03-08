@@ -186,7 +186,19 @@
 
                         <!-- Kaynak -->
                         <div id="quick-add-source-container" style="margin-bottom: 8px;">
-                            <!-- JS ile render edilecek -->
+                            <div class="tags-input-container" tabindex="-1"
+                                style="min-height: 44px; padding: 6px 12px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; cursor: text;">
+                                <div id="tags-wrapper-quick-add" style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                </div>
+                                <input type="text" id="tag-input-quick-add" class="tag-input"
+                                    placeholder="Tedarikçi Ara/Yaz..." autocomplete="off">
+                            </div>
+                            <!-- Autocomplete Dropdown Listesi -->
+                            <div id="tag-autocomplete-quick-add" class="tag-autocomplete-list" style="display: none;">
+                            </div>
+
+                            <!-- Asıl gidecek virgüllü data burada tutuluyor -->
+                            <input type="hidden" id="source-original-quick-add" name="source" class="tag-hidden-input">
                         </div>
 
                         <!-- Miktar -->
