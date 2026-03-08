@@ -819,6 +819,13 @@ function initInlineSearch() {
             }
         }
 
+        // Clear the source tag (Tedarikçi) specifically when typing/deleting manually
+        const originalInput = document.getElementById('source-original-quick-add');
+        if (originalInput) originalInput.value = '';
+        if (typeof refreshQuickAddTagsUI === 'function') {
+            refreshQuickAddTagsUI([]);
+        }
+
         await performSearch(e.target.value);
     });
 
