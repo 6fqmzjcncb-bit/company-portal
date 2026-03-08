@@ -829,6 +829,31 @@ function initInlineSearch() {
         await performSearch(e.target.value);
     });
 
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            // Prevent form submit
+            e.preventDefault();
+
+            // Allow selecting from autocomplete if it's open, otherwise jump to supplier
+            if (resultsDiv.style.display === 'block' && resultsDiv.innerHTML.trim() !== '' && !resultsDiv.innerHTML.includes('Ürün bulunamadı')) {
+                // If there's an exact match or user is navigating autocomplete, that logic handles it
+                // We'll let them click/select it. But if they just hit Enter to type a custom product:
+                const supplierInput = document.getElementById('tag-input-quick-add');
+                if (supplierInput) {
+                    supplierInput.focus();
+                    resultsDiv.style.display = 'none'; // Close dropdown
+                }
+            } else {
+                // Custom product typed
+                const supplierInput = document.getElementById('tag-input-quick-add');
+                if (supplierInput) {
+                    supplierInput.focus();
+                    resultsDiv.style.display = 'none';
+                }
+            }
+        }
+    });
+
     async function performSearch(query) {
         try {
             const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
