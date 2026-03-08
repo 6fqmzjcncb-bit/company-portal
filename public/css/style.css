@@ -1856,10 +1856,10 @@ textarea.input-small {
 /* Fix Tag Container Sizing & Style */
 .tag-container {
   width: 100%;
-
+  border: 1px solid #d1d5db !important;
   /* Allow dynamic height growth, compact match */
   height: auto !important;
-  min-height: 36px !important;
+  min-height: 38px !important;
 
   box-sizing: border-box;
   display: flex;
