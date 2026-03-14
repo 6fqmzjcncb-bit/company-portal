@@ -209,6 +209,16 @@ app.get('/setup/force-seed', async (req, res) => {
     // ... existing ...
 });
 
+app.get('/api/dev/seed', async (req, res) => {
+    try {
+        const seed = require('./seed');
+        await seed();
+        res.json({ message: 'Veritabanı başarıyla test verileriyle dolduruldu!' });
+    } catch (error) {
+        res.status(500).json({ error: 'Seed hatası', details: error.message });
+    }
+});
+
 
 
 // ... inside initializeDatabase ...
