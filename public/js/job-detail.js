@@ -384,13 +384,13 @@ function renderDeletions(deletions) {
                     <div style="padding: 12px 16px; margin-top: 8px; background: white; border-radius: 8px; font-size: 0.85rem; border: 1px solid #fee2e2; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
                         <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✕</div>
                         <div style="flex: 1;">
-                            <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap;">
+                            <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
                                 ${d.product_name}
-                                <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+                                <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
                                     ✕ ${d.quantity} adet silindi
                                 </span>
                             </div>
-                            <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                                 ${d.source_name ? `<span>📦 ${d.source_name}</span>` : ''}
                                 <span>👤 ${d.deleted_by?.full_name || 'Bilinmiyor'} (${new Date(d.deleted_at).toLocaleString('tr-TR')})</span>
                                 ${d.reason ? `<span style="color:#ef4444;">• ❗ ${d.reason}</span>` : ''}
@@ -562,14 +562,14 @@ function renderCompletedItem(item) {
     if (item.quantity_missing > 0) {
         // Partial (Red Badge)
         statusBadge = `
-            <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+            <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
                  ✓ ${item.quantity_found || 0} ${unitText} alındı • ✕ ${item.quantity_missing} eksik
             </span>
         `;
     } else {
         // Full (Green Badge)
         statusBadge = `
-            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
                  ✓ ${item.quantity} ${unitText} tam alındı
             </span>
         `;
@@ -579,11 +579,11 @@ function renderCompletedItem(item) {
         <div class="item-row item-checked" style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #10b981; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
             <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #10b981; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✓</div>
             <div style="flex: 1;">
-                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap;">
+                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
                     ${productName}
                     ${statusBadge}
                 </div>
-                <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 6px;">
+                <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <span>📦 ${sourceName}</span>
                     ${item.note ? `<span style="color:#f59e0b;">• 📝 ${item.note}</span>` : ''}
                 </div>
