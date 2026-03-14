@@ -114,25 +114,43 @@ async function loadRecentJobs() {
             completed: 'Tamamlandı'
         };
 
-        container.innerHTML = recentJobs.map(job => `
-      <div class="job-item">
-        <div class="item-info">
-          <div class="item-name">${job.title}</div>
-          <div class="item-meta">
-            ${new Date(job.created_at).toLocaleDateString('tr-TR')} - 
-            ${job.creator.full_name}
+        container.innerHTML = recentJobs.map(job => {
+            const viewersText = job.recent_viewers && job.recent_viewers.length > 0
+                ? job.recent_viewers.map(v => v.full_name).join(', ')
+                : 'Henüz kimse bakmadı';
+
+            return `
+      <div class="job-item" style="display: block; padding: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-radius: 8px; margin-bottom: 12px; background: white; border: 1px solid #e5e7eb;">
+        <div style="padding: 12px 16px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #f3f4f6;">
+          <div>
+            <div style="font-weight: 700; color: #1f2937; margin-bottom: 4px;">${job.title}</div>
+            <div style="font-size: 0.85rem; color: #6b7280;">
+              ${new Date(job.created_at).toLocaleDateString('tr-TR')} - ${job.creator.full_name}
+            </div>
           </div>
-        </div>
-        <div class="item-actions">
           <span class="badge badge-${statusColors[job.status]}">
             ${statusLabels[job.status]}
           </span>
-          <a href="/job-detail.html?id=${job.id}" class="btn btn-primary btn-sm">
-            Detay
-          </a>
+        </div>
+        
+        <div style="padding: 12px 16px;">
+          <div style="margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; padding: 0;">
+              <span style="color: #4b5563;"><strong>Tamamlanma:</strong></span>
+              <span style="color: #4b5563;"><strong>%${job.completion_percentage || 0}</strong></span>
+            </div>
+            <div style="background: #e5e7eb; height: 6px; border-radius: 3px; overflow: hidden;">
+              <div style="background: #059669; height: 100%; width: ${job.completion_percentage || 0}%; transition: width 0.3s;"></div>
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; color: #6b7280; display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+            <span>👁️ ${viewersText}</span>
+            <a href="/job-detail.html?id=${job.id}&title=${encodeURIComponent(job.title)}" class="btn btn-primary btn-sm" style="margin: 0;">Detay Gör</a>
+          </div>
         </div>
       </div>
-    `).join('');
+    `;
+        }).join('');
 
     } catch (error) {
         console.error('Recent jobs load error:', error);
