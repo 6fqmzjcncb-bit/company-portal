@@ -382,15 +382,18 @@ function renderDeletions(deletions) {
             <div style="margin-top: 10px;">
                 ${deletions.map(d => `
                     <div style="padding: 12px 16px; margin-top: 8px; background: white; border-radius: 8px; font-size: 0.85rem; border: 1px solid #fee2e2; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
-                        <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem;">🗑️</div>
+                        <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✕</div>
                         <div style="flex: 1;">
                             <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap;">
-                                ${d.product_name} <span style="font-weight: 400; margin-left: 6px;">- ${d.quantity} adet</span>
+                                ${d.product_name}
+                                <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-left: 8px; white-space: nowrap;">
+                                    ✕ ${d.quantity} adet silindi
+                                </span>
                             </div>
-                            <div style="font-size: 0.85rem; color: #6b7280; display: flex; flex-direction: column; gap: 2px;">
+                            <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                                 ${d.source_name ? `<span>📦 ${d.source_name}</span>` : ''}
                                 <span>👤 ${d.deleted_by?.full_name || 'Bilinmiyor'} (${new Date(d.deleted_at).toLocaleString('tr-TR')})</span>
-                                ${d.reason ? `<span style="color:#ef4444;">❗ ${d.reason}</span>` : ''}
+                                ${d.reason ? `<span style="color:#ef4444;">• ❗ ${d.reason}</span>` : ''}
                             </div>
                         </div>
                         <button onclick="restoreDeletion(${d.id})" class="btn btn-sm btn-warning" style="font-size: 0.9rem; border-radius: 6px; cursor: pointer; height: 36px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; gap: 6px;">
