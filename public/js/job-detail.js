@@ -381,17 +381,21 @@ function renderDeletions(deletions) {
             </summary>
             <div style="margin-top: 10px;">
                 ${deletions.map(d => `
-                    <div style="padding: 8px; margin-top: 5px; background: white; border-radius: 4px; font-size: 0.85rem; border: 1px solid #fee2e2;">
-                        <button onclick="restoreDeletion(${d.id})" class="btn btn-sm btn-warning" style="float: right; padding: 8px 16px; font-size: 0.9rem; font-weight: 600; cursor: pointer; border-radius: 6px;">
+                    <div style="padding: 12px 16px; margin-top: 8px; background: white; border-radius: 8px; font-size: 0.85rem; border: 1px solid #fee2e2; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
+                        <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem;">🗑️</div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap;">
+                                ${d.product_name} <span style="font-weight: 400; margin-left: 6px;">- ${d.quantity} adet</span>
+                            </div>
+                            <div style="font-size: 0.85rem; color: #6b7280; display: flex; flex-direction: column; gap: 2px;">
+                                ${d.source_name ? `<span>📦 ${d.source_name}</span>` : ''}
+                                <span>👤 ${d.deleted_by?.full_name || 'Bilinmiyor'} (${new Date(d.deleted_at).toLocaleString('tr-TR')})</span>
+                                ${d.reason ? `<span style="color:#ef4444;">❗ ${d.reason}</span>` : ''}
+                            </div>
+                        </div>
+                        <button onclick="restoreDeletion(${d.id})" class="btn btn-sm btn-warning" style="font-size: 0.9rem; border-radius: 6px; cursor: pointer; height: 36px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; gap: 6px;">
                             ↩ Geri Al
                         </button>
-                        <strong>${d.product_name}</strong> - ${d.quantity} adet
-                        ${d.source_name ? `(${d.source_name})` : ''}<br>
-                        <span style="color: #6b7280;">
-                            ${d.deleted_by?.full_name || 'Bilinmiyor'} tarafından silindi 
-                            (${new Date(d.deleted_at).toLocaleString('tr-TR')})
-                        </span>
-                        ${d.reason ? `<br><em>Sebep: ${d.reason}</em>` : ''}
                     </div>
                 `).join('')}
             </div>
@@ -581,7 +585,7 @@ function renderCompletedItem(item) {
                     ${item.note ? `<span style="color:#f59e0b;">• 📝 ${item.note}</span>` : ''}
                 </div>
             </div>
-            <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.9rem; padding: 8px 16px; font-weight: 600; border-radius: 6px; cursor: pointer;">↩ Geri Al</button>
+            <button class="btn btn-sm btn-warning" onclick="uncheckItem(${item.id})" style="font-size: 0.9rem; border-radius: 6px; cursor: pointer; height: 36px; padding: 0 16px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap; flex-shrink: 0; gap: 6px;">↩ Geri Al</button>
         </div>
     `;
 }
