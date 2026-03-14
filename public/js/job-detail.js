@@ -375,18 +375,22 @@ function renderDeletions(deletions) {
     }
 
     container.innerHTML = `
-        <details style="margin-top: 20px; padding: 10px; background: #fee2e2; border-radius: 8px; cursor: pointer;">
+        <details style="margin-top: 2rem; padding: 15px; background: #fee2e2; border-left: 4px solid #ef4444; border-radius: 8px; cursor: pointer;">
             <summary style="font-weight: 600; color: #991b1b; font-size: 0.9rem;">
                 🗑️ Silinen Ürünler (${deletions.length})
             </summary>
             <div style="margin-top: 10px;">
                 ${deletions.map(d => `
                     <div style="padding: 12px 16px; margin-top: 8px; background: white; border-radius: 8px; font-size: 0.85rem; border: 1px solid #fee2e2; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
-                        <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✕</div>
+                        <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #ef4444; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </div>
                         <div style="flex: 1;">
-                            <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-                                ${d.product_name}
-                                <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
+                            <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px;">
+                                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; line-height: 1.2;">
+                                    ${d.product_name}
+                                </div>
+                                <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; align-self: flex-start;">
                                     ✕ ${d.quantity} adet silindi
                                 </span>
                             </div>
@@ -562,14 +566,14 @@ function renderCompletedItem(item) {
     if (item.quantity_missing > 0) {
         // Partial (Red Badge)
         statusBadge = `
-            <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
+            <span style="background: #fee2e2; color: #991b1b; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; align-self: flex-start;">
                  ✓ ${item.quantity_found || 0} ${unitText} alındı • ✕ ${item.quantity_missing} eksik
             </span>
         `;
     } else {
         // Full (Green Badge)
         statusBadge = `
-            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap;">
+            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; align-self: flex-start;">
                  ✓ ${item.quantity} ${unitText} tam alındı
             </span>
         `;
@@ -579,8 +583,10 @@ function renderCompletedItem(item) {
         <div class="item-row item-checked" style="background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #10b981; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);">
             <div style="min-width: 24px; min-height: 24px; width: 24px; height: 24px; background: #10b981; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; font-weight: bold;">✓</div>
             <div style="flex: 1;">
-                <div style="font-weight: 700; color: #1f2937; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
-                    ${productName}
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px;">
+                    <div style="font-weight: 700; color: #1f2937; font-size: 1rem; line-height: 1.2;">
+                        ${productName}
+                    </div>
                     ${statusBadge}
                 </div>
                 <div style="font-size: 0.85rem; color: #6b7280; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
