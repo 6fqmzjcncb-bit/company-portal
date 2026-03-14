@@ -277,6 +277,19 @@ const initializeDatabase = async () => {
         await sequelize.query('PRAGMA foreign_keys = ON');
         console.log('✓ Tablolar senkronize edildi (Güvenli mod).');
 
+        const { JobList } = require('./models');
+        const existingJobsCount = await JobList.count().catch(() => 0);
+        
+        if (existingJobsCount === 0) {
+            console.log('🔄 Veritabanı boş tespit edildi. Otomatik test senaryosu verileri yükleniyor...');
+            try {
+                const performSeed = require('./seed');
+                await performSeed();
+            } catch (seedError) {
+                console.error('❌ Otomatik veri yükleme başarısız oldu:', seedError);
+            }
+        }
+
         // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
         await syncRolesAndPermissions(); // Migrate Roles FIRST
         await seedDemoData(); // Seed Demo Data (Accounts, Extra Roles)
