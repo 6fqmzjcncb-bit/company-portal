@@ -12,7 +12,7 @@ const { sequelize } = require('../config/database');
 async function recalcJobStatus(jobListId) {
     try {
         const allItems = await JobItem.findAll({
-            where: { job_list_id: jobListId, is_deleted: false }
+            where: { job_list_id: jobListId }
         });
         if (allItems.length === 0) {
             await JobList.update({ status: 'pending' }, { where: { id: jobListId } });
@@ -20,10 +20,11 @@ async function recalcJobStatus(jobListId) {
         }
         const checkedCount = allItems.filter(i => i.is_checked).length;
         let newStatus;
-        if (checkedCount === 0)           newStatus = 'pending';
+        if (checkedCount === 0)                    newStatus = 'pending';
         else if (checkedCount === allItems.length) newStatus = 'completed';
-        else                              newStatus = 'processing';
+        else                                       newStatus = 'processing';
         await JobList.update({ status: newStatus }, { where: { id: jobListId } });
+        console.log(`✓ Job ${jobListId} durumu güncellendi: ${newStatus} (${checkedCount}/${allItems.length})`);
     } catch (err) {
         console.error('recalcJobStatus error:', err);
     }
