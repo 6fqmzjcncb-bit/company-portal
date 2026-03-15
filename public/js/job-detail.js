@@ -257,6 +257,20 @@ async function loadJobDetail() {
             renderDeletions(job.deletions || []);
         }
 
+        // --- 4. HER ZAMAN DURUM ROZET GÜNCELLEMESİ ---
+        const statusBadgeEl = document.getElementById('jobStatusBadge');
+        if (statusBadgeEl && job.status) {
+            const statusStyles = {
+                pending:    { label: 'Bekliyor',   bg: '#fef3c7', color: '#92400e' },
+                processing: { label: 'İşlemde',    bg: '#dbeafe', color: '#1e40af' },
+                completed:  { label: 'Tamamlandı', bg: '#d1fae5', color: '#065f46' }
+            };
+            const s = statusStyles[job.status] || { label: job.status, bg: '#f3f4f6', color: '#374151' };
+            statusBadgeEl.textContent = s.label;
+            statusBadgeEl.style.backgroundColor = s.bg;
+            statusBadgeEl.style.color = s.color;
+        }
+
         // --- 4. ALWAYS UPDATE VIEWERS ---
         // Viewers listesi kişiye özel (kendi görüntülemesini içerir) ve anlık olduğu için, 
         // ana öğeler değişmese bile her network isteğinde yeniden çizdiriyoruz.
