@@ -12,27 +12,21 @@ async function seed() {
         console.log('Veritabanı temizlendi, oluşturuluyor...');
 
         // 1. Users
-        const hashedPwd = await bcrypt.hash('123', 10);
+        const adminPwd = await bcrypt.hash('admin123', 10);
+        const staffPwd = await bcrypt.hash('staff123', 10);
         
         const admin = await db.User.create({
             username: 'admin',
-            password: hashedPwd,
+            password: adminPwd,
             full_name: 'Sistem Yöneticisi',
             role: 'admin'
         });
 
         const user1 = await db.User.create({
-            username: 'ahmet',
-            password: hashedPwd,
-            full_name: 'Ahmet Yılmaz',
-            role: 'user'
-        });
-
-        const user2 = await db.User.create({
-            username: 'mehmet',
-            password: hashedPwd,
-            full_name: 'Mehmet Demir',
-            role: 'user'
+            username: 'staff',
+            password: staffPwd,
+            full_name: 'Örnek Personel',
+            role: 'staff'
         });
 
         // 2. Units
@@ -57,21 +51,20 @@ async function seed() {
         const s4 = await db.Source.create({ name: 'Araç (34 ABC 123)', type: 'vehicle', color_code: '#3b82f6' });
 
         // 5. Employees
-        const e1 = await db.Employee.create({
-            full_name: 'Hüseyin Çalışkan',
-            position: 'Usta',
-            phone: '05551234567',
-            salary: 35000,
-            hire_date: new Date('2023-01-15')
-        });
+        const employees = [];
+        const names = ['Hüseyin Çalışkan', 'Kadir Hızlı', 'Recep Demir', 'Mehmet Yılmaz', 'Ali Kaya', 'Veli Gürbüz', 'Kerem Can'];
+        const positions = ['Usta', 'Kalfa', 'Çırak', 'Şoför', 'Usta', 'Kalfa', 'Mühendis'];
+        const salaries = [35000, 25000, 18000, 22000, 36000, 24000, 45000];
 
-        const e2 = await db.Employee.create({
-            full_name: 'Kadir Hızlı',
-            position: 'Kalfa',
-            phone: '05559876543',
-            salary: 25000,
-            hire_date: new Date('2024-03-01')
-        });
+        for(let i=0; i<names.length; i++) {
+            employees.push(await db.Employee.create({
+                full_name: names[i],
+                position: positions[i],
+                phone: `0555123456${i}`,
+                salary: salaries[i],
+                hire_date: new Date(`2023-0${1 + i}-15`)
+            }));
+        }
 
         // 6. Payment Accounts
         const acc1 = await db.PaymentAccount.create({ name: 'Nakit Kasa', type: 'cash' });
@@ -79,13 +72,19 @@ async function seed() {
 
         // 7. Attendance
         const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-        
-        await db.Attendance.create({ employee_id: e1.id, date: yesterday, status: 'present', note: 'Tam gün şantiye' });
-        await db.Attendance.create({ employee_id: e1.id, date: today, status: 'present', note: 'Beylikdüzü şantiye' });
-        await db.Attendance.create({ employee_id: e2.id, date: yesterday, status: 'absent', note: 'Hasta' });
-        await db.Attendance.create({ employee_id: e2.id, date: today, status: 'half_day', note: 'Öğleden sonra geldi' });
+        for(let d=0; d<5; d++) {
+            const date = new Date(today);
+            date.setDate(date.getDate() - d);
+            for(let e of employees) {
+                // Randomly assign presence
+                const rand = Math.random();
+                let status = 'present';
+                if(rand > 0.8) status = 'absent';
+                else if(rand > 0.7) status = 'half_day';
+
+                await db.Attendance.create({ employee_id: e.id, date, status, note: status === 'present' ? 'Şantiye' : '' });
+            }
+        }
 
         // 8. Stock Movements
         await db.StockMovement.create({
@@ -122,7 +121,7 @@ async function seed() {
         // Add views
         await db.JobView.create({ job_list_id: j1.id, user_id: admin.id });
         await db.JobView.create({ job_list_id: j1.id, user_id: user1.id });
-        await db.JobView.create({ job_list_id: j2.id, user_id: user2.id });
+        await db.JobView.create({ job_list_id: j2.id, user_id: admin.id });
 
         // 10. Job Items
         // Job 1 Items (Processing)
@@ -194,6 +193,46 @@ async function seed() {
         if (typeof j1.updateStats === 'function') await j1.updateStats();
         if (typeof j2.updateStats === 'function') await j2.updateStats();
         if (typeof j3.updateStats === 'function') await j3.updateStats();
+
+        // 12. Extra Jobs & Movements (Bulk Data)
+        const products = [p1, p2, p3, p4, p5, p6, p7];
+        const sources = [s1, s2, s3, s4];
+        
+        for(let i=0; i<30; i++) {
+             // 30 extra stock movements
+             await db.StockMovement.create({
+                product_id: products[Math.floor(Math.random() * products.length)].id, 
+                source_id: sources[Math.floor(Math.random() * sources.length)].id, 
+                user_id: admin.id,
+                movement_type: Math.random() > 0.5 ? 'in' : 'out', 
+                quantity: Math.floor(Math.random() * 50) + 1, 
+                unit: 'Adet', 
+                note: 'Otomatik Üretilen Hareket ' + i,
+                date: new Date(Date.now() - (Math.random() * 10) * 24 * 60 * 60 * 1000)
+            });
+        }
+        
+        for(let i=1; i<=8; i++) {
+             const jExtra = await db.JobList.create({
+                title: `Ekstra Şantiye Projesi #${i}`,
+                created_by_user_id: user1.id,
+                status: i % 3 === 0 ? 'completed' : (i % 2 === 0 ? 'pending' : 'processing')
+            });
+            await db.JobView.create({ job_list_id: jExtra.id, user_id: admin.id });
+            await db.JobView.create({ job_list_id: jExtra.id, user_id: user1.id });
+            
+            // Add 3-8 items to each
+            const numItems = Math.floor(Math.random() * 5) + 3;
+            for(let k=0; k<numItems; k++) {
+                const qty = Math.floor(Math.random() * 20) + 1;
+                await db.JobItem.create({
+                    job_list_id: jExtra.id, product_id: products[k].id, source_id: s1.id, added_by: admin.id,
+                    quantity: qty, quantity_found: jExtra.status === 'completed' ? qty : Math.floor(Math.random() * qty), 
+                    is_checked: true, is_deleted: false, unit: 'Adet'
+                });
+            }
+            if (typeof jExtra.updateStats === 'function') await jExtra.updateStats();
+        }
 
         console.log('✅ Örnek veriler başarıyla eklendi!');
         return true;
