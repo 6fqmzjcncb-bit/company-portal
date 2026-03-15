@@ -217,6 +217,21 @@ async function loadUnits() {
     }
 }
 
+// Durum rozeti güncelle
+function renderStatusBadge(status) {
+    const el = document.getElementById('jobStatusBadge');
+    if (!el || !status) return;
+    const map = {
+        pending:    { label: 'Bekliyor',   bg: '#fef3c7', color: '#92400e' },
+        processing: { label: '\u0130\u015flemde',    bg: '#dbeafe', color: '#1e40af' },
+        completed:  { label: 'Tamamland\u0131', bg: '#d1fae5', color: '#065f46' }
+    };
+    const s = map[status] || { label: status, bg: '#f3f4f6', color: '#374151' };
+    el.textContent = s.label;
+    el.style.backgroundColor = s.bg;
+    el.style.color = s.color;
+}
+
 // İş listesi detayını yükle
 async function loadJobDetail() {
     try {
@@ -227,6 +242,7 @@ async function loadJobDetail() {
             try {
                 const job = JSON.parse(cachedStr);
                 document.getElementById('jobTitle').textContent = job.title;
+                renderStatusBadge(job.status);
                 renderCompletionStats(job.completion, job.viewers);
                 renderItems(job.items || []);
                 renderIncompleteItems(job.items || []);
@@ -257,21 +273,10 @@ async function loadJobDetail() {
             renderDeletions(job.deletions || []);
         }
 
-        // --- 4. HER ZAMAN DURUM ROZET GÜNCELLEMESİ ---
-        const statusBadgeEl = document.getElementById('jobStatusBadge');
-        if (statusBadgeEl && job.status) {
-            const statusStyles = {
-                pending:    { label: 'Bekliyor',   bg: '#fef3c7', color: '#92400e' },
-                processing: { label: 'İşlemde',    bg: '#dbeafe', color: '#1e40af' },
-                completed:  { label: 'Tamamlandı', bg: '#d1fae5', color: '#065f46' }
-            };
-            const s = statusStyles[job.status] || { label: job.status, bg: '#f3f4f6', color: '#374151' };
-            statusBadgeEl.textContent = s.label;
-            statusBadgeEl.style.backgroundColor = s.bg;
-            statusBadgeEl.style.color = s.color;
-        }
+        // --- 4. HER ZAMAN DURUM ROZET GÜNCELLEMİ ---
+        renderStatusBadge(job.status);
 
-        // --- 4. ALWAYS UPDATE VIEWERS ---
+        // --- 5. ALWAYS UPDATE VIEWERS ---
         // Viewers listesi kişiye özel (kendi görüntülemesini içerir) ve anlık olduğu için, 
         // ana öğeler değişmese bile her network isteğinde yeniden çizdiriyoruz.
         renderCompletionStats(job.completion, job.viewers);
@@ -1333,6 +1338,7 @@ async function checkItem(itemId) {
         }
 
         showAlert('Kalem işaretlendi!', 'success');
+        localStorage.removeItem(`jobDetailCache_${jobId}`);
         await loadJobDetail();
 
     } catch (error) {
@@ -1353,6 +1359,7 @@ async function uncheckItem(itemId) {
         }
 
         showAlert('İşaret kaldırıldı', 'success');
+        localStorage.removeItem(`jobDetailCache_${jobId}`);
         await loadJobDetail();
 
     } catch (error) {
