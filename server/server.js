@@ -206,7 +206,14 @@ const seedDemoData = async () => {
 
 // Force Seed Endpoint (Nuclear Option)
 app.get('/setup/force-seed', async (req, res) => {
-    // ... existing ...
+    try {
+        const performSeed = require('./seed');
+        await performSeed();
+        res.json({ message: 'Zorunlu test verileri başarıyla yüklendi!' });
+    } catch (error) {
+        console.error('Force seed hatası:', error);
+        res.status(500).json({ error: 'Seed hatası', details: error.message });
+    }
 });
 
 
