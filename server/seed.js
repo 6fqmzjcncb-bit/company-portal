@@ -1,4 +1,5 @@
 const { Sequelize } = require('sequelize');
+const bcrypt = require('bcrypt');
 const db = require('./models');
 
 async function seed() {
@@ -11,23 +12,25 @@ async function seed() {
         console.log('Veritabanı temizlendi, oluşturuluyor...');
 
         // 1. Users
+        const hashedPwd = await bcrypt.hash('123', 10);
+        
         const admin = await db.User.create({
             username: 'admin',
-            password: '123', // Model hook will hash this
+            password: hashedPwd,
             full_name: 'Sistem Yöneticisi',
             role: 'admin'
         });
 
         const user1 = await db.User.create({
             username: 'ahmet',
-            password: '123',
+            password: hashedPwd,
             full_name: 'Ahmet Yılmaz',
             role: 'user'
         });
 
         const user2 = await db.User.create({
             username: 'mehmet',
-            password: '123',
+            password: hashedPwd,
             full_name: 'Mehmet Demir',
             role: 'user'
         });
