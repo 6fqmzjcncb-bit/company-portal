@@ -1829,6 +1829,12 @@ async function checkItem(itemId) {
 
         if (!response.ok) throw new Error('İşlem başarısız');
 
+        // Yeni job durumunu ANINDA badge'e uygula
+        const result = await response.json();
+        if (result.new_job_status) {
+            renderStatusBadge(result.new_job_status);
+        }
+
         // Success Visual Feedback
         if (checkBtn) {
             checkBtn.innerHTML = '<span style="font-size: 0.85rem; padding: 0 4px;">✓ Eklendi</span>';
@@ -1840,6 +1846,7 @@ async function checkItem(itemId) {
             await new Promise(resolve => setTimeout(resolve, 600));
         }
 
+        localStorage.removeItem(`jobDetailCache_${jobId}`);
         await loadJobDetail();
 
     } catch (error) {
