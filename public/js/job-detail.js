@@ -525,8 +525,8 @@ function renderIncompleteItem(item) {
                 </div>
             </div>
 
-            <!-- EXCEPTION: Missing Quantity Warning -->
-            <div id="missing-panel-${item.id}" style="display: ${(item.quantity_found !== undefined && item.quantity_found !== null && item.quantity_found < item.quantity) ? 'block' : 'none'}; margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
+            <!-- EXCEPTION: Missing Quantity Warning (only shown after check action, not on fresh/pending items) -->
+            <div id="missing-panel-${item.id}" style="display: ${(item.is_checked && item.quantity_found !== undefined && item.quantity_found !== null && item.quantity_found < item.quantity) ? 'block' : 'none'}; margin-top: 12px; background: #fee2e2; padding: 10px; border-radius: 6px; border-left: 3px solid #ef4444;">
                 <div id="missing-text-${item.id}" style="font-weight: 600; color: #ef4444; margin-bottom: 8px; font-size: 0.9rem;">
                     ⚠️ ${item.quantity - (item.quantity_found || 0)} adet eksik!
                 </div>
