@@ -394,10 +394,14 @@ router.post('/items/:itemId/check', requireAuth, async (req, res) => {
             ]
         });
 
+        // Yeni job durumunu da döndür (frontend badge anında güncellensin)
+        const updatedJob = await JobList.findByPk(item.job_list_id, { attributes: ['id', 'status'] });
+
         res.json({
             success: true,
             message: 'İşlem başarılı',
-            item: checkedItem
+            item: checkedItem,
+            new_job_status: updatedJob ? updatedJob.status : null
         });
 
     } catch (error) {

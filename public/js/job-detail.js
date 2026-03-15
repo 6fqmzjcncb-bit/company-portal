@@ -1337,6 +1337,12 @@ async function checkItem(itemId) {
             throw new Error(data.error || 'İşaretleme başarısız');
         }
 
+        // API'den gelen yeni durumu badge'e ANINDA uygula
+        const result = await response.json();
+        if (result.new_job_status) {
+            renderStatusBadge(result.new_job_status);
+        }
+
         showAlert('Kalem işaretlendi!', 'success');
         localStorage.removeItem(`jobDetailCache_${jobId}`);
         await loadJobDetail();
