@@ -284,17 +284,23 @@ const initializeDatabase = async () => {
         await sequelize.query('PRAGMA foreign_keys = ON');
         console.log('✓ Tablolar senkronize edildi (Güvenli mod).');
 
-        const { JobList } = require('./models');
-        const existingJobsCount = await JobList.count().catch(() => 0);
+        const { Product } = require('./models');
+        const existingProductsCount = await Product.count().catch(() => 0);
+        console.log(`📊 Mevcut ürün sayısı: ${existingProductsCount}`);
         
-        if (existingJobsCount === 0) {
-            console.log('🔄 Veritabanı boş tespit edildi. Otomatik test senaryosu verileri yükleniyor...');
+        if (existingProductsCount === 0) {
+            console.log('🔄 Veritabanı boş tespit edildi. Otomatik veri yükleniyor...');
             try {
+                delete require.cache[require.resolve('./seed')];
                 const performSeed = require('./seed');
                 await performSeed();
+                console.log('✅ Otomatik veri yükleme tamamlandı!');
             } catch (seedError) {
-                console.error('❌ Otomatik veri yükleme başarısız oldu:', seedError);
+                console.error('❌ Otomatik veri yükleme başarısız oldu:', seedError.message);
+                console.error(seedError.stack);
             }
+        } else {
+            console.log(`✅ Veritabanında ${existingProductsCount} ürün mevcut, seed atlandı.`);
         }
 
         // Otomatik Kullanıcı Oluşturma (Sync Missing Users)
