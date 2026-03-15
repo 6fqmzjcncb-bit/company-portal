@@ -36,19 +36,55 @@ async function seed() {
         const unitKutu = await db.Unit.create({ name: 'Kutu' });
 
         // 3. Products
-        const p1 = await db.Product.create({ name: 'Kombi 24kW', unit: 'Adet', category: 'Isıtma' });
-        const p2 = await db.Product.create({ name: 'Boru 1/2"', unit: 'Metre', category: 'Tesisat' });
-        const p3 = await db.Product.create({ name: 'Radyatör 60x120', unit: 'Adet', category: 'Isıtma' });
-        const p4 = await db.Product.create({ name: 'Koli Bandı', unit: 'Adet', category: 'Sarf' });
-        const p5 = await db.Product.create({ name: 'Lehim Seti', unit: 'Adet', category: 'Alet' });
-        const p6 = await db.Product.create({ name: 'Kablo 3x2.5', unit: 'Metre', category: 'Elektrik' });
-        const p7 = await db.Product.create({ name: 'Priz Tekli', unit: 'Adet', category: 'Elektrik' });
+        const productData = [
+            { name: 'Kombi 24kW', unit: 'Adet', category: 'Isıtma' },
+            { name: 'Kombi 28kW', unit: 'Adet', category: 'Isıtma' },
+            { name: 'Boru 1/2"', unit: 'Metre', category: 'Tesisat' },
+            { name: 'Boru 3/4"', unit: 'Metre', category: 'Tesisat' },
+            { name: 'PPRC Boru 20mm', unit: 'Metre', category: 'Tesisat' },
+            { name: 'Radyatör 60x100', unit: 'Adet', category: 'Isıtma' },
+            { name: 'Radyatör 60x120', unit: 'Adet', category: 'Isıtma' },
+            { name: 'Havlupan 50x80', unit: 'Adet', category: 'Isıtma' },
+            { name: 'Koli Bandı', unit: 'Adet', category: 'Sarf' },
+            { name: 'Teflon Bant', unit: 'Adet', category: 'Sarf' },
+            { name: 'Keten', unit: 'Adet', category: 'Sarf' },
+            { name: 'Lehim Seti', unit: 'Adet', category: 'Alet' },
+            { name: 'Silikon Tabancası', unit: 'Adet', category: 'Alet' },
+            { name: 'Kablo 3x2.5', unit: 'Metre', category: 'Elektrik' },
+            { name: 'Kablo 3x1.5', unit: 'Metre', category: 'Elektrik' },
+            { name: 'Kablo 2x0.75', unit: 'Metre', category: 'Elektrik' },
+            { name: 'Priz Tekli', unit: 'Adet', category: 'Elektrik' },
+            { name: 'Sıva Üstü Anahtar', unit: 'Adet', category: 'Elektrik' },
+            { name: 'Led Ampul 9W', unit: 'Adet', category: 'Aydınlatma' },
+            { name: 'Matkap Ucu Seti', unit: 'Kutu', category: 'Alet' },
+            { name: 'Vida 4x40 YHB', unit: 'Kutu', category: 'Nalburiye' },
+            { name: 'Dübel 8mm', unit: 'Kutu', category: 'Nalburiye' },
+            { name: 'Klima Bakır Boru', unit: 'Metre', category: 'İklimlendirme' },
+            { name: 'Klima Gazı R410', unit: 'Kg', category: 'İklimlendirme' },
+            { name: 'Akıllı Termostat', unit: 'Adet', category: 'Kontrol' }
+        ];
+        
+        const insertedProducts = [];
+        for(let pd of productData) {
+            insertedProducts.push(await db.Product.create(pd));
+        }
+        // Aliasing the first 7 array elements to variables for backward compatibility
+        const p1 = insertedProducts[0];
+        const p2 = insertedProducts[2]; // Boru
+        const p3 = insertedProducts[6]; // Radyator 120
+        const p4 = insertedProducts[8]; // Koli bandi
+        const p5 = insertedProducts[11]; // Lehim
+        const p6 = insertedProducts[13]; // Kablo
+        const p7 = insertedProducts[16]; // Priz
 
         // 4. Sources
         const s1 = await db.Source.create({ name: 'Merkez Depo', type: 'warehouse', color_code: '#10b981' });
-        const s2 = await db.Source.create({ name: 'Koçtaş', type: 'supplier', color_code: '#f59e0b' });
+        const s2 = await db.Source.create({ name: 'Koçtaş Beylikdüzü', type: 'supplier', color_code: '#f59e0b' });
         const s3 = await db.Source.create({ name: 'Yüksel Hırdavat', type: 'supplier', color_code: '#ef4444' });
-        const s4 = await db.Source.create({ name: 'Araç (34 ABC 123)', type: 'vehicle', color_code: '#3b82f6' });
+        const s4 = await db.Source.create({ name: 'Araç 1 (34 ABC 123)', type: 'vehicle', color_code: '#3b82f6' });
+        const s5 = await db.Source.create({ name: 'Araç 2 (34 XYZ 987)', type: 'vehicle', color_code: '#6366f1' });
+        const s6 = await db.Source.create({ name: 'Aydın Aydınlatma', type: 'supplier', color_code: '#ec4899' });
+        const allSources = [s1, s2, s3, s4, s5, s6];
 
         // 5. Employees
         const employees = [];
@@ -195,40 +231,46 @@ async function seed() {
         if (typeof j3.updateStats === 'function') await j3.updateStats();
 
         // 12. Extra Jobs & Movements (Bulk Data)
-        const products = [p1, p2, p3, p4, p5, p6, p7];
-        const sources = [s1, s2, s3, s4];
+        const products = insertedProducts;
+        const extraSources = allSources;
         
-        for(let i=0; i<30; i++) {
-             // 30 extra stock movements
+        for(let i=0; i<150; i++) {
+             // 150 extra stock movements!
+             const randomProduct = products[Math.floor(Math.random() * products.length)];
+             const isMetre = randomProduct.unit === 'Metre';
+             const isKutu = randomProduct.unit === 'Kutu';
+             const maxQty = isMetre ? 300 : (isKutu ? 5 : 20);
+             
              await db.StockMovement.create({
-                product_id: products[Math.floor(Math.random() * products.length)].id, 
-                source_id: sources[Math.floor(Math.random() * sources.length)].id, 
+                product_id: randomProduct.id, 
+                source_id: extraSources[Math.floor(Math.random() * extraSources.length)].id, 
                 user_id: admin.id,
-                movement_type: Math.random() > 0.5 ? 'in' : 'out', 
-                quantity: Math.floor(Math.random() * 50) + 1, 
-                unit: 'Adet', 
-                note: 'Otomatik Üretilen Hareket ' + i,
-                date: new Date(Date.now() - (Math.random() * 10) * 24 * 60 * 60 * 1000)
+                movement_type: Math.random() > 0.4 ? 'in' : 'out', 
+                quantity: Math.floor(Math.random() * maxQty) + 1, 
+                unit: randomProduct.unit, 
+                note: 'Sistem ' + i,
+                date: new Date(Date.now() - (Math.random() * 20) * 24 * 60 * 60 * 1000)
             });
         }
         
-        for(let i=1; i<=8; i++) {
+        for(let i=1; i<=15; i++) {
              const jExtra = await db.JobList.create({
-                title: `Ekstra Şantiye Projesi #${i}`,
+                title: `Ekstra Sektörel Proje #${i}`,
                 created_by_user_id: user1.id,
                 status: i % 3 === 0 ? 'completed' : (i % 2 === 0 ? 'pending' : 'processing')
             });
             await db.JobView.create({ job_list_id: jExtra.id, user_id: admin.id });
             await db.JobView.create({ job_list_id: jExtra.id, user_id: user1.id });
             
-            // Add 3-8 items to each
-            const numItems = Math.floor(Math.random() * 5) + 3;
+            // Add 4-10 items to each project
+            const numItems = Math.floor(Math.random() * 7) + 4;
             for(let k=0; k<numItems; k++) {
+                const randomItem = products[Math.floor(Math.random() * products.length)];
                 const qty = Math.floor(Math.random() * 20) + 1;
                 await db.JobItem.create({
-                    job_list_id: jExtra.id, product_id: products[k].id, source_id: s1.id, added_by: admin.id,
+                    job_list_id: jExtra.id, product_id: randomItem.id, source_id: s1.id, added_by: admin.id,
                     quantity: qty, quantity_found: jExtra.status === 'completed' ? qty : Math.floor(Math.random() * qty), 
-                    is_checked: true, is_deleted: false, unit: 'Adet'
+                    is_checked: Math.random() > 0.5, is_deleted: false, unit: randomItem.unit
                 });
             }
             if (typeof jExtra.updateStats === 'function') await jExtra.updateStats();
