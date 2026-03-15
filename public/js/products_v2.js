@@ -384,11 +384,12 @@ function renderMovements(movements) {
 
 
     tbody.innerHTML = movements.map(mov => {
-        const typeInfo = getMovementTypeInfo(mov.movement_type);
-        const person = mov.movement_type === 'IN' ? mov.brought_by :
-            mov.movement_type === 'OUT' ? mov.taken_by : '-';
-        const location = mov.movement_type === 'IN' ? mov.source_location :
-            mov.movement_type === 'OUT' ? mov.destination : '-';
+        const upperType = String(mov.movement_type || '').toUpperCase();
+        const typeInfo = getMovementTypeInfo(upperType);
+        const person = upperType === 'IN' ? mov.brought_by :
+            upperType === 'OUT' ? mov.taken_by : '-';
+        const location = upperType === 'IN' ? mov.source_location :
+            upperType === 'OUT' ? mov.destination : '-';
 
         // Format date safely - check both created_at (DB column) and createdAt (Sequelize model field)
         const rawDate = mov.created_at || mov.createdAt;
@@ -456,12 +457,13 @@ async function fetchWithTimeout(resource, options = {}) {
 }
 
 function getMovementTypeInfo(type) {
+    const upperType = String(type || '').toUpperCase();
     const types = {
-        'IN': { text: 'Giriş', icon: '📥', class: 'badge-success' },
-        'OUT': { text: 'Çıkış', icon: '📤', class: 'badge-danger' },
-        'ADJUSTMENT': { text: 'Düzenleme', icon: '⚙️', class: 'badge-warning' }
+        'IN': { text: 'Giriş', icon: '📥', class: 'bg-success text-white' },
+        'OUT': { text: 'Çıkış', icon: '📤', class: 'bg-danger text-white' },
+        'ADJUSTMENT': { text: 'Düzenleme', icon: '⚙️', class: 'bg-warning text-dark' }
     };
-    return types[type] || { text: type, icon: '', class: '' };
+    return types[upperType] || { text: type, icon: '', class: 'bg-secondary text-white' };
 }
 
 function formatDateTime(dateStr) {
@@ -712,8 +714,9 @@ async function editProduct(id) {
                 const moves = await res.json();
                 if (moves.length > 0) {
                     historyBody.innerHTML = moves.map(m => {
-                        const typeInfo = getMovementTypeInfo(m.movement_type);
-                        const person = m.movement_type === 'IN' ? m.brought_by : (m.taken_by || '-');
+                        const upperType = String(m.movement_type || '').toUpperCase();
+                        const typeInfo = getMovementTypeInfo(upperType);
+                        const person = upperType === 'IN' ? m.brought_by : (m.taken_by || '-');
                         return `
                             <tr>
                                 <td>${new Date(m.created_at).toLocaleDateString('tr-TR')}</td>
