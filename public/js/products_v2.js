@@ -403,7 +403,7 @@ function renderMovements(movements) {
         return `
             <tr>
                 <td>${dateStr}</td>
-                <td><span class="badge ${typeInfo.class}">${typeInfo.icon} ${typeInfo.text}</span></td>
+                <td>${typeInfo.html}</td>
                 <td>${productName}</td>
                 <td>${mov.quantity}</td>
                 <td>${person || '-'}</td>
@@ -459,11 +459,12 @@ async function fetchWithTimeout(resource, options = {}) {
 function getMovementTypeInfo(type) {
     const upperType = String(type || '').toUpperCase();
     const types = {
-        'IN': { text: 'Giriş', icon: '📥', class: 'bg-success text-white' },
-        'OUT': { text: 'Çıkış', icon: '📤', class: 'bg-danger text-white' },
-        'ADJUSTMENT': { text: 'Düzenleme', icon: '⚙️', class: 'bg-warning text-dark' }
+        'IN': { text: 'Giriş', icon: '📥', class: '', style: 'background-color: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; padding: 4px 8px; border-radius: 4px; font-weight: 500;' },
+        'OUT': { text: 'Çıkış', icon: '📤', class: '', style: 'background-color: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 4px 8px; border-radius: 4px; font-weight: 500;' },
+        'ADJUSTMENT': { text: 'Düzenleme', icon: '⚙️', class: '', style: 'background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 4px 8px; border-radius: 4px; font-weight: 500;' }
     };
-    return types[upperType] || { text: type, icon: '', class: 'bg-secondary text-white' };
+    const info = types[upperType] || { text: type, icon: '', class: '', style: 'background-color: #f3f4f6; color: #374151; padding: 4px 8px; border-radius: 4px;' };
+    return { ...info, html: `<span style="${info.style}">${info.icon} ${info.text}</span>` };
 }
 
 function formatDateTime(dateStr) {
@@ -720,7 +721,7 @@ async function editProduct(id) {
                         return `
                             <tr>
                                 <td>${new Date(m.created_at).toLocaleDateString('tr-TR')}</td>
-                                <td><span class="badge ${typeInfo.class}" style="font-size:0.75rem; padding: 2px 6px;">${typeInfo.text}</span></td>
+                                <td>${typeInfo.html}</td>
                                 <td>${m.quantity}</td>
                                 <td>${person}</td>
                             </tr>
