@@ -331,7 +331,7 @@ const syncMissingUsers = async () => {
                 counter++;
             }
 
-            const password = await bcrypt.hash('123456', 10);
+            const password = await bcrypt.hash('123', 10);
             const user = await User.create({
                 username, password, full_name: emp.full_name, role: 'staff', is_active: true
             });
